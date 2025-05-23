@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Register</title>
-    <link rel="stylesheet" href="/hershive_ui/style/register.css"/>
+    <link rel="stylesheet" href="/Hershive/style/register.css"/>
   </head>
 
   <body>
@@ -12,14 +12,14 @@
       <div class="left">
         <h1>Register</h1>
         <p>Connect, Share, Explore.</p>
-        <img src="/hershive_ui/assets/register_image.png" alt="Illustration"/>
+        <img src="/Hershive/assets/register_image.png" alt="Illustration"/>
       </div>
 
       <div class="right">
         <div class="form-box">
           <form
             onsubmit="return validateForm()"
-            action="/hershive_ui/html/create_account.html"
+            action="/Hershive/html/create_account.html"
             method="get">
 
             <input type="email" id="email" placeholder="Email" required/>
@@ -55,12 +55,13 @@
 
             <button type="submit">Register</button>
             <p class="login-link">
-              Already have an account? <a href="#">Log in here</a>
+                Already have an account?
+                <a href="/Hershive/html/login.html">Log in here</a>
             </p>
           </form>
         </div>
       </div>
     </div>
-    <script src="/hershive_ui/script/register.js"></script>
+    <script src="/Hershive/script/register.js"></script>
   </body>
 </html>
