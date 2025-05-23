@@ -26,5 +26,5 @@ function removeImage() {
 
 function goToHome(event) {
   event.preventDefault();
-  window.location.href = "/hershive_ui/html/home.html";
+  window.location.href = "/Hershive/html/home.html";
 }
