@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Create New Account</title>
+    <link rel="stylesheet" href="/hershive_ui/style/create_account.css"/>
+  </head>
+
+  <body>
+    <div class="account-form-container">
+      <div class="account-form">
+        <div class="image-upload" id="image_upload">
+          <label for="profileImage">
+            <div
+                class="image-circle"
+                id="image_preview"
+                onclick="triggerFileInput()">
+              <span id="previewText">add image</span>
+            </div>
+          </label>
+          <input
+              type="file"
+              id="profile_image"
+              accept="image/*"
+              onchange="previewImage(this)"/>
+          <button
+              type="button"
+              class="remove-btn"
+              onclick="removeImage()">✖
+          </button>
+        </div>
+
+        <h2>Create new account</h2>
+
+        <form onsubmit="goToHome(event)">
+          <div class="input-row">
+            <input type="text" placeholder="First Name" required/>
+            <input type="text" placeholder="Last Name" required/>
+          </div>
+
+          <div class="input-row">
+            <label for="birthday" class="birthday-label">Birthday:</label>
+            <input type="date" id="birthday" name="birthday" required/>
+          </div>
+
+          <input type="number" placeholder="Age" min="0" required/>
+
+          <div class="input-row">
+            <select>
+              <option>Status</option>
+              <option>Single</option>
+              <option>Married</option>
+              <option>Other</option>
+            </select>
+            <select>
+              <option>Gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="input-row">
+            <input type="text" placeholder="Country"/>
+            <input type="text" placeholder="City"/>
+          </div>
+
+          <textarea placeholder="Bio" rows="3"></textarea>
+
+          <button type="submit">Create account</button>
+        </form>
+      </div>
+    </div>
+    <script src="/hershive_ui/script/create_account.js"></script>
+  </body>
+</html>
