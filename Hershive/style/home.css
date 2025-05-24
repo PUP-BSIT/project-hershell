@@ -488,3 +488,67 @@ select {
 .save-edit-button:hover {
   background-color: #0056b3;
 }
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.icon-button img {
+  width: 16px;
+  height: 16px;
+}
+
+.privacy-select img {
+  width: 16px;
+  height: 16px;
+}
+
+.privacy-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.privacy-select select {
+  padding: 2px 4px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+}
+
+.preview {
+  margin: 10px 0;
+  position: relative;
+  max-width: 100%;
+}
+
+.preview-item {
+  position: relative;
+  max-width: 100%;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview img,
+.preview video {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  max-height: 180px; /* limit height for compact layout */
+  object-fit: cover;
+}

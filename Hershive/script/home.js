@@ -87,6 +87,9 @@ function deletePost(button) {
 function submitPost() {
   const editor = document.getElementById("editor");
   const postText = editor.innerHTML.trim();
+  const imageFile = imageInput.files[0];
+  const videoFile = videoInput.files[0];
+
   if (!postText || postText === "<br>") {
     alert("Please enter some text to post.");
     return;
@@ -122,12 +125,69 @@ function submitPost() {
     </div>
   `;
 
+  const contentDiv = post.querySelector(".content");
+
+  if (imageFile) addMediaToPost(imageFile, false, contentDiv);
+  if (videoFile) addMediaToPost(videoFile, true, contentDiv);
+
   leftContent.insertBefore(post, leftContent.children[1]);
 
   editor.innerHTML = "";
+  imageInput.value = "";
+  videoInput.value = "";
+  previewContainer.innerHTML = "";
   closePostModal();
 }
 
 function formatText(command) {
   document.execCommand(command, false, null);
+}
+
+const imageInput = document.getElementById('mediaInput');
+const videoInput = document.getElementById('mediaInputVideo');
+const previewContainer = document.getElementById('previewContainer');
+
+function handleFileInput(input, isVideo = false) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    previewContainer.innerHTML = '';
+
+    const media = document.createElement(isVideo ? 'video' : 'img');
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('preview-item');
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = '✕';
+    removeBtn.onclick = () => {
+      previewContainer.innerHTML = '';
+      input.value = '';
+    };
+
+    wrapper.appendChild(media);
+    wrapper.appendChild(removeBtn);
+    previewContainer.appendChild(wrapper);
+  };
+  reader.readAsDataURL(file);
+}
+
+imageInput.addEventListener('change', () => handleFileInput(imageInput));
+videoInput.addEventListener('change', () => handleFileInput(videoInput, true));
+
+function addMediaToPost(file, isVideo = false, targetContentDiv) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const media = document.createElement(isVideo ? "video" : "img");
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+    media.classList.add(isVideo ? "preview-video" : "preview-image");
+    targetContentDiv.appendChild(media);
+  };
+  reader.readAsDataURL(file);
 }
