@@ -87,3 +87,51 @@ function deletePost(button) {
     post.remove();
   }
 }
+
+function submitPost() {
+  const textarea = document.querySelector('.modal-overlay textarea');
+  const postText = textarea.value.trim();
+
+  if (!postText) {
+    alert('Please enter some text to post.');
+    return;
+  }
+
+  const leftContent = document.querySelector('.left-content');
+
+  // Create post element
+  const post = document.createElement('div');
+  post.className = 'sample-post';
+  post.innerHTML = `
+    <div class="post-header">
+      <div class="post-header-left">
+        <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+        <div class="post-info">
+          <span class="username">Jane Dee</span>
+          <span class="timestamp">${new Date().toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="more-option">
+        <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+        <div class="dropdown-menu">
+          <button onclick="editPost(this)">Edit</button>
+          <button onclick="deletePost(this)">Delete</button>
+          <button onclick="cancelDropdown(this)">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="post-content">
+      <div class="content">
+        <p>${postText}</p>
+      </div>
+    </div>
+  `;
+
+  // Prepend the new post right after the create-post section
+  leftContent.insertBefore(post, leftContent.children[1]);
+
+  // Clear textarea & close modal
+  textarea.value = '';
+  closePostModal();
+}
