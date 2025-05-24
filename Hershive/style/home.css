@@ -285,6 +285,16 @@ select {
   display: flex;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.flex-center {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
 .modal-overlay {
   display: none;
   position: fixed;
