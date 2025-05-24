@@ -121,14 +121,34 @@
           placeholder="Share something...">
       </div>
 
-        <div class="formatting-options">
-          <button onclick="formatText('bold')">B</button>
-          <button onclick="formatText('italic')">I</button>
-          <button onclick="formatText('underline')">U</button>
-          <button>Video</button>
-          <button>Public</button>
-          <button class="image-button">Image</button>
+      <div class="preview" id="previewContainer"></div>
+
+      <div class="formatting-options">
+        <button onclick="formatText('bold')">B</button>
+        <button onclick="formatText('italic')">I</button>
+        <button onclick="formatText('underline')">U</button>
+      </div>
+
+      <div class="upload-controls">
+        <label class="icon-button">
+          <img src="../assets/camera_icon.png" alt="Image Icon">
+          <input type="file" id="mediaInput" accept="image/*" hidden>
+          <span>Image</span>
+        </label>
+        <label class="icon-button">
+          <img src="../assets/video_icon.png" alt="Video Icon">
+          <input type="file" id="mediaInputVideo" accept="video/*" hidden>
+          <span>Video</span>
+        </label>
+        <div class="privacy-select">
+          <img src="../assets/public_icon.png" alt="Public Icon">
+          <select id="privacySetting">
+            <option value="public">Public</option>
+            <option value="friends">Friends</option>
+            <option value="private">Private</option>
+          </select>
         </div>
+      </div>
 
       <button class="submit-button"
           id="submitPostButton"
@@ -139,3 +159,4 @@
   <script src="../script/home.js"></script>
 </body>
 </html>
+
