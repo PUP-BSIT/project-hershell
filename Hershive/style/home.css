@@ -413,3 +413,20 @@ select {
 .save-edit-button:hover {
   background-color: #2563eb;
 }
+
+#media-preview {
+  margin: 10px 0;
+}
+  
+
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+
+.preview-video {
+  margin-top: 10px;
+  border-radius: 10px;
+}
