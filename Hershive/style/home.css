@@ -1,11 +1,11 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f5ea;
   color: black;
 }
@@ -122,7 +122,7 @@ body {
   border-radius: 50%;
 }
 
-.sub-create-post img{
+.sub-create-post img {
   width: 20px;
   height: 20px;
 }
@@ -298,8 +298,10 @@ select {
 .modal-overlay {
   display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
   justify-content: center;
@@ -333,75 +335,62 @@ select {
   cursor: pointer;
 }
 
-
 .create-post-modal {
-    display: flex;
-    flex-direction: column;
-    border-radius: 10px;
-    background-color: #dfdbcd;
-    padding: 40px;
-    width: 1000px;
-    height: auto;
-    position: fixed;
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
-    z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background-color: #dfdbcd;
+  padding: 40px;
+  width: 1000px;
+  height: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
 }
 
 .modal-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-bottom: 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 15px;
 }
 
 .modal-header h2 {
-    font-size: 18px;
+  font-size: 18px;
 }
 
 .username {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .textarea {
-    border: 1px solid #ccc;
-    border-radius: 5px; 
-    padding: 10px;
-    height: 100px;
-    resize: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  height: 100px;
+  resize: none;
 }
 
 .formatting-options {
-    display: flex;
-    gap: 10px;
-    margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
 }
 
 .submit-button {
-    background-color: #3b82f6; 
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    width: 100%;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  width: 100%;
 }
 
 .submit-button:hover {
-    background-color: #2563eb;
-}
-
-.edit-textarea {
-  width: 90%;
-  height: 100px;
-  margin: 10px auto;
-  padding: 10px;
-  font-size: 14px;
-  resize: vertical;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-family: inherit;
+  background-color: #2563eb;
 }
 
 .edit-image-input {
@@ -427,7 +416,6 @@ select {
 #media-preview {
   margin: 10px 0;
 }
-  
 
 .preview-image {
   max-width: 100%;
@@ -439,4 +427,64 @@ select {
 .preview-video {
   margin-top: 10px;
   border-radius: 10px;
+}
+
+.text-editor {
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 100px;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.formatting-options button {
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid #aaa;
+  background: #eee;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+
+.text-editor:empty:before {
+  content: attr(placeholder);
+  color: gray;
+}
+
+/* Hide helper class */
+.hidden {
+  display: none;
+}
+
+/* Editable content div */
+.edit-editor {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #fff;
+  min-height: 80px;
+  margin-bottom: 10px;
+  outline: none;
+}
+
+/* File input for editing */
+.edit-image-input {
+  display: block;
+  margin: 10px 0;
+}
+
+/* Save button */
+.save-edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.save-edit-button:hover {
+  background-color: #0056b3;
 }

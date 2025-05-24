@@ -19,91 +19,83 @@ window.addEventListener("click", function (e) {
 
 function toggleDropdown(icon) {
   const parent = icon.parentElement;
-  parent.classList.toggle('active');
+  parent.classList.toggle("active");
 }
 
 function cancelDropdown(button) {
-  const parent = button.closest('.more-option');
-  parent.classList.remove('active');
+  const parent = button.closest(".more-option");
+  parent.classList.remove("active");
 }
 
 function editPost(button) {
-  const post = button.closest('.sample-post');
-  const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('p');
-  const image = contentDiv.querySelector('img');
+  const post = button.closest(".sample-post");
+  const contentDiv = post.querySelector(".content");
+  const paragraph = contentDiv.querySelector("p");
+  const image = contentDiv.querySelector("img");
 
-  // Prevent duplicate editors
-  if (contentDiv.querySelector('.edit-textarea')) return;
+  if (contentDiv.querySelector(".edit-editor")) return;
 
-  // Create editable textarea with current text
-  const textarea = document.createElement('textarea');
-  textarea.value = paragraph.innerText;
-  textarea.className = 'edit-textarea';
+  const editorDiv = document.createElement("div");
+  editorDiv.className = "edit-editor";
+  editorDiv.contentEditable = true;
+  editorDiv.innerHTML = paragraph.innerHTML;
 
-  // Create file input for image upload
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.className = 'edit-image-input';
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.className = "edit-image-input";
 
-  // Create save button
-  const saveButton = document.createElement('button');
-  saveButton.innerText = 'Save';
-  saveButton.className = 'save-edit-button';
+  const saveButton = document.createElement("button");
+  saveButton.innerText = "Save";
+  saveButton.className = "save-edit-button";
 
-  // Save handler
   saveButton.onclick = () => {
-    paragraph.innerText = textarea.value;
-    paragraph.style.display = 'block';
+    paragraph.innerHTML = editorDiv.innerHTML;
+    paragraph.classList.remove("hidden");
 
     if (fileInput.files.length > 0) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        image.src = e.target.result;
+        if (image) {
+          image.src = e.target.result;
+        }
       };
       reader.readAsDataURL(fileInput.files[0]);
     }
 
-    // Remove editing UI
-    textarea.remove();
+    editorDiv.remove();
     fileInput.remove();
     saveButton.remove();
   };
 
-  // Hide current paragraph for editing
-  paragraph.style.display = 'none';
+  paragraph.classList.add("hidden");
 
-  // Insert editing elements
-  contentDiv.insertBefore(textarea, paragraph);
+  contentDiv.insertBefore(editorDiv, paragraph);
   contentDiv.insertBefore(fileInput, paragraph);
   contentDiv.insertBefore(saveButton, paragraph);
 
   cancelDropdown(button);
 }
 
-
 function deletePost(button) {
-  const post = button.closest('.sample-post');
+  const post = button.closest(".sample-post");
   if (confirm("Are you sure you want to delete this post?")) {
     post.remove();
   }
 }
 
 function submitPost() {
-  const textarea = document.querySelector('.modal-overlay textarea');
-  const postText = textarea.value.trim();
-
-  if (!postText) {
-    alert('Please enter some text to post.');
+  const editor = document.getElementById("editor");
+  const postText = editor.innerHTML.trim();
+  if (!postText || postText === "<br>") {
+    alert("Please enter some text to post.");
     return;
   }
 
-  const leftContent = document.querySelector('.left-content');
+  const leftContent = document.querySelector(".left-content");
 
-  // Create post element
-  const post = document.createElement('div');
-  post.className = 'sample-post';
+  const post = document.createElement("div");
+  post.className = "sample-post";
   post.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
@@ -130,10 +122,12 @@ function submitPost() {
     </div>
   `;
 
-  // Prepend the new post right after the create-post section
   leftContent.insertBefore(post, leftContent.children[1]);
 
-  // Clear textarea & close modal
-  textarea.value = '';
+  editor.innerHTML = "";
   closePostModal();
+}
+
+function formatText(command) {
+  document.execCommand(command, false, null);
 }
