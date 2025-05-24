@@ -9,11 +9,12 @@
 
 <body>
   <div class="top-bar">
-    <img src="../assets/hershive_logo.png" alt="hershive logo" class="logo">
+    <img src="../assets/logo.png" alt="hershive logo" class="logo">
 
     <div class="search-bar">
       <input type="text" placeholder="Search">
-      <button class="search-button"><img src="../assets/search_icon.png" alt=""></button>
+      <button class="search-button"><img src="../assets/search_icon.png" 
+        alt="search_icon"></button>
     </div>
     
     <div class="navigation-icons">
@@ -31,9 +32,11 @@
 
   <div class="main-container">
     <div class="left-container">
-      <div class="create-post">
+      <div class="create-post" id="shareTrigger" onclick="openPostModal()">
         <div class="main-create-post">
-          <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+          <img src="../assets/temporary_pfp.png"
+              alt="user profile"
+              class="profile-pic">
           <span>Share something</span>
         </div>
       
@@ -71,7 +74,10 @@
       <div class="sample-post">
         <div class="post-header">
           <div class="post-header-left">
-            <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+            <img src="../assets/temporary_pfp.png"
+                alt="user profile"
+                class="profile-pic">
+
             <div class="post-info">
               <span class="username">Jane Dee</span>
               <span class="timestamp">May 20 at 6:00PM</span>
@@ -94,5 +100,27 @@
 
     <div class="side-panel"></div>
   </div>
+  
+  <!-- Create Post Modal -->
+  <div class="modal-overlay" id="postModal">
+    <div class="create-post-modal">
+      <div class="modal-header">
+        <h2>Create Post</h2>
+        <button class="close-button" onclick="closePostModal()">×</button>
+      </div>
+      <span class="username">Jane Dee</span>
+      <textarea class="textarea" placeholder="Share something..."></textarea>
+      <div class="formatting-options">
+        <button>B</button>
+        <button>I</button>
+        <button>Video</button>
+        <button>Public</button>
+        <button class="image-button">Image</button>
+      </div>
+      <button class="submit-button">Post</button>
+    </div>
+  </div>
+
+  <script src="../script/home.js"></script>
 </body>
 </html>
