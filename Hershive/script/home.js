@@ -1,11 +1,13 @@
 function openPostModal() {
   const postModal = document.getElementById("postModal");
-  postModal.style.display = "flex";
+  postModal.classList.remove("hidden");
+  postModal.classList.add("flex-center");
 }
 
 function closePostModal() {
   const postModal = document.getElementById("postModal");
-  postModal.style.display = "none";
+  postModal.classList.add("hidden");
+  postModal.classList.remove("flex-center");
 }
 
 window.addEventListener("click", function (e) {
