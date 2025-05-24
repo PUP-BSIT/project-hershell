@@ -31,7 +31,8 @@
   </div>
 
   <div class="main-container">
-    <div class="left-container">
+    <div class="left-content">
+      <!-- Trigger Create Post Modal -->
       <div class="create-post" id="shareTrigger" onclick="openPostModal()">
         <div class="main-create-post">
           <img src="../assets/temporary_pfp.png"
@@ -39,7 +40,7 @@
               class="profile-pic">
           <span>Share something</span>
         </div>
-      
+        
         <div class="sub-create-post">
           <label class="upload-option">
             <div class="image">
@@ -48,7 +49,7 @@
             </div>
             <input type="file" accept="image/*" hidden>
           </label>
-
+          
           <label class="upload-option">
             <div class="video">
               <img src="../assets/video_icon.png" alt="video">
@@ -58,14 +59,14 @@
           </label>
 
           <div class="privacy">
-           <img src="../assets/public_icon.png" alt="public">
-          <span>
-            <select name="privacy" id="privacy">
-              <option value="public">Public</option>
-              <option value="friends">Friends</option>
-              <option value="private">Private</option>
-            </select>
-          </span>
+            <img src="../assets/public_icon.png" alt="public">
+            <span>
+              <select name="privacy" id="privacy">
+                <option value="public">Public</option>
+                <option value="friends">Friends</option>
+                <option value="private">Private</option>
+              </select>
+            </span>
           </div>
         </div>
       </div>
@@ -83,7 +84,6 @@
               <span class="timestamp">May 20 at 6:00PM</span>
             </div>
           </div>
-          
           <div class="more-option">
             <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
             <div class="dropdown-menu">
@@ -92,6 +92,7 @@
               <button onclick="cancelDropdown(this)">Cancel</button>
             </div>
           </div>
+        </div>
 
         <div class="post-content">
           <div class="content">
@@ -104,7 +105,7 @@
 
     <div class="side-panel"></div>
   </div>
-  
+
   <!-- Create Post Modal -->
   <div class="modal-overlay" id="postModal">
     <div class="create-post-modal">
@@ -114,14 +115,16 @@
       </div>
       <span class="username">Jane Dee</span>
       <textarea class="textarea" placeholder="Share something..."></textarea>
-      <div class="formatting-options">
-        <button>B</button>
-        <button>I</button>
-        <button>Video</button>
-        <button>Public</button>
-        <button class="image-button">Image</button>
-      </div>
-      <button class="submit-button">Post</button>
+        <div class="formatting-options">
+          <button>B</button>
+          <button>I</button>
+          <button>Video</button>
+          <button>Public</button>
+          <button class="image-button">Image</button>
+        </div>
+      <button class="submit-button"
+          id="submitPostButton"
+          onclick="submitPost()">Post</button>
     </div>
   </div>
 
