@@ -22,9 +22,41 @@
         <img src="../assets/home_icon.png" alt="home">
       </button>
 
-      <button>
+      <button onclick="toggleNotificationPanel()">
         <img src="../assets/notification_icon.png" alt="notification">
       </button>
+
+    <div class="notification-panel" id="notification_panel">
+      <h4>Notification</h4>
+      <div class="notification">
+        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp"/>
+        <p><strong>John Doe</strong> Started following you.
+        <span class="time">1m</span></p>
+        <a href="#">Follow</a>
+      </div>
+
+      <div class="notification">
+        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp"/>
+      <p>
+        <strong>John Doe</strong> Liked your photo.
+            <span class="time">30m</span></p>
+      <img
+        src="../assets/sample-post.png"
+        alt="thumbnail"
+        class="notif-thumbnail"/>
+      </div>
+
+      <h4>Yesterday</h4>
+      <div class="notification">
+        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp" />
+        <p><strong>John Dy</strong> Liked your photo.
+            <span class="time">1d</span></p>
+        <img
+          src="../assets/sample-post.png"
+          alt="thumbnail"
+          class="notif-thumbnail"/>
+      </div>
+    </div>
 
       <button class="menu-button" onclick="toggleDropdown()">☰</button>
     </div>

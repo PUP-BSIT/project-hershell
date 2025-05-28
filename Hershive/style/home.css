@@ -707,3 +707,59 @@ select {
 .menu-dropdown-item:hover {
   background-color: #d2be94;
 }
+.notification-panel {
+  display: none;
+  position: absolute;
+  top: 69px;
+  right: 60px;
+  width: 300px;
+  background-color: #f8f5ea;
+  border: 1px solid #000000;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 15px;
+  z-index: 1000;
+}
+
+.notification-panel h4 {
+  margin: 10px 0 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.notif-pfp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.notification p {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+}
+
+.notification .time {
+  color: #888;
+  font-size: 12px;
+}
+
+.notification a {
+  font-size: 12px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.notif-thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 5px;
+}
