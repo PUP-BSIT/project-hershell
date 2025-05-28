@@ -273,32 +273,31 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="share_modal">
+  <div class="modal-overlay hidden" id="share_modal">
     <div class="share-modal">
       <div class="share-modal-header">
         <h3>Share</h3>
-        <button class="close-share-modal" onclick="closeShareModal()">×</button>
+        <button class="close-btn" onclick="closeShareModal()">&times;</button>
       </div>
   
       <div class="share-icons">
-        <a href="#" title="Instagram"><img src="../assets/instagram_icon.png" 
-              alt="Instagram"></a>
-        <a href="#" title="Facebook"><img src="../assets/facebook_icon.png" 
-              alt="Facebook"></a>
+        <a href="#" title="Instagram"><img src="../assets/devhive_logo.jpg" 
+              alt="Devhive"></a>
+        <a href="#" title="Facebook"><img src="../assets/heybleepi_logo.png" 
+              alt="Heybleepi"></a>
       </div>
   
       <div class="share-link-section">
         <label>Page link</label>
         <div class="link-box">
-          <input type="text" id="share_link" 
-                readonly value="https://www.hershive.com/share/example">
-          <button id="copy_link" onclick="copyShareLink()">
+          <input type="text" id="share_link" readonly value="https://www.hershive.com/share/example">
+          <button id="copy_link" onclick="copyLink(this)">
             <img src="../assets/copy_icon.png" alt="Copy">
           </button>
         </div>
       </div>
     </div>
-  </div>
+  </div>  
   <script src="../script/home.js"></script>
 </body>
 </html>

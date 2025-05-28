@@ -365,14 +365,18 @@ function postComment(button) {
   }
 }
 
-function toggleShareModal(postElement) {
-  const modal = postElement.querySelector('.share-modal');
-  modal.classList.toggle('hidden');
+function toggleShareModal() {
+  const shareModal = document.getElementById('share_modal');
+  if (shareModal) {
+    shareModal.classList.toggle('hidden');
+  }
 }
 
 function closeShareModal() {
-  const modal = document.getElementById('share_modal');
-  modal.classList.remove('active');
+  const shareModal = document.getElementById('share_modal');
+  if (shareModal) {
+    shareModal.classList.add('hidden');
+  }
 }
 
 function copyLink(button) {
