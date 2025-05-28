@@ -26,7 +26,18 @@
         <img src="../assets/notification_icon.png" alt="notification">
       </button>
 
-      <button class="menu-button">☰</button>
+      <button class="menu-button" onclick="toggleDropdown()">☰</button>
+    </div>
+  </div>
+
+  <div id="menu_dropdown" class="hidden">
+    <a href="#" class="menu-dropdown-item">
+      <img src="../assets/settings_icon.png" alt="settings">
+      Settings
+    </a>
+    <div onclick="toggleLogout()" class="menu-dropdown-item">
+      <img src="../assets/logout_icon.png" alt="logout">
+      <p>Log out</p>
     </div>
   </div>
 
