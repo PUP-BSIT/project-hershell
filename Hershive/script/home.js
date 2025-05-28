@@ -253,3 +253,8 @@ function toggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
   dropdown.classList.toggle("hidden");
 }
+
+function toggleNotificationPanel() {
+  const panel = document.getElementById('notification_panel');
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
