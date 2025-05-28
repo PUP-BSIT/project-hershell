@@ -37,7 +37,7 @@
           <img src="../assets/more_icon.png" alt="more"
               onclick="toggleDropdown(this)">
           <div class="dropdown-menu">
-            <button>Edit Profile</button>
+            <button onclick="openEditModal()">Edit Profile</button>
             <button>Settings</button>
             <button onclick="cancelDropdown(this)">Cancel</button>
           </div>
@@ -75,6 +75,51 @@
     </div>
   </div>
 
+  <div id="edit_modal" class="modal hidden" onclick="modalClickHandler(event)">
+    <div class="modal-content">
+      <h2>Edit Profile</h2>
+
+      <!-- Profile Picture Section -->
+      <div class="edit-section">
+        <label>Profile Picture</label>
+        <div class="preview-circle">
+          <img id="profile_img_preview" 
+              src="../assets/temporary_pfp.png" 
+              alt="Image Preview" class="profile-img-preview">
+          <label class="icon-button">
+            <img src="../assets/camera_icon.png" alt="Image Icon">
+            <input type="file" id="media_input" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Cover Photo Section -->    
+      <div class="edit-section">
+        <label>Cover Photo</label>
+        <div class="cover-preview">
+          <img id="cover_img_preview" 
+              src="../assets/cover_photo.png" 
+              alt="Cover Preview" class="cover-img-preview">
+          <label class="icon-button">
+            <img src="../assets/camera_icon.png" alt="Image Icon">
+            <input type="file" id="cover_media_input" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Bio Section -->
+      <div class="edit-section">
+        <label>Bio</label>
+        <textarea id="bio_textarea" 
+            placeholder="Enter your bio here..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button onclick="closeEditModal()">Cancel</button>
+        <button onclick="saveProfileUpdates()">Save</button>
+      </div>
+    </div>
+  </div>
   <script src="../script/home.js"></script>
 </body>
 </html>
