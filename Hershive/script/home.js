@@ -248,3 +248,8 @@ function toggleFollow(button) {
     button.classList.add("following");
   }
 }
+
+function toggleDropdown() {
+  const dropdown = document.getElementById("menu_dropdown");
+  dropdown.classList.toggle("hidden");
+}
