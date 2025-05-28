@@ -1,17 +1,17 @@
 function openPostModal() {
-  const postModal = document.getElementById("postModal");
+  const postModal = document.getElementById("post_modal");
   postModal.classList.remove("hidden");
   postModal.classList.add("flex-center");
 }
 
 function closePostModal() {
-  const postModal = document.getElementById("postModal");
+  const postModal = document.getElementById("post_modal");
   postModal.classList.add("hidden");
   postModal.classList.remove("flex-center");
 }
 
 window.addEventListener("click", function (e) {
-  const postModal = document.getElementById("postModal");
+  const postModal = document.getElementById("post_modal");
   if (e.target === postModal) {
     postModal.style.display = "none";
   }
@@ -102,14 +102,18 @@ function submitPost() {
   post.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+        <img src="../assets/temporary_pfp.png" 
+            alt="user profile" 
+            class="profile-pic">
         <div class="post-info">
           <span class="username">Jane Dee</span>
           <span class="timestamp">${new Date().toLocaleString()}</span>
         </div>
       </div>
       <div class="more-option">
-        <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+        <img src="../assets/more_icon.png" 
+            alt="more" 
+            onclick="toggleDropdown(this)">
         <div class="dropdown-menu">
           <button onclick="editPost(this)">Edit</button>
           <button onclick="deletePost(this)">Delete</button>
@@ -143,9 +147,9 @@ function formatText(command) {
   document.execCommand(command, false, null);
 }
 
-const imageInput = document.getElementById('mediaInput');
-const videoInput = document.getElementById('mediaInputVideo');
-const previewContainer = document.getElementById('previewContainer');
+const imageInput = document.getElementById('media_input');
+const videoInput = document.getElementById('media_input_video');
+const previewContainer = document.getElementById('preview_container');
 
 function handleFileInput(input, isVideo = false) {
   const file = input.files[0];
