@@ -195,3 +195,8 @@ function addMediaToPost(file, isVideo = false, targetContentDiv) {
   };
   reader.readAsDataURL(file);
 }
+
+function toggleDropdown() {
+  const dropdown = document.getElementById("menu_dropdown");
+  dropdown.classList.toggle("hidden");
+}
