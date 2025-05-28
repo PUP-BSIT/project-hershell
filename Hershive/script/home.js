@@ -102,8 +102,8 @@ function submitPost() {
   post.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" 
-            alt="user profile" 
+        <img src="../assets/temporary_pfp.png"
+            alt="user profile"
             class="profile-pic">
         <div class="post-info">
           <span class="username">Jane Dee</span>
@@ -111,8 +111,8 @@ function submitPost() {
         </div>
       </div>
       <div class="more-option">
-        <img src="../assets/more_icon.png" 
-            alt="more" 
+        <img src="../assets/more_icon.png"
+            alt="more"
             onclick="toggleDropdown(this)">
         <div class="dropdown-menu">
           <button onclick="editPost(this)">Edit</button>
@@ -194,4 +194,57 @@ function addMediaToPost(file, isVideo = false, targetContentDiv) {
     targetContentDiv.appendChild(media);
   };
   reader.readAsDataURL(file);
+}
+
+const suggestedUsers = [
+  {
+    username: "John Doe",
+    handle: "@johndoe",
+    image: "../assets/temporary_pfp.png",
+  },
+  {
+    username: "Jane Smith",
+    handle: "@janesmith",
+    image: "../assets/temporary_pfp.png",
+  },
+  {
+    username: "Alice Ray",
+    handle: "@alice",
+    image: "../assets/temporary_pfp.png",
+  },
+  {
+    username: "Mark Zee",
+    handle: "@markz",
+    image: "../assets/temporary_pfp.png",
+  },
+];
+
+function displaySuggestedUsers() {
+  const container = document.getElementById("suggested_users_container");
+
+  suggestedUsers.forEach((user) => {
+    const div = document.createElement("div");
+    div.className = "suggested-user";
+    div.innerHTML = `
+      <img src="${user.image}" alt="${user.username}">
+      <div class="user-info">
+        <p><strong>${user.username}</strong></p>
+        <p>${user.handle}</p>
+      </div>
+      <button onclick="toggleFollow(this)">Follow</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleFollow(button) {
+  const isFollowing = button.classList.contains("following");
+
+  if (isFollowing) {
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  } else {
+    button.textContent = "Following";
+    button.classList.add("following");
+  }
 }
