@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hershive</title>
   <link rel="stylesheet" href="../style/home.css"/>
@@ -32,8 +32,7 @@
 
   <div class="main-container">
     <div class="left-content">
-      <!-- Trigger Create Post Modal -->
-      <div class="create-post" id="shareTrigger" onclick="openPostModal()">
+      <div class="create-post" id="share_trigger" onclick="openPostModal()">
         <div class="main-create-post">
           <img src="../assets/temporary_pfp.png"
               alt="user profile"
@@ -71,7 +70,6 @@
         </div>
       </div>
 
-      <!-- Sample Post -->
       <div class="sample-post">
         <div class="post-header">
           <div class="post-header-left">
@@ -107,7 +105,7 @@
     <div class="side-panel"></div>
   </div>
 
-  <div class="modal-overlay" id="postModal">
+  <div class="modal-overlay" id="post_modal">
     <div class="create-post-modal">
       <div class="modal-header">
         <h2>Create Post</h2>
@@ -121,7 +119,7 @@
           placeholder="Share something...">
       </div>
 
-      <div class="preview" id="previewContainer"></div>
+      <div class="preview" id="preview_container"></div>
 
       <div class="formatting-options">
         <button onclick="formatText('bold')">B</button>
@@ -132,17 +130,17 @@
       <div class="upload-controls">
         <label class="icon-button">
           <img src="../assets/camera_icon.png" alt="Image Icon">
-          <input type="file" id="mediaInput" accept="image/*" hidden>
+          <input type="file" id="media_input" accept="image/*" hidden>
           <span>Image</span>
         </label>
         <label class="icon-button">
           <img src="../assets/video_icon.png" alt="Video Icon">
-          <input type="file" id="mediaInputVideo" accept="video/*" hidden>
+          <input type="file" id="media_input_video" accept="video/*" hidden>
           <span>Video</span>
         </label>
         <div class="privacy-select">
           <img src="../assets/public_icon.png" alt="Public Icon">
-          <select id="privacySetting">
+          <select id="privacy_setting">
             <option value="public">Public</option>
             <option value="friends">Friends</option>
             <option value="private">Private</option>
@@ -151,7 +149,7 @@
       </div>
 
       <button class="submit-button"
-          id="submitPostButton"
+          id="submit_post_button"
           onclick="submitPost()">Post</button>
     </div>
   </div>
