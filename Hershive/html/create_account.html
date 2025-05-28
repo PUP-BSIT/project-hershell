@@ -41,10 +41,11 @@
 
           <div class="input-row">
             <label for="birthday" class="birthday-label">Birthday:</label>
-            <input type="date" id="birthday" name="birthday" required/>
+            <input type="date" id="birthday" name="birthday"
+                required onchange="updateAge()"/>
+            <span class="birthday-label">Age:</span>
+            <span id="calculated_age">-</span>
           </div>
-
-          <input type="number" placeholder="Age" min="0" required/>
 
           <div class="input-row">
             <select>

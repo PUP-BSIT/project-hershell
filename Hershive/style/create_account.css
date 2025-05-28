@@ -123,3 +123,15 @@ button {
   padding-right: 5px;
   white-space: nowrap;
 }
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#calculated_age {
+  font-weight: bold;
+  min-width: 20px;
+}
