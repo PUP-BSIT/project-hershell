@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style/home.css"/>
 </head>
 
-<body>
+<body onload="displaySuggestedUsers()">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
 
@@ -116,11 +116,11 @@
     <div class="side-panel">
       <div class="profile-card">
         <div class="profile-banner">
-          <img src="../assets/cover_photo.png" 
-              alt="Profile Cover" 
+          <img src="../assets/cover_photo.png"
+              alt="Profile Cover"
               class="cover-img">
-          <img src="../assets/temporary_pfp.png" 
-              alt="Profile Pic" 
+          <img src="../assets/temporary_pfp.png"
+              alt="Profile Pic"
               class="profile-img">
         </div>
 
@@ -134,6 +134,11 @@
           </div>
           <a href="profile.html" class="profile-button">Profile</a>
         </div>
+      </div>
+
+      <div class="suggested-section">
+        <h3>Suggested for you</h3>
+        <div id="suggested_users_container"></div>
       </div>
     </div>
   </div>
@@ -190,4 +195,3 @@
   <script src="../script/home.js"></script>
 </body>
 </html>
-

@@ -159,7 +159,7 @@ select {
 
 .side-panel {
   background-color: #dfdbcd;
-  width: 35 0px;
+  width: 350px;
   padding: 10px;
   border-radius: 20px;
   font-family: sans-serif;
@@ -613,7 +613,6 @@ select {
   position: relative;
 }
 
-
 .profile-button {
   display: inline-block;
   background: black;
@@ -623,6 +622,60 @@ select {
   text-decoration: none;
   cursor: pointer;
   font-weight: bold;
+}
+.suggested-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0e8dd;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.suggested-section h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.suggested-user {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.suggested-user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.suggested-user .user-info {
+  flex-grow: 1;
+}
+
+.suggested-user .user-info p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.suggested-user button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.suggested-user button:hover {
+  background-color: #0056b3;
+}
+
+.suggested-user button.following {
+  background-color: #6c757d;
 }
 
 #menu_dropdown {
