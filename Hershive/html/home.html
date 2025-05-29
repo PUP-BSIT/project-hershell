@@ -141,6 +141,44 @@
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
             <img src="../assets/sample-post.png" alt="post image">
           </div>
+          
+          <div class="post-actions">
+            <div class="comment-modal hidden">
+              <div class="modal-content">
+                <span class="close-comment-modal">&times;</span>
+                <h3>Comments</h3>
+                <div class="comment-list"></div>
+                <div class="comment-input">
+                  <input type="text" placeholder="Write a comment...">
+                  <button class="send-comment" 
+                        onclick="postComment(this)">Send</button>
+                </div>
+              </div>
+            </div>
+        
+            <div class="action-button">
+              <button class="like-btn" onclick="toggleLike(this)">
+                <img src="../assets/heart_icon.png" class="heart-icon outline">
+                <img src="../assets/red_heart_icon.png" class="heart-icon filled hidden">
+              </button>
+              <span class="like-count">0</span>
+            </div>            
+            
+            <div class="action-button">
+              <button class="comment-btn" 
+                    onclick="toggleCommentModal(this.closest('.sample-post'))">
+                <img src="../assets/comment_icon.png" alt="Comment">
+              </button>
+              <span class="comment-count">0</span>
+            </div>
+            
+            <div class="action-button">
+              <button class="share-btn" onclick="toggleShareModal()">
+                <img src="../assets/share_icon.png" alt="Share">
+              </button>
+              
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -224,6 +262,42 @@
     </div>
   </div>
 
+  <div class="modal-overlay hidden" id="comment_modal">
+    <div class="comment-modal">
+      <div class="comment-modal-header">
+        <button class="close-comment-modal">×</button>
+      </div>
+      <div class="comment-input-container">
+        <img src="../assets/temporary_pfp.png" class="comment-avatar">
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="share_modal">
+    <div class="share-modal">
+      <div class="share-modal-header">
+        <h3>Share</h3>
+        <button class="close-btn" onclick="closeShareModal()">&times;</button>
+      </div>
+  
+      <div class="share-icons">
+        <a href="#" title="Instagram"><img src="../assets/devhive_logo.jpg" 
+              alt="Devhive"></a>
+        <a href="#" title="Facebook"><img src="../assets/heybleepi_logo.png" 
+              alt="Heybleepi"></a>
+      </div>
+  
+      <div class="share-link-section">
+        <label>Page link</label>
+        <div class="link-box">
+          <input type="text" id="share_link" readonly value="https://www.hershive.com/share/example">
+          <button id="copy_link" onclick="copyLink(this)">
+            <img src="../assets/copy_icon.png" alt="Copy">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>  
   <script src="../script/home.js"></script>
 </body>
 </html>

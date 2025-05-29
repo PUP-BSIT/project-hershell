@@ -126,6 +126,59 @@ function submitPost() {
       <div class="content">
         <p>${postText}</p>
       </div>
+
+        <div class="post-actions">
+          <div class="action-button">
+            <button class="like-btn" onclick="toggleLike(this)">
+              <img class="heart-icon outline" 
+                    src="../assets/heart_icon.png" alt="Like">
+              <img class="heart-icon filled hidden" 
+                  src="../assets/red_heart_icon.png" alt="Liked">
+            </button>
+            <span class="like-count">0</span>
+          </div>
+  
+          <div class="action-button">
+            <button class="comment-btn" 
+            onclick="toggleCommentModal(this.closest('.sample-post'))">
+              <img src="../assets/comment_icon.png" alt="Comment">
+            </button>
+            <span class="comment-count">0</span>
+          </div>
+  
+          <div class="comment-modal hidden">
+            <div class="modal-content">
+              <span class="close-comment-modal" 
+                    onclick="toggleCommentModal(this.closest('.sample-post'))">
+                        &times;</span>
+              <div class="comment-list"></div>
+              <div class="comment-input">
+                <input type="text" placeholder="Write a comment...">
+                <button class="send-comment" 
+                    onclick="postComment(this)">Send</button>
+              </div>
+            </div>
+          </div>
+  
+          <div class="action-button">
+            <button class="share-btn" 
+                onclick="toggleShareModal(this.closest('.sample-post'))">
+              <img src="../assets/share_icon.png" alt="Share">
+            </button>
+          </div>
+  
+         <div class="share-modal hidden">
+          <div class="modal-content">
+            <span class="close-share-modal" 
+                onclick="toggleShareModal(this.closest('.sample-post'))">
+                    &times;</span>
+            <input class="share-link" type="text" 
+                value="https://example.com/post-link" readonly>
+            <button onclick="copyLink(this)">
+              <img src="../assets/copy_icon.png" alt="Copy">
+            </button>
+          </div>
+        </div>
     </div>
   `;
 
@@ -258,3 +311,93 @@ function toggleNotificationPanel() {
   const panel = document.getElementById('notification_panel');
   panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 }
+
+function toggleLike(button) {
+  const outlineIcon = button.querySelector('.heart-icon.outline');
+  const filledIcon = button.querySelector('.heart-icon.filled');
+  const likeCountSpan = button.nextElementSibling;
+
+  console.log('outlineIcon:', outlineIcon);
+  console.log('filledIcon:', filledIcon);
+
+  if (!outlineIcon || !filledIcon) {
+    console.error('Heart icons missing!');
+    return;
+  }
+
+  if (outlineIcon.classList.contains('hidden')) {
+    outlineIcon.classList.remove('hidden');
+    filledIcon.classList.add('hidden');
+    likeCountSpan.textContent = parseInt(likeCountSpan.textContent) - 1;
+  } else {
+    outlineIcon.classList.add('hidden');
+    filledIcon.classList.remove('hidden');
+    likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+  }
+}
+
+function toggleCommentModal(postElement) {
+  const modal = postElement.querySelector(".comment-modal");
+  modal.classList.toggle("hidden");
+}
+
+function postComment(button) {
+  const input = button.previousElementSibling;
+  const commentText = input.value.trim();
+  const modal = button.closest(".comment-modal");
+  const list = modal.querySelector(".comment-list");
+
+  if (commentText !== "") {
+    const comment = document.createElement("div");
+    comment.className = "comment";
+    comment.innerHTML = `
+      <img src="../assets/temporary_pfp.png" alt="Avatar" class="comment-avatar">
+      <div class="comment-content">
+        <span class="comment-author">John Doe</span>
+        <p>${commentText}</p>
+      </div>`;
+    list.appendChild(comment);
+    input.value = "";
+
+    const post = button.closest(".sample-post");
+    const count = post.querySelector(".comment-count");
+    count.textContent = parseInt(count.textContent) + 1;
+  }
+}
+
+function toggleShareModal() {
+  const shareModal = document.getElementById('share_modal');
+  if (shareModal) {
+    shareModal.classList.toggle('hidden');
+  }
+}
+
+function closeShareModal() {
+  const shareModal = document.getElementById('share_modal');
+  if (shareModal) {
+    shareModal.classList.add('hidden');
+  }
+}
+
+function copyLink(button) {
+  const input = button.previousElementSibling;
+  if (!input) return;
+
+  navigator.clipboard.writeText(input.value)
+    .then(() => alert('Link copied!'))
+    .catch(() => alert('Copy failed'));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const samplePost = document.querySelector('.sample-post');
+  if (samplePost) {
+    initCommentButton(samplePost);
+  }
+});
+
+document.addEventListener('click', function (e) {
+  if (e.target.classList.contains('close-comment-modal')) {
+    const modal = e.target.closest('.comment-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+});
