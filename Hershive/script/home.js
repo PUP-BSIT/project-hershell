@@ -401,3 +401,19 @@ document.addEventListener('click', function (e) {
     if (modal) modal.classList.add('hidden');
   }
 });
+
+function hideLogout() {
+  const logoutSection = document.getElementById("logout");
+  logoutSection.hidden = true;
+}
+
+function toggleLogout() {
+  const logoutSection = document.getElementById("logout");
+  logoutSection.hidden = false;
+}
+
+function logout() {
+  alert("Logged out successfully!");
+  // Redirect to login page or perform logout logic
+  window.location.href = "login.html"; // Example redirect
+}
