@@ -1,0 +1,178 @@
+.settings-container {
+  display: flex;
+  padding: 40px;
+  max-width: 900px;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ded7c7;
+  padding: 30px 20px;
+  width: 250px;
+  height: inherit;
+  border-radius: 10px;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.sidebar button {
+  text-align: left;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border: 2px solid #000;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.sidebar .delete-btn {
+  background: #f8f5ea;
+  color: #ff0000;
+  margin-top: 40px;
+}
+
+button.inactive {
+  background: none;
+  border: none;
+  margin-left: 2px;
+}
+
+#personal_details, #password {
+  background-color: #ded7c7;
+  flex-grow: 1;
+  padding: 30px;
+  margin-left: 20px;
+  border-radius: 10px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #888;
+  background-color: #f8f5ea;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.row .form-group {
+  flex: 1;
+}
+
+.save-btn {
+  background-color: black;
+  color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  float: right;
+}
+
+.save-btn:enabled:hover {
+  background-color: #333;
+}
+
+button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+#rules {
+  text-align: left;
+  font-size: 12px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.rules {
+  display: none;
+}
+
+.rules.active {
+  display: block;
+}
+
+#rules li.invalid {
+  color: red;
+}
+
+#rules li.valid {
+  color: green;
+}
+
+.toggle-password {
+  display: inline-block;
+}
+
+#delete_account {
+  position: fixed;
+  background-color: #ded7c7;
+  padding: 30px;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+
+.button-holder {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.delete-btn, .cancel-btn, .logout-btn {
+  text-align: center;
+  width: 50%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border: 2px solid #000;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: black;
+  color: #ff0000;
+}
+
+.logout-btn {
+  background: black;
+  color: white;
+}
+
+#logout {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ded7c7;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid black;
+}
