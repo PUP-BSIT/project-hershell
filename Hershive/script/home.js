@@ -302,7 +302,7 @@ function toggleFollow(button) {
   }
 }
 
-function toggleDropdown() {
+function menuToggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
   dropdown.classList.toggle("hidden");
 }
