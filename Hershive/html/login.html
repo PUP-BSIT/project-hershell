@@ -1,51 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hershive - Login</title>
-  <link rel="stylesheet" href="../style/login.css">
-</head>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hershive - Login</title>
+    <link rel="stylesheet" href="../style/login.css"/>
+  </head>
 
-<body>
-  <div class="container">
-    <div class="left-section">
-      <h1>Log in</h1>
-      <p>Connect, Share, Explore.</p>
-      <img src="../assets/Login_image.png"
-            alt="Login Design Image"
-            class="login-image">
+  <body>
+    <div class="container">
+      <div class="left-section">
+        <h1>Log in</h1>
+        <p>Connect, Share, Explore.</p>
+        <img
+          src="../assets/Login_image.png"
+          alt="Login Design Image"
+          class="login-image"/>
+      </div>
+
+      <div class="right-section">
+        <h2>Welcome Back!</h2>
+        <p>Please enter login details below</p>
+
+        <p id="error"></p>
+
+        <form id="login-form" onsubmit="return validateForm();">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="username" required/>
+
+          <label>Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="password"
+            required/>
+
+          <a href="../html/forgot_password.html" class="forgot-link"
+            >forgot password?</a>
+          <button type="submit" class="login-btn">Log in</button>
+
+          <p class="or-text">or Log in with</p>
+          <div class="social-icons">
+            <img src="../assets/devhive_logo.jpg" alt="Devhive"/>
+            <img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/>
+          </div>
+
+          <p>
+            Don't have an account? <a href="./register.html">Register here</a>
+          </p>
+        </form>
+      </div>
     </div>
-
-    <div class="right-section">
-      <h2>Welcome Back!</h2>
-      <p>Please enter login details below</p>
-
-      <form onsubmit="return validateForm()">
-        <label>Username</label>
-        <input type="text" id="username" placeholder="username">
-        
-        <label>Password</label>
-        <input type="password" id="password" placeholder="password">
-        
-        <a href="../html/forgot_password.html" class="forgot-link">
-          forgot password?
-        </a>
-
-        <button type="submit" class="login-btn">Log in</button>
-
-        <p class="or-text">or Log in with</p>
-        <div class="social-icons">
-          <img src="../assets/devhive_logo.jpg" alt="Devhive">
-          <img src="../assets/heybleepi_logo.png" alt="HeyBleepi">
-        </div>
-
-        <p>Don't have an account?
-          <a href="./register.html">Register here</a>
-        </p>
-      </form>
-    </div>
-  </div>
-  <script src="../script/login.js"></script>
-</body>
+    <script src="../script/login.js"></script>
+  </body>
 </html>

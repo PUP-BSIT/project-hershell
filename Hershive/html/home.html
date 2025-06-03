@@ -1,311 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hershive</title>
-  <link rel="stylesheet" href="../style/home.css"/>
-</head>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hershive</title>
+    <link rel="stylesheet" href="../style/home.css" >
+  </head>
 
-<body onload="displaySuggestedUsers()">
-  <div class="top-bar">
-    <img src="../assets/logo.png" alt="hershive logo" class="logo">
+  <body>
+    <div class="top-bar">
+      <img src="../assets/logo.png" alt="hershive logo" class="logo"/>
 
-    <div class="search-bar">
-      <input type="text" placeholder="Search">
-      <button class="search-button"><img src="../assets/search_icon.png"
-        alt="search_icon"></button>
-    </div>
-
-    <div class="navigation-icons">
-      <button>
-        <img src="../assets/home_icon.png" alt="home">
-      </button>
-
-      <button onclick="toggleNotificationPanel()">
-        <img src="../assets/notification_icon.png" alt="notification">
-      </button>
-
-    <div class="notification-panel" id="notification_panel">
-      <h4>Notification</h4>
-      <div class="notification">
-        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp"/>
-        <p><strong>John Doe</strong> Started following you.
-        <span class="time">1m</span></p>
-        <a href="#">Follow</a>
+      <div class="search-bar">
+        <input type="text" placeholder="Search"/>
+        <button class="search-button">
+          <img src="../assets/search_icon.png" alt="search_icon"/>
+        </button>
       </div>
 
-      <div class="notification">
-        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp"/>
-      <p>
-        <strong>John Doe</strong> Liked your photo.
-            <span class="time">30m</span></p>
-      <img
-        src="../assets/sample-post.png"
-        alt="thumbnail"
-        class="notif-thumbnail"/>
+      <div class="navigation-icons">
+        <button>
+          <img src="../assets/home_icon.png" alt="home" />
+        </button>
+
+        <button onclick="toggleNotificationPanel()">
+          <img src="../assets/notification_icon.png" alt="notification"/>
+        </button>
+
+        <div class="notification-panel" id="notification_panel">
+          <h4>Notification</h4>
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Doe</strong> Started following you.
+              <span class="time">1m</span>
+            </p>
+            <a href="#">Follow</a>
+          </div>
+
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Doe</strong> Liked your photo.
+              <span class="time">30m</span>
+            </p>
+            <img
+              src="../assets/sample-post.png"
+              alt="thumbnail"
+              class="notif-thumbnail"/>
+          </div>
+
+          <h4>Yesterday</h4>
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Dy</strong> Liked your photo.
+              <span class="time">1d</span>
+            </p>
+            <img
+              src="../assets/sample-post.png"
+              alt="thumbnail"
+              class="notif-thumbnail"/>
+          </div>
+        </div>
+
+        <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
       </div>
+    </div>
 
-      <h4>Yesterday</h4>
-      <div class="notification">
-        <img src="../assets/temporary_pfp.png" alt="user" class="notif-pfp" />
-        <p><strong>John Dy</strong> Liked your photo.
-            <span class="time">1d</span></p>
-        <img
-          src="../assets/sample-post.png"
-          alt="thumbnail"
-          class="notif-thumbnail"/>
+    <div id="menu_dropdown" class="hidden">
+      <a href="./settings.html" class="menu-dropdown-item">
+        <img src="../assets/settings_icon.png" alt="settings"/>
+        Settings
+      </a>
+      <div onclick="toggleLogout()" class="menu-dropdown-item">
+        <img src="../assets/logout_icon.png" alt="logout"/>
+        <p>Log out</p>
       </div>
     </div>
 
-      <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
+    <div id="logout" hidden>
+      <p><strong>Log out of your account?</strong></p>
+      <div class="button-holder">
+        <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
+        <button class="logout-btn" onclick="logout()">Log out</button>
+      </div>
     </div>
-  </div>
 
-  <div id="menu_dropdown" class="hidden">
-    <a href="./settings.html" class="menu-dropdown-item">
-      <img src="../assets/settings_icon.png" alt="settings">
-      Settings
-    </a>
-    <div onclick="toggleLogout()" class="menu-dropdown-item">
-      <img src="../assets/logout_icon.png" alt="logout">
-      <p>Log out</p>
-    </div>
-  </div>
-
-  <div id="logout" hidden>
-    <p><strong>Log out of your account?</strong></p>
-    <div class="button-holder">
-      <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
-      <button class="logout-btn" onclick="logout()">Log out</button>
-    </div>
-  </div>
-
-  <div class="main-container">
-    <div class="left-content">
-      <div class="create-post" id="share_trigger" onclick="openPostModal()">
-        <div class="main-create-post">
-          <img src="../assets/temporary_pfp.png"
+    <div class="main-container">
+      <div class="left-content">
+        <div class="create-post" id="share_trigger" onclick="openPostModal()">
+          <div class="main-create-post">
+            <img
+              src="../assets/temporary_pfp.png"
               alt="user profile"
-              class="profile-pic">
-          <span>Share something</span>
-        </div>
+              class="profile-pic"/>
+            <span>Share something</span>
+          </div>
 
-        <div class="sub-create-post">
-          <label class="upload-option">
-            <div class="image">
-              <img src="../assets/camera_icon.png" alt="image">
-              <span>image</span>
+          <div class="sub-create-post">
+            <label class="upload-option">
+              <div class="image">
+                <img src="../assets/camera_icon.png" alt="image"/>
+                <span>image</span>
+              </div>
+              <input type="file" accept="image/*" hidden/>
+            </label>
+
+            <label class="upload-option">
+              <div class="video">
+                <img src="../assets/video_icon.png" alt="video"/>
+                <span>video</span>
+              </div>
+              <input type="file" accept="video/*" hidden/>
+            </label>
+
+            <div class="privacy">
+              <img src="../assets/public_icon.png" alt="public"/>
+              <span>
+                <select name="privacy" id="privacy">
+                  <option value="public">Public</option>
+                  <option value="friends">Friends</option>
+                  <option value="private">Private</option>
+                </select>
+              </span>
             </div>
-            <input type="file" accept="image/*" hidden>
-          </label>
-
-          <label class="upload-option">
-            <div class="video">
-              <img src="../assets/video_icon.png" alt="video">
-              <span>video</span>
-            </div>
-            <input type="file" accept="video/*" hidden>
-          </label>
-
-          <div class="privacy">
-            <img src="../assets/public_icon.png" alt="public">
-            <span>
-              <select name="privacy" id="privacy">
-                <option value="public">Public</option>
-                <option value="friends">Friends</option>
-                <option value="private">Private</option>
-              </select>
-            </span>
           </div>
         </div>
-      </div>
 
-      <div class="sample-post">
-        <div class="post-header">
-          <div class="post-header-left">
-            <img src="../assets/temporary_pfp.png"
+        <div class="sample-post">
+          <div class="post-header">
+            <div class="post-header-left">
+              <img
+                src="../assets/temporary_pfp.png"
                 alt="user profile"
-                class="profile-pic">
+                class="profile-pic"/>
 
-            <div class="post-info">
-              <span class="username">Jane Dee</span>
-              <span class="timestamp">May 20 at 6:00PM</span>
-            </div>
-          </div>
-          <div class="more-option">
-            <img src="../assets/more_icon.png" alt="more"
-                onclick="toggleDropdown(this)">
-            <div class="dropdown-menu">
-              <button onclick="editPost(this)">Edit</button>
-              <button onclick="deletePost(this)">Delete</button>
-              <button onclick="cancelDropdown(this)">Cancel</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="post-content">
-          <div class="content">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            <img src="../assets/sample-post.png" alt="post image">
-          </div>
-          
-          <div class="post-actions">
-            <div class="comment-modal hidden">
-              <div class="modal-content">
-                <span class="close-comment-modal">&times;</span>
-                <h3>Comments</h3>
-                <div class="comment-list"></div>
-                <div class="comment-input">
-                  <input type="text" placeholder="Write a comment...">
-                  <button class="send-comment" 
-                        onclick="postComment(this)">Send</button>
-                </div>
+              <div class="post-info">
+                <span class="username" id="username">Jane Dee</span>
+                <span class="timestamp">May 20 at 6:00PM</span>
               </div>
             </div>
-        
-            <div class="action-button">
-              <button class="like-btn" onclick="toggleLike(this)">
-                <img src="../assets/heart_icon.png" class="heart-icon outline">
-                <img src="../assets/red_heart_icon.png" class="heart-icon filled hidden">
-              </button>
-              <span class="like-count">0</span>
-            </div>            
-            
-            <div class="action-button">
-              <button class="comment-btn" 
-                    onclick="toggleCommentModal(this.closest('.sample-post'))">
-                <img src="../assets/comment_icon.png" alt="Comment">
-              </button>
-              <span class="comment-count">0</span>
+            <div class="more-option">
+              <img
+                src="../assets/more_icon.png"
+                alt="more"
+                onclick="toggleDropdown(this)"/>
+              <div class="dropdown-menu">
+                <button onclick="editPost(this)">Edit</button>
+                <button onclick="deletePost(this)">Delete</button>
+                <button onclick="cancelDropdown(this)">Cancel</button>
+              </div>
             </div>
-            
-            <div class="action-button">
-              <button class="share-btn" onclick="toggleShareModal()">
-                <img src="../assets/share_icon.png" alt="Share">
-              </button>
-              
+          </div>
+
+          <div class="post-content">
+            <div class="content">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              <img src="../assets/sample-post.png" alt="post image"/>
+            </div>
+
+            <div class="post-actions">
+              <div class="comment-modal hidden">
+                <div class="modal-content">
+                  <span class="close-comment-modal">&times;</span>
+                  <h3>Comments</h3>
+                  <div class="comment-list"></div>
+                  <div class="comment-input">
+                    <input type="text" placeholder="Write a comment..."/>
+                    <button class="send-comment" onclick="postComment(this)">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="action-button">
+                <button class="like-btn" onclick="toggleLike(this)">
+                  <img
+                    src="../assets/heart_icon.png"
+                    class="heart-icon outline"/>
+                  <img
+                    src="../assets/red_heart_icon.png"
+                    class="heart-icon filled hidden"/>
+                </button>
+                <span class="like-count">0</span>
+              </div>
+
+              <div class="action-button">
+                <button
+                  class="comment-btn"
+                  onclick="toggleCommentModal(this.closest('.sample-post'))">
+                  <img src="../assets/comment_icon.png" alt="Comment"/>
+                </button>
+                <span class="comment-count">0</span>
+              </div>
+
+              <div class="action-button">
+                <button class="share-btn" onclick="toggleShareModal()">
+                  <img src="../assets/share_icon.png" alt="Share" >
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="side-panel">
-      <div class="profile-card">
-        <div class="profile-banner">
-          <img src="../assets/cover_photo.png"
+      <div class="side-panel">
+        <div class="profile-card">
+          <div class="profile-banner">
+            <img
+              src="../assets/cover_photo.png"
               alt="Profile Cover"
-              class="cover-img">
-          <img src="../assets/temporary_pfp.png"
+              class="cover-img"/>
+            <img
+              src="../assets/temporary_pfp.png"
               alt="Profile Pic"
-              class="profile-img">
-        </div>
-
-        <div class="profile-info">
-          <h3>Jane Dee</h3>
-          <p>@janedee</p>
-          <div class="profile-stats">
-            <div><strong>1000</strong><p>Post</div>
-            <div><strong>1000</strong><p>Followers</div>
-            <div><strong>1000</strong><p>Following</div>
+              class="profile-img"/>
           </div>
-          <a href="profile.html" class="profile-button">Profile</a>
-        </div>
-      </div>
 
-      <div class="suggested-section">
-        <h3>Suggested for you</h3>
-        <div id="suggested_users_container"></div>
+          <div class="profile-info">
+            <h3 id="display_name">Loading...</h3>
+            <p id="username">@loading</p>
+
+            <div class="profile-stats">
+              <div>
+                <strong>1000</strong>
+                <p>Post</p>
+              </div>
+              <div>
+                <strong>1000</strong>
+                <p>Followers</p>
+              </div>
+              <div>
+                <strong>1000</strong>
+                <p>Following</p>
+              </div>
+            </div>
+            <a href="profile.html" class="profile-button">Profile</a>
+          </div>
+        </div>
+
+        <div class="suggested-section">
+          <h3>Suggested for you</h3>
+          <div id="suggested_users_container"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="modal-overlay" id="post_modal">
-    <div class="create-post-modal">
-      <div class="modal-header">
-        <h2>Create Post</h2>
-        <button class="close-button" onclick="closePostModal()">×</button>
-      </div>
-      <span class="username">Jane Dee</span>
-      <div
+    <div class="modal-overlay" id="post_modal">
+      <div class="create-post-modal">
+        <div class="modal-header">
+          <h2>Create Post</h2>
+          <button class="close-button" onclick="closePostModal()">×</button>
+        </div>
+        <span class="username" id="username">Jane Dee</span>
+        <div
           class="text-editor"
           id="editor"
           contenteditable="true"
-          placeholder="Share something...">
-      </div>
+          placeholder="Share something..."></div>
 
-      <div class="preview" id="preview_container"></div>
+        <div class="preview" id="preview_container"></div>
 
-      <div class="formatting-options">
-        <button onclick="formatText('bold')">B</button>
-        <button onclick="formatText('italic')">I</button>
-        <button onclick="formatText('underline')">U</button>
-      </div>
-
-      <div class="upload-controls">
-        <label class="icon-button">
-          <img src="../assets/camera_icon.png" alt="Image Icon">
-          <input type="file" id="media_input" accept="image/*" hidden>
-          <span>Image</span>
-        </label>
-        <label class="icon-button">
-          <img src="../assets/video_icon.png" alt="Video Icon">
-          <input type="file" id="media_input_video" accept="video/*" hidden>
-          <span>Video</span>
-        </label>
-        <div class="privacy-select">
-          <img src="../assets/public_icon.png" alt="Public Icon">
-          <select id="privacy_setting">
-            <option value="public">Public</option>
-            <option value="friends">Friends</option>
-            <option value="private">Private</option>
-          </select>
+        <div class="formatting-options">
+          <button onclick="formatText('bold')">B</button>
+          <button onclick="formatText('italic')">I</button>
+          <button onclick="formatText('underline')">U</button>
         </div>
-      </div>
 
-      <button class="submit-button"
+        <div class="upload-controls">
+          <label class="icon-button">
+            <img src="../assets/camera_icon.png" alt="Image Icon"/>
+            <input type="file" id="media_input" accept="image/*" hidden />
+            <span>Image</span>
+          </label>
+          <label class="icon-button">
+            <img src="../assets/video_icon.png" alt="Video Icon"/>
+            <input type="file" id="media_input_video" accept="video/*" hidden/>
+            <span>Video</span>
+          </label>
+          <div class="privacy-select">
+            <img src="../assets/public_icon.png" alt="Public Icon"/>
+            <select id="privacy_setting">
+              <option value="public">Public</option>
+              <option value="friends">Friends</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+
+        <button
+          class="submit-button"
           id="submit_post_button"
-          onclick="submitPost()">Post</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay hidden" id="comment_modal">
-    <div class="comment-modal">
-      <div class="comment-modal-header">
-        <button class="close-comment-modal">×</button>
-      </div>
-      <div class="comment-input-container">
-        <img src="../assets/temporary_pfp.png" class="comment-avatar">
+          onclick="submitPost()">
+          Post
+        </button>
       </div>
     </div>
-  </div>
 
-  <div class="modal-overlay hidden" id="share_modal">
-    <div class="share-modal">
-      <div class="share-modal-header">
-        <h3>Share</h3>
-        <button class="close-btn" onclick="closeShareModal()">&times;</button>
-      </div>
-  
-      <div class="share-icons">
-        <a href="#" title="Instagram"><img src="../assets/devhive_logo.jpg" 
-              alt="Devhive"></a>
-        <a href="#" title="Facebook"><img src="../assets/heybleepi_logo.png" 
-              alt="Heybleepi"></a>
-      </div>
-  
-      <div class="share-link-section">
-        <label>Page link</label>
-        <div class="link-box">
-          <input type="text" id="share_link" readonly value="https://www.hershive.com/share/example">
-          <button id="copy_link" onclick="copyLink(this)">
-            <img src="../assets/copy_icon.png" alt="Copy">
-          </button>
+    <div class="modal-overlay hidden" id="comment_modal">
+      <div class="comment-modal">
+        <div class="comment-modal-header">
+          <button class="close-comment-modal">×</button>
+        </div>
+        <div class="comment-input-container">
+          <img src="../assets/temporary_pfp.png" class="comment-avatar"/>
         </div>
       </div>
     </div>
-  </div>  
-  <script src="../script/home.js"></script>
-</body>
+
+    <div class="modal-overlay hidden" id="share_modal">
+      <div class="share-modal">
+        <div class="share-modal-header">
+          <h3>Share</h3>
+          <button class="close-btn" onclick="closeShareModal()">&times;</button>
+        </div>
+
+        <div class="share-icons">
+          <a href="#" title="Instagram"
+            ><img src="../assets/devhive_logo.jpg" alt="Devhive"/></a>
+          <a href="#" title="Facebook"
+            ><img src="../assets/heybleepi_logo.png" alt="Heybleepi"/></a>
+        </div>
+
+        <div class="share-link-section">
+          <label>Page link</label>
+          <div class="link-box">
+            <input
+              type="text"
+              id="share_link"
+              readonly
+              value="https://www.hershive.com/share/example"/>
+            <button id="copy_link" onclick="copyLink(this)">
+              <img src="../assets/copy_icon.png" alt="Copy"/>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../script/home.js"></script>
+  </body>
 </html>
