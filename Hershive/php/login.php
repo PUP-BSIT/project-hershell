@@ -1,5 +1,5 @@
 <?php
-session_set_cookie_params([
+session_set_cookie_params ([
   'lifetime' => 0,
   'secure' => true,
   'httponly' => true,
