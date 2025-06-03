@@ -130,49 +130,49 @@ function submitPost() {
         <div class="post-actions">
           <div class="action-button">
             <button class="like-btn" onclick="toggleLike(this)">
-              <img class="heart-icon outline" 
+              <img class="heart-icon outline"
                     src="../assets/heart_icon.png" alt="Like">
-              <img class="heart-icon filled hidden" 
+              <img class="heart-icon filled hidden"
                   src="../assets/red_heart_icon.png" alt="Liked">
             </button>
             <span class="like-count">0</span>
           </div>
-  
+
           <div class="action-button">
-            <button class="comment-btn" 
+            <button class="comment-btn"
             onclick="toggleCommentModal(this.closest('.sample-post'))">
               <img src="../assets/comment_icon.png" alt="Comment">
             </button>
             <span class="comment-count">0</span>
           </div>
-  
+
           <div class="comment-modal hidden">
             <div class="modal-content">
-              <span class="close-comment-modal" 
+              <span class="close-comment-modal"
                     onclick="toggleCommentModal(this.closest('.sample-post'))">
                         &times;</span>
               <div class="comment-list"></div>
               <div class="comment-input">
                 <input type="text" placeholder="Write a comment...">
-                <button class="send-comment" 
+                <button class="send-comment"
                     onclick="postComment(this)">Send</button>
               </div>
             </div>
           </div>
-  
+
           <div class="action-button">
-            <button class="share-btn" 
+            <button class="share-btn"
                 onclick="toggleShareModal(this.closest('.sample-post'))">
               <img src="../assets/share_icon.png" alt="Share">
             </button>
           </div>
-  
+
          <div class="share-modal hidden">
           <div class="modal-content">
-            <span class="close-share-modal" 
+            <span class="close-share-modal"
                 onclick="toggleShareModal(this.closest('.sample-post'))">
                     &times;</span>
-            <input class="share-link" type="text" 
+            <input class="share-link" type="text"
                 value="https://example.com/post-link" readonly>
             <button onclick="copyLink(this)">
               <img src="../assets/copy_icon.png" alt="Copy">
@@ -200,9 +200,9 @@ function formatText(command) {
   document.execCommand(command, false, null);
 }
 
-const imageInput = document.getElementById('media_input');
-const videoInput = document.getElementById('media_input_video');
-const previewContainer = document.getElementById('preview_container');
+const imageInput = document.getElementById("media_input");
+const videoInput = document.getElementById("media_input_video");
+const previewContainer = document.getElementById("preview_container");
 
 function handleFileInput(input, isVideo = false) {
   const file = input.files[0];
@@ -210,21 +210,21 @@ function handleFileInput(input, isVideo = false) {
 
   const reader = new FileReader();
   reader.onload = function (e) {
-    previewContainer.innerHTML = '';
+    previewContainer.innerHTML = "";
 
-    const media = document.createElement(isVideo ? 'video' : 'img');
+    const media = document.createElement(isVideo ? "video" : "img");
     if (isVideo) media.controls = true;
     media.src = e.target.result;
 
-    const wrapper = document.createElement('div');
-    wrapper.classList.add('preview-item');
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("preview-item");
 
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-btn';
-    removeBtn.textContent = '✕';
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "✕";
     removeBtn.onclick = () => {
-      previewContainer.innerHTML = '';
-      input.value = '';
+      previewContainer.innerHTML = "";
+      if (input) input.value = "";
     };
 
     wrapper.appendChild(media);
@@ -234,8 +234,8 @@ function handleFileInput(input, isVideo = false) {
   reader.readAsDataURL(file);
 }
 
-imageInput.addEventListener('change', () => handleFileInput(imageInput));
-videoInput.addEventListener('change', () => handleFileInput(videoInput, true));
+imageInput.addEventListener("change", () => handleFileInput(imageInput));
+videoInput.addEventListener("change", () => handleFileInput(videoInput, true));
 
 function addMediaToPost(file, isVideo = false, targetContentDiv) {
   const reader = new FileReader();
@@ -308,30 +308,30 @@ function menuToggleDropdown() {
 }
 
 function toggleNotificationPanel() {
-  const panel = document.getElementById('notification_panel');
-  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  const panel = document.getElementById("notification_panel");
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
 }
 
 function toggleLike(button) {
-  const outlineIcon = button.querySelector('.heart-icon.outline');
-  const filledIcon = button.querySelector('.heart-icon.filled');
+  const outlineIcon = button.querySelector(".heart-icon.outline");
+  const filledIcon = button.querySelector(".heart-icon.filled");
   const likeCountSpan = button.nextElementSibling;
 
-  console.log('outlineIcon:', outlineIcon);
-  console.log('filledIcon:', filledIcon);
+  console.log("outlineIcon:", outlineIcon);
+  console.log("filledIcon:", filledIcon);
 
   if (!outlineIcon || !filledIcon) {
-    console.error('Heart icons missing!');
+    console.error("Heart icons missing!");
     return;
   }
 
-  if (outlineIcon.classList.contains('hidden')) {
-    outlineIcon.classList.remove('hidden');
-    filledIcon.classList.add('hidden');
+  if (outlineIcon.classList.contains("hidden")) {
+    outlineIcon.classList.remove("hidden");
+    filledIcon.classList.add("hidden");
     likeCountSpan.textContent = parseInt(likeCountSpan.textContent) - 1;
   } else {
-    outlineIcon.classList.add('hidden');
-    filledIcon.classList.remove('hidden');
+    outlineIcon.classList.add("hidden");
+    filledIcon.classList.remove("hidden");
     likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
   }
 }
@@ -366,16 +366,16 @@ function postComment(button) {
 }
 
 function toggleShareModal() {
-  const shareModal = document.getElementById('share_modal');
+  const shareModal = document.getElementById("share_modal");
   if (shareModal) {
-    shareModal.classList.toggle('hidden');
+    shareModal.classList.toggle("hidden");
   }
 }
 
 function closeShareModal() {
-  const shareModal = document.getElementById('share_modal');
+  const shareModal = document.getElementById("share_modal");
   if (shareModal) {
-    shareModal.classList.add('hidden');
+    shareModal.classList.add("hidden");
   }
 }
 
@@ -383,22 +383,23 @@ function copyLink(button) {
   const input = button.previousElementSibling;
   if (!input) return;
 
-  navigator.clipboard.writeText(input.value)
-    .then(() => alert('Link copied!'))
-    .catch(() => alert('Copy failed'));
+  navigator.clipboard
+    .writeText(input.value)
+    .then(() => alert("Link copied!"))
+    .catch(() => alert("Copy failed"));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const samplePost = document.querySelector('.sample-post');
+  const samplePost = document.querySelector(".sample-post");
   if (samplePost) {
     initCommentButton(samplePost);
   }
 });
 
-document.addEventListener('click', function (e) {
-  if (e.target.classList.contains('close-comment-modal')) {
-    const modal = e.target.closest('.comment-modal');
-    if (modal) modal.classList.add('hidden');
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("close-comment-modal")) {
+    const modal = e.target.closest(".comment-modal");
+    if (modal) modal.classList.add("hidden");
   }
 });
 
@@ -414,6 +415,19 @@ function toggleLogout() {
 
 function logout() {
   alert("Logged out successfully!");
-  // Redirect to login page or perform logout logic
-  window.location.href = "login.html"; // Example redirect
+  window.location.href = "login.html";
 }
+
+fetch("../php/home.php")
+  .then((res) => res.json())
+  .then((data) => {
+    if (data.success) {
+      document.getElementById("display_name").textContent = data.username;
+      document.getElementById("username").textContent = "@" + data.username;
+    } else {
+      window.location.href = "../html/login.html";
+    }
+  })
+  .catch(() => {
+    window.location.href = "../html/login.html";
+  });
