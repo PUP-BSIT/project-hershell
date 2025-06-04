@@ -68,3 +68,20 @@ document.getElementById('cover_media_input')
     .addEventListener('change', function() {handleFileInput(this, document
     .getElementById("cover_img_preview"));
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('../php/get_user_stats.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+            document.getElementById('postCount').textContent = data.posts;
+            document.getElementById('followerCount').textContent = data.followers;
+            document.getElementById('followingCount').textContent = data.following;
+        })
+        .catch(error => {
+            console.error("Failed to load user stats:", error);
+        });
+});
