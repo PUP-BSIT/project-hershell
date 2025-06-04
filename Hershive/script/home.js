@@ -1,3 +1,256 @@
+// Global variables
+let currentUser = null;
+
+// Initialize page when DOM loads
+document.addEventListener("DOMContentLoaded", function() {
+  checkUserSession();
+  displaySuggestedUsers();
+});
+
+// Check user session and load posts
+function checkUserSession() {
+  fetch("../php/home.php")
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        currentUser = data.username;
+        document.getElementById("display_name").textContent = data.username;
+        document.getElementById("username").textContent = "@" + data.username;
+        loadPosts(); // Load posts after user is authenticated
+      } else {
+        window.location.href = "../html/login.html";
+      }
+    })
+    .catch(() => {
+      window.location.href = "../html/login.html";
+    });
+}
+
+// Load posts from database
+function loadPosts(page = 1, limit = 10) {
+  fetch(`../php/get-posts.php?page=${page}&limit=${limit}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        displayPosts(data.posts);
+        updatePagination(data.pagination);
+      } else {
+        console.error('Error loading posts:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching posts:', error);
+    });
+}
+
+// Display posts in the feed
+function displayPosts(posts) {
+  const leftContent = document.querySelector(".left-content");
+
+  // Clear existing posts (except the post creation form)
+  const existingPosts = leftContent.querySelectorAll(".sample-post");
+  existingPosts.forEach(post => post.remove());
+
+  posts.forEach(post => {
+    const postElement = createPostElement(post);
+    leftContent.appendChild(postElement);
+  });
+}
+
+// Create individual post element
+function createPostElement(post) {
+  const postDiv = document.createElement("div");
+  postDiv.className = "sample-post";
+  postDiv.dataset.postId = post.post_id;
+
+  // Determine if this post belongs to current user
+  const isOwner = post.username === currentUser;
+
+  postDiv.innerHTML = `
+    <div class="post-header">
+      <div class="post-header-left">
+        <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+        <div class="post-info">
+          <span class="username">${post.username}</span>
+          <span class="timestamp">${post.formatted_time}</span>
+        </div>
+      </div>
+      ${isOwner ? `
+      <div class="more-option">
+        <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+        <div class="dropdown-menu">
+          <button onclick="editPost(this)">Edit</button>
+          <button onclick="deletePost(this)">Delete</button>
+          <button onclick="cancelDropdown(this)">Cancel</button>
+        </div>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="post-content">
+      <div class="content">
+        <p>${post.content}</p>
+        ${post.media_url ? `
+          ${post.media_type === 'video' ?
+            `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>` :
+            `<img src="${post.media_url}" alt="Post media" class="preview-image">`
+          }
+        ` : ''}
+      </div>
+
+      <div class="post-actions">
+        <div class="action-button">
+          <button class="like-btn" onclick="toggleLike(this, ${post.post_id})">
+            <img class="heart-icon outline ${post.user_liked ? 'hidden' : ''}"
+                 src="../assets/heart_icon.png" alt="Like">
+            <img class="heart-icon filled ${post.user_liked ? '' : 'hidden'}"
+                 src="../assets/red_heart_icon.png" alt="Liked">
+          </button>
+          <span class="like-count">${post.likes_count}</span>
+        </div>
+
+        <div class="action-button">
+          <button class="comment-btn" onclick="toggleCommentModal(this.closest('.sample-post'))">
+            <img src="../assets/comment_icon.png" alt="Comment">
+          </button>
+          <span class="comment-count">${post.comments_count}</span>
+        </div>
+
+        <div class="comment-modal hidden">
+          <div class="modal-content">
+            <span class="close-comment-modal" onclick="toggleCommentModal(this.closest('.sample-post'))">&times;</span>
+            <div class="comment-list"></div>
+            <div class="comment-input">
+              <input type="text" placeholder="Write a comment...">
+              <button class="send-comment" onclick="postComment(this)">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-button">
+          <button class="share-btn" onclick="toggleShareModal(this.closest('.sample-post'))">
+            <img src="../assets/share_icon.png" alt="Share">
+          </button>
+        </div>
+
+        <div class="share-modal hidden">
+          <div class="modal-content">
+            <span class="close-share-modal" onclick="toggleShareModal(this.closest('.sample-post'))">&times;</span>
+            <input class="share-link" type="text" value="https://example.com/post/${post.post_id}" readonly>
+            <button onclick="copyLink(this)">
+              <img src="../assets/copy_icon.png" alt="Copy">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return postDiv;
+}
+
+// Updated submitPost function to use database
+function submitPost() {
+  const editor = document.getElementById("editor");
+  const postText = editor.innerHTML.trim();
+  const imageFile = imageInput.files[0];
+  const videoFile = videoInput.files[0];
+
+  if (!postText || postText === "<br>") {
+    alert("Please enter some text to post.");
+    return;
+  }
+
+  // Create FormData for file upload if needed
+  const formData = new FormData();
+  formData.append('content', postText);
+
+  if (imageFile) {
+    formData.append('media', imageFile);
+    formData.append('media_type', 'image');
+  } else if (videoFile) {
+    formData.append('media', videoFile);
+    formData.append('media_type', 'video');
+  }
+
+  // Submit to backend
+  fetch('../php/create-post.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // Clear form
+      editor.innerHTML = "";
+      imageInput.value = "";
+      videoInput.value = "";
+      previewContainer.innerHTML = "";
+      closePostModal();
+
+      // Reload posts to show the new one
+      loadPosts();
+    } else {
+      alert(data.error || 'Error creating post');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error creating post');
+  });
+}
+
+// Updated toggleLike function to work with database
+function toggleLike(button, postId) {
+  const outlineIcon = button.querySelector(".heart-icon.outline");
+  const filledIcon = button.querySelector(".heart-icon.filled");
+  const likeCountSpan = button.nextElementSibling;
+
+  if (!outlineIcon || !filledIcon) {
+    console.error("Heart icons missing!");
+    return;
+  }
+
+  const isLiked = filledIcon && !filledIcon.classList.contains("hidden");
+
+  // Send to backend
+  fetch('../php/toggle-like.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      post_id: postId,
+      action: isLiked ? 'unlike' : 'like'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // Update UI
+      if (isLiked) {
+        outlineIcon.classList.remove("hidden");
+        filledIcon.classList.add("hidden");
+        likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+      } else {
+        outlineIcon.classList.add("hidden");
+        filledIcon.classList.remove("hidden");
+        likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling like:', error);
+  });
+}
+
+// Pagination function (optional)
+function updatePagination(pagination) {
+  // You can implement pagination controls here if needed
+  console.log('Pagination info:', pagination);
+}
+
+// Rest of your existing functions
 function openPostModal() {
   const postModal = document.getElementById("post_modal");
   postModal.classList.remove("hidden");
@@ -13,7 +266,7 @@ function closePostModal() {
 window.addEventListener("click", function (e) {
   const postModal = document.getElementById("post_modal");
   if (e.target === postModal) {
-    postModal.style.display = "none";
+    closePostModal();
   }
 });
 
@@ -84,118 +337,6 @@ function deletePost(button) {
   }
 }
 
-function submitPost() {
-  const editor = document.getElementById("editor");
-  const postText = editor.innerHTML.trim();
-  const imageFile = imageInput.files[0];
-  const videoFile = videoInput.files[0];
-
-  if (!postText || postText === "<br>") {
-    alert("Please enter some text to post.");
-    return;
-  }
-
-  const leftContent = document.querySelector(".left-content");
-
-  const post = document.createElement("div");
-  post.className = "sample-post";
-  post.innerHTML = `
-    <div class="post-header">
-      <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png"
-            alt="user profile"
-            class="profile-pic">
-        <div class="post-info">
-          <span class="username">Jane Dee</span>
-          <span class="timestamp">${new Date().toLocaleString()}</span>
-        </div>
-      </div>
-      <div class="more-option">
-        <img src="../assets/more_icon.png"
-            alt="more"
-            onclick="toggleDropdown(this)">
-        <div class="dropdown-menu">
-          <button onclick="editPost(this)">Edit</button>
-          <button onclick="deletePost(this)">Delete</button>
-          <button onclick="cancelDropdown(this)">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="post-content">
-      <div class="content">
-        <p>${postText}</p>
-      </div>
-
-        <div class="post-actions">
-          <div class="action-button">
-            <button class="like-btn" onclick="toggleLike(this)">
-              <img class="heart-icon outline"
-                    src="../assets/heart_icon.png" alt="Like">
-              <img class="heart-icon filled hidden"
-                  src="../assets/red_heart_icon.png" alt="Liked">
-            </button>
-            <span class="like-count">0</span>
-          </div>
-
-          <div class="action-button">
-            <button class="comment-btn"
-            onclick="toggleCommentModal(this.closest('.sample-post'))">
-              <img src="../assets/comment_icon.png" alt="Comment">
-            </button>
-            <span class="comment-count">0</span>
-          </div>
-
-          <div class="comment-modal hidden">
-            <div class="modal-content">
-              <span class="close-comment-modal"
-                    onclick="toggleCommentModal(this.closest('.sample-post'))">
-                        &times;</span>
-              <div class="comment-list"></div>
-              <div class="comment-input">
-                <input type="text" placeholder="Write a comment...">
-                <button class="send-comment"
-                    onclick="postComment(this)">Send</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="action-button">
-            <button class="share-btn"
-                onclick="toggleShareModal(this.closest('.sample-post'))">
-              <img src="../assets/share_icon.png" alt="Share">
-            </button>
-          </div>
-
-         <div class="share-modal hidden">
-          <div class="modal-content">
-            <span class="close-share-modal"
-                onclick="toggleShareModal(this.closest('.sample-post'))">
-                    &times;</span>
-            <input class="share-link" type="text"
-                value="https://example.com/post-link" readonly>
-            <button onclick="copyLink(this)">
-              <img src="../assets/copy_icon.png" alt="Copy">
-            </button>
-          </div>
-        </div>
-    </div>
-  `;
-
-  const contentDiv = post.querySelector(".content");
-
-  if (imageFile) addMediaToPost(imageFile, false, contentDiv);
-  if (videoFile) addMediaToPost(videoFile, true, contentDiv);
-
-  leftContent.insertBefore(post, leftContent.children[1]);
-
-  editor.innerHTML = "";
-  imageInput.value = "";
-  videoInput.value = "";
-  previewContainer.innerHTML = "";
-  closePostModal();
-}
-
 function formatText(command) {
   document.execCommand(command, false, null);
 }
@@ -234,8 +375,8 @@ function handleFileInput(input, isVideo = false) {
   reader.readAsDataURL(file);
 }
 
-imageInput.addEventListener("change", () => handleFileInput(imageInput));
-videoInput.addEventListener("change", () => handleFileInput(videoInput, true));
+if (imageInput) imageInput.addEventListener("change", () => handleFileInput(imageInput));
+if (videoInput) videoInput.addEventListener("change", () => handleFileInput(videoInput, true));
 
 function addMediaToPost(file, isVideo = false, targetContentDiv) {
   const reader = new FileReader();
@@ -274,6 +415,7 @@ const suggestedUsers = [
 
 function displaySuggestedUsers() {
   const container = document.getElementById("suggested_users_container");
+  if (!container) return;
 
   suggestedUsers.forEach((user) => {
     const div = document.createElement("div");
@@ -284,8 +426,7 @@ function displaySuggestedUsers() {
         <p><strong>${user.username}</strong></p>
         <p>${user.handle}</p>
       </div>
-      <button onclick="toggleFollow(this)">Follow</button>
-    `;
+      <button onclick="toggleFollow(this)">Follow</button>`;
     container.appendChild(div);
   });
 }
@@ -304,36 +445,12 @@ function toggleFollow(button) {
 
 function menuToggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
-  dropdown.classList.toggle("hidden");
+  if (dropdown) dropdown.classList.toggle("hidden");
 }
 
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
-  panel.style.display = panel.style.display === "block" ? "none" : "block";
-}
-
-function toggleLike(button) {
-  const outlineIcon = button.querySelector(".heart-icon.outline");
-  const filledIcon = button.querySelector(".heart-icon.filled");
-  const likeCountSpan = button.nextElementSibling;
-
-  console.log("outlineIcon:", outlineIcon);
-  console.log("filledIcon:", filledIcon);
-
-  if (!outlineIcon || !filledIcon) {
-    console.error("Heart icons missing!");
-    return;
-  }
-
-  if (outlineIcon.classList.contains("hidden")) {
-    outlineIcon.classList.remove("hidden");
-    filledIcon.classList.add("hidden");
-    likeCountSpan.textContent = parseInt(likeCountSpan.textContent) - 1;
-  } else {
-    outlineIcon.classList.add("hidden");
-    filledIcon.classList.remove("hidden");
-    likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
-  }
+  if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
 }
 
 function toggleCommentModal(postElement) {
@@ -353,7 +470,7 @@ function postComment(button) {
     comment.innerHTML = `
       <img src="../assets/temporary_pfp.png" alt="Avatar" class="comment-avatar">
       <div class="comment-content">
-        <span class="comment-author">John Doe</span>
+        <span class="comment-author">${currentUser}</span>
         <p>${commentText}</p>
       </div>`;
     list.appendChild(comment);
@@ -365,8 +482,8 @@ function postComment(button) {
   }
 }
 
-function toggleShareModal() {
-  const shareModal = document.getElementById("share_modal");
+function toggleShareModal(postElement) {
+  const shareModal = postElement.querySelector(".share-modal");
   if (shareModal) {
     shareModal.classList.toggle("hidden");
   }
@@ -389,44 +506,33 @@ function copyLink(button) {
     .catch(() => alert("Copy failed"));
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const samplePost = document.querySelector(".sample-post");
-  if (samplePost) {
-    initCommentButton(samplePost);
-  }
-});
-
-document.addEventListener("click", function (e) {
-  if (e.target.classList.contains("close-comment-modal")) {
-    const modal = e.target.closest(".comment-modal");
-    if (modal) modal.classList.add("hidden");
-  }
-});
-
 function hideLogout() {
   const logoutSection = document.getElementById("logout");
-  logoutSection.hidden = true;
+  if (logoutSection) logoutSection.hidden = true;
 }
 
 function toggleLogout() {
   const logoutSection = document.getElementById("logout");
-  logoutSection.hidden = false;
+  if (logoutSection) logoutSection.hidden = false;
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('../php/get_user_stats.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+            document.getElementById('postCount').textContent = data.posts;
+            document.getElementById('followerCount').textContent = data.followers;
+            document.getElementById('followingCount').textContent = data.following;
+        })
+        .catch(error => {
+            console.error("Failed to load user stats:", error);
+        });
+});
 
 function logout() {
   window.location.href = "../php/logout.php";
 }
-
-fetch("../php/home.php")
-  .then((res) => res.json())
-  .then((data) => {
-    if (data.success) {
-      document.getElementById("display_name").textContent = data.username;
-      document.getElementById("username").textContent = "@" + data.username;
-    } else {
-      window.location.href = "../html/login.html";
-    }
-  })
-  .catch(() => {
-    window.location.href = "../html/login.html";
-  });
