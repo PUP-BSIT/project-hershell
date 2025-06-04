@@ -414,8 +414,7 @@ function toggleLogout() {
 }
 
 function logout() {
-  alert("Logged out successfully!");
-  window.location.href = "login.html";
+  window.location.href = "../php/logout.php";
 }
 
 fetch("../php/home.php")
