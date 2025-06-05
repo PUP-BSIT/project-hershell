@@ -26,21 +26,29 @@ function checkUserSession() {
     });
 }
 
-// Load posts from database
-function loadPosts(page = 1, limit = 10) {
-  fetch(`../php/get-posts.php?page=${page}&limit=${limit}`)
+function loadPosts() {
+  fetch('path_to_your_fetch_posts.php')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        displayPosts(data.posts);
-        updatePagination(data.pagination);
+        const postsContainer = document.querySelector('.posts-container');
+        postsContainer.innerHTML = ''; // Clear current posts
+        data.posts.forEach(post => {
+          // Generate your post HTML here
+          const postDiv = document.createElement('div');
+          postDiv.className = 'sample-post';
+          postDiv.dataset.postId = post.post_id;
+          postDiv.innerHTML = `
+            <div>${post.content}</div>
+            <button onclick="deletePost(this)">Delete</button>
+          `;
+          postsContainer.appendChild(postDiv);
+        });
       } else {
-        console.error('Error loading posts:', data.error);
+        alert('Failed to load posts');
       }
     })
-    .catch(error => {
-      console.error('Error fetching posts:', error);
-    });
+    .catch(error => console.error('Error loading posts:', error));
 }
 
 // Display posts in the feed
@@ -281,59 +289,123 @@ function cancelDropdown(button) {
 }
 
 function editPost(button) {
-  const post = button.closest(".sample-post");
-  const contentDiv = post.querySelector(".content");
-  const paragraph = contentDiv.querySelector("p");
-  const image = contentDiv.querySelector("img");
+  const post = button.closest('.sample-post');
+  const postId = post.dataset.postId;
 
-  if (contentDiv.querySelector(".edit-editor")) return;
+  const contentDiv = post.querySelector('.content');
+  const paragraph = contentDiv.querySelector('p');
+  const image = contentDiv.querySelector('img');
+  const video = contentDiv.querySelector('video');
 
-  const editorDiv = document.createElement("div");
-  editorDiv.className = "edit-editor";
+  if (contentDiv.querySelector('.edit-editor')) return;
+
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'edit-editor';
   editorDiv.contentEditable = true;
   editorDiv.innerHTML = paragraph.innerHTML;
 
-  const fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = "image/*";
-  fileInput.className = "edit-image-input";
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,video/*';
+  fileInput.className = 'edit-media-input';
 
-  const saveButton = document.createElement("button");
-  saveButton.innerText = "Save";
-  saveButton.className = "save-edit-button";
+  const saveButton = document.createElement('button');
+  saveButton.innerText = 'Save';
+  saveButton.className = 'save-edit-button';
 
   saveButton.onclick = () => {
-    paragraph.innerHTML = editorDiv.innerHTML;
-    paragraph.classList.remove("hidden");
+    const updatedContent = editorDiv.innerHTML.trim();
 
-    if (fileInput.files.length > 0) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        if (image) {
-          image.src = e.target.result;
-        }
-      };
-      reader.readAsDataURL(fileInput.files[0]);
+    if (!updatedContent || updatedContent === '<br>') {
+      alert('Post content cannot be empty');
+      return;
     }
 
-    editorDiv.remove();
-    fileInput.remove();
-    saveButton.remove();
+    const formData = new FormData();
+    formData.append('post_id', postId);
+    formData.append('content', updatedContent);
+
+    if (fileInput.files.length > 0) {
+      formData.append('media', fileInput.files[0]);
+    }
+
+    fetch('../php/edit_post.php', {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+
+          paragraph.innerHTML = updatedContent;
+          paragraph.classList.remove('hidden');
+
+          if (fileInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (video) {
+                video.src = e.target.result;
+              } else if (image) {
+                image.src = e.target.result;
+              } else {
+                const mediaType = fileInput.files[0].type;
+                if (mediaType.startsWith('video')) {
+                  const newVideo = document.createElement('video');
+                  newVideo.controls = true;
+                  newVideo.src = e.target.result;
+                  contentDiv.appendChild(newVideo);
+                } else if (mediaType.startsWith('image')) {
+                  const newImg = document.createElement('img');
+                  newImg.src = e.target.result;
+                  newImg.alt = 'Post media';
+                  newImg.className = 'preview-image';
+                  contentDiv.appendChild(newImg);
+                }
+              }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+          }
+
+          editorDiv.remove();
+          fileInput.remove();
+          saveButton.remove();
+        } else {
+          alert(data.error || 'Failed to update post');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating post:', error);
+        alert('Error updating post');
+      });
   };
 
-  paragraph.classList.add("hidden");
-
+  paragraph.classList.add('hidden');
   contentDiv.insertBefore(editorDiv, paragraph);
   contentDiv.insertBefore(fileInput, paragraph);
   contentDiv.insertBefore(saveButton, paragraph);
-
-  cancelDropdown(button);
-}
+};
 
 function deletePost(button) {
-  const post = button.closest(".sample-post");
-  if (confirm("Are you sure you want to delete this post?")) {
-    post.remove();
+  const post = button.closest('.sample-post');
+  const postId = post.dataset.postId;
+
+  if (confirm('Are you sure you want to delete this post?')) {
+    fetch('../php/delete_post.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        post.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    });
   }
 }
 
