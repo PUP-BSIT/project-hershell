@@ -386,9 +386,26 @@ function editPost(button) {
 };
 
 function deletePost(button) {
-  const post = button.closest(".sample-post");
-  if (confirm("Are you sure you want to delete this post?")) {
-    post.remove();
+  const post = button.closest('.sample-post');
+  const postId = post.dataset.postId;
+
+  if (confirm('Are you sure you want to delete this post?')) {
+    fetch('../php/delete_post.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        post.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    });
   }
 }
 
