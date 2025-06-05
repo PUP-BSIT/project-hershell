@@ -26,21 +26,29 @@ function checkUserSession() {
     });
 }
 
-// Load posts from database
-function loadPosts(page = 1, limit = 10) {
-  fetch(`../php/get-posts.php?page=${page}&limit=${limit}`)
+function loadPosts() {
+  fetch('path_to_your_fetch_posts.php')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        displayPosts(data.posts);
-        updatePagination(data.pagination);
+        const postsContainer = document.querySelector('.posts-container');
+        postsContainer.innerHTML = ''; // Clear current posts
+        data.posts.forEach(post => {
+          // Generate your post HTML here
+          const postDiv = document.createElement('div');
+          postDiv.className = 'sample-post';
+          postDiv.dataset.postId = post.post_id;
+          postDiv.innerHTML = `
+            <div>${post.content}</div>
+            <button onclick="deletePost(this)">Delete</button>
+          `;
+          postsContainer.appendChild(postDiv);
+        });
       } else {
-        console.error('Error loading posts:', data.error);
+        alert('Failed to load posts');
       }
     })
-    .catch(error => {
-      console.error('Error fetching posts:', error);
-    });
+    .catch(error => console.error('Error loading posts:', error));
 }
 
 // Display posts in the feed
