@@ -559,10 +559,19 @@ function postComment(button) {
 }
 
 function toggleShareModal(postElement) {
-  const shareModal = postElement.querySelector(".share-modal");
-  if (shareModal) {
-    shareModal.classList.toggle("hidden");
-  }
+  const modal = document.getElementById("share_modal");
+  const preview = document.getElementById("shared_post_preview");
+  const postIdInput = document.getElementById("shared_post_id");
+  const linkInput = document.getElementById("share_link");
+
+  const content = postElement.querySelector(".content")?.innerHTML || "No content";
+  const postId = postElement.dataset.postId;
+
+  preview.innerHTML = content;
+  postIdInput.value = postId;
+  linkInput.value = `https://www.hershive.com/post/${postId}`; // adjust URL format as needed
+
+  modal.classList.remove("hidden");
 }
 
 function closeShareModal() {
