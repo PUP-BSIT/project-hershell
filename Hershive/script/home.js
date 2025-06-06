@@ -1,4 +1,3 @@
-// Global variables
 let currentUser = null;
 
 // Initialize page when DOM loads
@@ -27,30 +26,21 @@ function checkUserSession() {
 }
 
 function loadPosts() {
-  fetch('path_to_your_fetch_posts.php')
+  fetch('../php/get-post.php?unlimited=true')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        const postsContainer = document.querySelector('.posts-container');
-        postsContainer.innerHTML = ''; // Clear current posts
-        data.posts.forEach(post => {
-          // Generate your post HTML here
-          const postDiv = document.createElement('div');
-          postDiv.className = 'sample-post';
-          postDiv.dataset.postId = post.post_id;
-          postDiv.innerHTML = `
-            <div>${post.content}</div>
-            <button onclick="deletePost(this)">Delete</button>
-          `;
-          postsContainer.appendChild(postDiv);
-        });
+        displayPosts(data.posts);
       } else {
-        alert('Failed to load posts');
+        console.error('Failed to load posts:', data.error);
       }
     })
-    .catch(error => console.error('Error loading posts:', error));
+    .catch(error => {
+      console.error('Error loading posts:', error);
+    });
 }
 
+window.onload = loadPosts;
 // Display posts in the feed
 function displayPosts(posts) {
   const leftContent = document.querySelector(".left-content");
@@ -250,12 +240,6 @@ function toggleLike(button, postId) {
   .catch(error => {
     console.error('Error toggling like:', error);
   });
-}
-
-// Pagination function (optional)
-function updatePagination(pagination) {
-  // You can implement pagination controls here if needed
-  console.log('Pagination info:', pagination);
 }
 
 // Rest of your existing functions
