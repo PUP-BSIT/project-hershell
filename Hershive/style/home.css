@@ -918,7 +918,8 @@ select {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  width: 300px;
+  width: 60vw;
+  height: 90vh;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -936,9 +937,8 @@ select {
 /* Close button positioned independently */
 .close-btn {
   position: absolute;
-  justify-content: flex-end;
   top: 12px;
-  left: 12px;
+  right: 12px;
   background: none;
   border: none;
   font-size: 18px;
@@ -998,6 +998,45 @@ select {
 .link-box button img {
   width: 16px;
   height: 16px;
+}
+
+.share-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.shared-post-preview {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f9f9f9;
+  margin-bottom: 15px;
+  height: 100px;
+}
+
+#shared_post_preview img,
+#shared_post_preview video {
+  max-width: 100%;
+  max-height: 50%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: block;
+}
+
+.submit-share-btn {
+  background-color: #1877f2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 5px;
 }
 
 .sample-post .comment-modal {
