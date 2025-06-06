@@ -581,6 +581,34 @@ function closeShareModal() {
   }
 }
 
+function submitShare() {
+  const message = document.getElementById("share_message").value.trim();
+  const postId = document.getElementById("shared_post_id").value;
+
+  fetch("../php/share-post.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      post_id: postId,        // original post being shared
+      content: message        // now goes into the post table
+    })
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Post shared successfully!");
+        closeShareModal();
+        loadPosts(); // Refresh global wall
+      } else {
+        alert(data.error || "Error sharing post");
+      }
+    })
+    .catch((err) => {
+      console.error("Error:", err);
+      alert("Error sharing post");
+    });
+}
+
 function copyLink(button) {
   const input = button.previousElementSibling;
   if (!input) return;
