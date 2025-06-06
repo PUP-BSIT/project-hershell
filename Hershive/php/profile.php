@@ -70,25 +70,27 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       <div class="profile-info">
         <h3><?php echo $username; ?></h3>
         <p>@<?php echo $username; ?></p>
+        
+        <div class="bio-section">
+          <p><?php echo $bio; ?></p>
+        </div>
+
         <div class="profile-stats">
           <div><strong id="postCount">0</strong><p>Posts</p></div>
           <div><strong id="followerCount">0</strong><p>Followers</p></div>
           <div><strong id="followingCount">0</strong><p>Following</p></div>
         </div>
       </div>
-
-      <div class="bio-section">
-        <p><?php echo $bio; ?></p>
+      
+      <div class="post-divider"></div>
+      
+      <div class="post-section-toggle" onclick="showPostsOnly()">Post</div>
+      
+      <!-- Post Container Section (User post go here) -->
+      <div class="post-container">
+        <div class="post"></div>
       </div>
-
-      <div class="photo-gallery">
-        <img src="../assets/sample-post.png" alt="photo1">
-        <img src="<?php echo $coverPhoto; ?>" alt="photo2">
-        <img src="../assets/sample-post.png" alt="photo3">
-      </div>
-    </div>
-  </div>
-
+        
       <div id="edit_modal" class="modal hidden" onclick="modalClickHandler(event)">
         <div class="modal-content">
           <h2>Edit Profile</h2>

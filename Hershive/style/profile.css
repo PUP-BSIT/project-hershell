@@ -63,13 +63,7 @@ body {
   gap: 10px;
 }
 
-.navigation-icons > a button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
+.navigation-icons > a button,
 .navigation-icons > button {
   background: none;
   border: none;
@@ -168,7 +162,7 @@ body {
 
 .bio-section {
   margin: 5px 0 0;
-  padding: 0 10px;  
+  padding: 0 10px;
 }
 
 .photo-gallery {
@@ -336,12 +330,12 @@ body {
   border-radius: 50%;
   overflow: hidden;
   margin: 0 auto;
-  object-fit: cover; 
+  object-fit: cover;
   position: absolute;
-    top: 32%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-} 
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
 .cover-img-preview {
   width: 100%;
@@ -349,4 +343,25 @@ body {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+}
+
+.post-divider {
+  width: 100%;
+  max-width: 900px;
+  height: 1px;
+  background-color: black;
+  margin: 20px auto 10px auto;
+}
+
+.post-section-toggle {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: left;
+  cursor: pointer;
+  margin: 10px auto 20px auto;
+  color: #444;
+  transition: color 0.3s;
+  max-width: 900px;
+  width: 100%;
+  padding-left: 0;
 }
