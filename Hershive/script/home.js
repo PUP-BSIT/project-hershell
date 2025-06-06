@@ -26,7 +26,7 @@ function checkUserSession() {
 }
 
 function loadPosts() {
-  fetch('../php/get-post.php?unlimited=true')
+  fetch('../php/get_posts.php?unlimited=true')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -172,7 +172,7 @@ function submitPost() {
   }
 
   // Submit to backend
-  fetch('../php/create-post.php', {
+  fetch('../php/create_post.php', {
     method: 'POST',
     body: formData
   })
@@ -212,7 +212,7 @@ function toggleLike(button, postId) {
   const isLiked = filledIcon && !filledIcon.classList.contains("hidden");
 
   // Send to backend
-  fetch('../php/toggle-like.php', {
+  fetch('../php/toggle_like.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
