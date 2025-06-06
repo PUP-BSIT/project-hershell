@@ -35,29 +35,51 @@ function saveProfileUpdates() {
   const coverInput = document.getElementById("cover_media_input").files[0];
   const bioText = document.getElementById("bio_textarea").value;
 
-  if (profileInput) {
-    const profileReader = new FileReader();
-    profileReader.onload = function (e) {
-      document.querySelector(".profile-img-preview").src = e.target.result;
-      const mainProfileImg = document.querySelector(".profile-img");
-      if (mainProfileImg) mainProfileImg.src = e.target.result;
-    };
-    profileReader.readAsDataURL(profileInput);
-  }
+  const formData = new FormData();
+  formData.append("bio", bioText);
+  if (profileInput) formData.append("profile_picture", profileInput);
+  if (coverInput) formData.append("cover_photo", coverInput);
 
-  if (coverInput) {
-    const coverReader = new FileReader();
-    coverReader.onload = function (e) {
-      document.querySelector(".cover-img-preview").src = e.target.result;
-      const mainCoverImg = document.querySelector(".cover-img");
-      if (mainCoverImg) mainCoverImg.src = e.target.result;
-    };
-    coverReader.readAsDataURL(coverInput);
-  }
+  fetch("../php/update_profile.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
 
-  document.querySelector(".bio-section p").innerText = bioText;
+        const bioDisplay = document.querySelector(".bio-section p");
+        if (bioDisplay) bioDisplay.innerText = bioText;
 
-  closeEditModal();
+        if (profileInput) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const src = e.target.result;
+            const profileImgs = document.querySelectorAll(".profile-img, .profile-img-preview");
+            profileImgs.forEach(img => img.src = src);
+          };
+          reader.readAsDataURL(profileInput);
+        }
+
+        if (coverInput) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const src = e.target.result;
+            const coverImgs = document.querySelectorAll(".cover-img, .cover-img-preview");
+            coverImgs.forEach(img => img.src = src);
+          };
+          reader.readAsDataURL(coverInput);
+        }
+
+        closeEditModal();
+      } else {
+        alert("Update failed: " + (data.error || "Unknown error"));
+      }
+    })
+    .catch((err) => {
+      console.error("Error:", err);
+      alert("An error occurred while updating the profile.");
+    });
 }
 
 // Event listeners for file inputs to show previews
