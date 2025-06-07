@@ -170,14 +170,14 @@
             </div>
 
             <div class="post-actions">
-              <div class="comment-modal hidden">
+              <div class="comment-modal hidden" id="comment-list">
                 <div class="modal-content">
-                  <span class="close-comment-modal">&times;</span>
+                  <span class="close-comment-modal">×</span>
                   <h3>Comments</h3>
                   <div class="comment-list"></div>
                   <div class="comment-input">
                     <input type="text" placeholder="Write a comment..."/>
-                    <button class="send-comment" onclick="postComment(this)">
+                    <button class="send-comment" onclick="submitComment(this)">
                       Send
                     </button>
                   </div>
@@ -311,7 +311,7 @@
     <div class="modal-overlay hidden" id="comment_modal">
       <div class="comment-modal">
         <div class="comment-modal-header">
-          <button class="close-comment-modal">×</button>
+          <button class="close-button" onclick="closeCommentModal()">&times;</button>
         </div>
         <div class="comment-input-container">
           <img src="../assets/temporary_pfp.png" class="comment-avatar"/>
