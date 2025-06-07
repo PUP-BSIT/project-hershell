@@ -13,8 +13,15 @@ function checkUserSession() {
     .then((data) => {
       if (data.success) {
         currentUser = data.username;
+
         document.getElementById("display_name").textContent = data.username;
         document.getElementById("username").textContent = "@" + data.username;
+
+        const modalUsername = document.querySelector(".create-post-modal .username");
+        if (modalUsername) {
+          modalUsername.textContent = data.username;
+        }
+
         loadPosts(); // Load posts after user is authenticated
       } else {
         window.location.href = "../html/login.html";
@@ -92,22 +99,22 @@ function createPostElement(post) {
 
         ${isShared ? `
           <div class="shared-card">
-            <p class="shared-username">Originally posted by 
+            <p class="shared-username">Originally posted by
               <strong>
                 ${post.original_post.username}
               </strong>
             </p>
             <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ? 
+            ${post.original_post.media_url ?
               (post.original_post.media_type === 'video'
                 ? `<video controls class="preview-video">
                       <source src="${post.original_post.media_url}" type="video/mp4">
                     </video>`
-                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`) 
+                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`)
               : ""}
           </div>
         ` : `
-          ${post.media_url ? 
+          ${post.media_url ?
             (post.media_type === 'video'
               ? `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>`
               : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
