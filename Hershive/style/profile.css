@@ -234,11 +234,6 @@ body {
   align-items: center;
 }
 
-.porfile-header {
-  display: flex;
-  flex-direction: row;
-}
-
 .modal {
   position: fixed;
   top: 0; left: 0;
@@ -331,10 +326,10 @@ body {
   overflow: hidden;
   margin: 0 auto;
   object-fit: cover;
-  position: absolute;
+  position: relative;
   top: 32%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -30%);
 }
 
 .cover-img-preview {
@@ -405,6 +400,7 @@ body {
 .content {
   justify-content: flex-start;
   margin-top: 5px;
+  text-align: left;
 }
 
 .content p {
@@ -430,8 +426,6 @@ body {
   width: 100%;
   padding-left: 0;
 }
-
-/*=============================================*/
 
 /* Outer container */
 #post-container {
