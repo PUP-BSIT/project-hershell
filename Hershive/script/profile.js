@@ -155,3 +155,46 @@ function getProfileUserId() {
   const params = new URLSearchParams(window.location.search);
   return params.get("user_id") || "";
 }
+
+function toggleLike(button, postId) {
+  const outlineIcon = button.querySelector(".heart-icon.outline");
+  const filledIcon = button.querySelector(".heart-icon.filled");
+  const likeCountSpan = button.nextElementSibling;
+
+  if (!outlineIcon || !filledIcon) {
+    console.error("Heart icons missing!");
+    return;
+  }
+
+  const isLiked = filledIcon && !filledIcon.classList.contains("hidden");
+
+  // Send to backend
+  fetch('../php/toggle-like.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      post_id: postId,
+      action: isLiked ? 'unlike' : 'like'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // Update UI
+      if (isLiked) {
+        outlineIcon.classList.remove("hidden");
+        filledIcon.classList.add("hidden");
+        likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+      } else {
+        outlineIcon.classList.add("hidden");
+        filledIcon.classList.remove("hidden");
+        likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling like:', error);
+  });
+}
