@@ -88,7 +88,9 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       
       <div class="post-divider"></div>
       
-      <div class="post-section-toggle" onclick="showPostsOnly()">Post</div>
+      <div class="post-section-toggle">Post</div>
+
+      <span id="profile_user_id" style="display:none;"><?php echo $userId; ?></span>
       
       <!-- Post Container Section (User post go here) -->
       <div class="post-container">

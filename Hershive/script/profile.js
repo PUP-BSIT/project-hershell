@@ -155,3 +155,168 @@ function getProfileUserId() {
   const params = new URLSearchParams(window.location.search);
   return params.get("user_id") || "";
 }
+
+function toggleLike(button, postId) {
+  const outlineIcon = button.querySelector(".heart-icon.outline");
+  const filledIcon = button.querySelector(".heart-icon.filled");
+  const likeCountSpan = button.nextElementSibling;
+
+  if (!outlineIcon || !filledIcon) {
+    console.error("Heart icons missing!");
+    return;
+  }
+
+  const isLiked = filledIcon && !filledIcon.classList.contains("hidden");
+
+  // Send to backend
+  fetch('../php/toggle-like.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      post_id: postId,
+      action: isLiked ? 'unlike' : 'like'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // Update UI
+      if (isLiked) {
+        outlineIcon.classList.remove("hidden");
+        filledIcon.classList.add("hidden");
+        likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+      } else {
+        outlineIcon.classList.add("hidden");
+        filledIcon.classList.remove("hidden");
+        likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling like:', error);
+  });
+}
+
+function editPost(button) {
+  const post = button.closest('.user-post');
+  const postId = post.dataset.postId;
+
+  const contentDiv = post.querySelector('.content');
+  const paragraph = contentDiv.querySelector('p');
+  const image = contentDiv.querySelector('img');
+  const video = contentDiv.querySelector('video');
+
+  if (contentDiv.querySelector('.edit-editor')) return;
+
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'edit-editor';
+  editorDiv.contentEditable = true;
+  editorDiv.innerHTML = paragraph.innerHTML;
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,video/*';
+  fileInput.className = 'edit-media-input';
+
+  const saveButton = document.createElement('button');
+  saveButton.innerText = 'Save';
+  saveButton.className = 'save-edit-button';
+
+  saveButton.onclick = () => {
+    const updatedContent = editorDiv.innerHTML.trim();
+
+    if (!updatedContent || updatedContent === '<br>') {
+      alert('Post content cannot be empty');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('post_id', postId);
+    formData.append('content', updatedContent);
+
+    if (fileInput.files.length > 0) {
+      formData.append('media', fileInput.files[0]);
+    }
+
+    fetch('../php/edit_post.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        paragraph.innerHTML = updatedContent;
+        paragraph.classList.remove('hidden');
+
+        if (fileInput.files.length > 0) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (video) {
+              video.src = e.target.result;
+            } else if (image) {
+              image.src = e.target.result;
+            } else {
+              const mediaType = fileInput.files[0].type;
+              if (mediaType.startsWith('video')) {
+                const newVideo = document.createElement('video');
+                newVideo.controls = true;
+                newVideo.src = e.target.result;
+                contentDiv.appendChild(newVideo);
+              } else if (mediaType.startsWith('image')) {
+                const newImg = document.createElement('img');
+                newImg.src = e.target.result;
+                newImg.alt = 'Post media';
+                newImg.className = 'preview-image';
+                contentDiv.appendChild(newImg);
+              }
+            }
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        editorDiv.remove();
+        fileInput.remove();
+        saveButton.remove();
+      } else {
+        alert(data.error || 'Failed to update post');
+      }
+    })
+    .catch(error => {
+      console.error('Error updating post:', error);
+      alert('Error updating post');
+    });
+  };
+
+  paragraph.classList.add('hidden');
+  contentDiv.insertBefore(editorDiv, paragraph);
+  contentDiv.insertBefore(fileInput, paragraph);
+  contentDiv.insertBefore(saveButton, paragraph);
+};
+
+window.editPost = editPost;
+
+function deletePost(button) {
+  const post = button.closest('.user-post');
+  const postId = post.dataset.postId;
+
+  if (confirm('Are you sure you want to delete this post?')) {
+    fetch('../php/delete_post.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        post.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    });
+  }
+}
