@@ -27,6 +27,7 @@ $fullName = htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_na
 $username = htmlspecialchars($user['username'] ?? '');
 $bio = htmlspecialchars($user['bio'] ?? '');
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,16 +36,19 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   <link rel="stylesheet" href="../style/profile.css" />
   <title>Profile Page</title>
 </head>
-<body>
+<body  data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
     <div class="search-bar">
       <input type="text" placeholder="Search">
-      <button class="search-button"><img src="../assets/search_icon.png" alt="search_icon"></button>
+      <button class="search-button"><img src="../assets/search_icon.png"
+          alt="search_icon"></button>
     </div>
     <div class="navigation-icons">
-      <a href="../html/home.html"><button><img src="../assets/home_icon.png" alt="home"></button></a>
-      <button><img src="../assets/notification_icon.png" alt="notification"></button>
+      <a href="../html/home.html"><button><img src="../assets/home_icon.png"
+          alt="home"></button></a>
+      <button><img src="../assets/notification_icon.png"
+          alt="notification"></button>
       <button class="menu-button">☰</button>
     </div>
   </div>
@@ -91,7 +95,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <div class="post"></div>
       </div>
         
-      <div id="edit_modal" class="modal hidden" onclick="modalClickHandler(event)">
+      <div id="edit_modal" class="modal hidden">
         <div class="modal-content">
           <h2>Edit Profile</h2>
     

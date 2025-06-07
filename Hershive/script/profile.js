@@ -1,3 +1,27 @@
+document.addEventListener("DOMContentLoaded", function () {
+  loadProfilePosts();
+});
+
+function loadProfilePosts() {
+  const profileUserId = getProfileUserId();
+
+  if (!profileUserId) {
+    console.error("No user ID found in <span>.");
+    return;
+  }
+
+  fetch(`../php/get-posts.php?user_id=${encodeURIComponent(profileUserId)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        displayPostsInContainer(data.posts);
+      } else {
+        console.error("Error loading posts:", data.error);
+      }
+    })
+    .catch(error => console.error("Fetch error:", error));
+}
+
 function toggleDropdown(icon) {
   const parent = icon.parentElement;
   parent.classList.toggle("active");
@@ -107,3 +131,27 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Failed to load user stats:", error);
         });
 });
+
+function displayPostsInContainer(posts) {
+  const container = document.getElementById("post-container");
+
+  if (!container) {
+    console.error("No #post-container found.");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  posts.forEach(post => {
+    const postElement = createPostElement(post);
+    container.appendChild(postElement);
+  });
+}
+
+function getProfileUserId() {
+  const span = document.getElementById("profile_user_id");
+  if (span) return span.textContent.trim();
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get("user_id") || "";
+}
