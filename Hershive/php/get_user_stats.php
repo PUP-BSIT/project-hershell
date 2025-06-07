@@ -9,7 +9,8 @@ if (!$userId) {
 }
 
 // Get post count
-$postStmt = $conn->prepare("SELECT COUNT(*) FROM post WHERE user_id = ?");
+$postStmt = $conn->prepare("SELECT COUNT(*)
+    FROM post WHERE user_id = ? AND (deleted = 0 OR deleted IS NULL)");
 $postStmt->bind_param("i", $userId);
 $postStmt->execute();
 $postStmt->bind_result($postCount);
@@ -17,7 +18,8 @@ $postStmt->fetch();
 $postStmt->close();
 
 // Get followers count
-$followerStmt = $conn->prepare("SELECT COUNT(*) FROM follow WHERE following_id = ?");
+$followerStmt = $conn->prepare("SELECT COUNT(*) 
+    FROM follow WHERE following_id = ?");
 $followerStmt->bind_param("i", $userId);
 $followerStmt->execute();
 $followerStmt->bind_result($followerCount);
@@ -25,7 +27,8 @@ $followerStmt->fetch();
 $followerStmt->close();
 
 // Get following count
-$followingStmt = $conn->prepare("SELECT COUNT(*) FROM follow WHERE follower_id = ?");
+$followingStmt = $conn->prepare("SELECT COUNT(*)
+    FROM follow WHERE follower_id = ?");
 $followingStmt->bind_param("i", $userId);
 $followingStmt->execute();
 $followingStmt->bind_result($followingCount);
