@@ -1,45 +1,55 @@
-const input = document.getElementById("profile_image");
-const preview = document.getElementById("image_preview");
-const uploadBox = document.getElementById("image_upload");
+function previewImage(input) {
+  const file = input.files[0];
+  const imagePreview = document.getElementById("image_preview");
+  const removeBtn = document.getElementById("remove-profile-btn");
 
-const coverInput = document.getElementById("cover_image");
-const coverPreview = document.getElementById("cover_preview");
-const coverUploadBox = document.getElementById("cover_upload");
-
-function previewImage(inputElement) {
-  const file = inputElement.files[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      preview.innerHTML = `<img src="${e.target.result}" alt="Profile Image">`;
-      uploadBox.classList.add("has-image");
+      imagePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Image">`;
+      imagePreview.classList.add("has-image");
+      removeBtn.style.display = "flex";
     };
     reader.readAsDataURL(file);
   }
 }
 
-function previewCover(inputElement) {
-  const file = inputElement.files[0];
+function previewCover(input) {
+  const file = input.files[0];
+  const coverPreview = document.getElementById("cover_preview");
+  const removeBtn = document.getElementById("remove-cover-btn");
+
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
       coverPreview.innerHTML = `<img src="${e.target.result}" alt="Cover Image">`;
-      coverUploadBox.classList.add("has-image");
+      coverPreview.classList.add("has-image");
+      removeBtn.style.display = "flex";
     };
     reader.readAsDataURL(file);
   }
 }
 
 function removeImage() {
-  input.value = "";
-  preview.innerHTML = '<span id="previewText">add image</span>';
-  uploadBox.classList.remove("has-image");
+  const imageInput = document.getElementById("profile_image");
+  const imagePreview = document.getElementById("image_preview");
+  const removeBtn = document.getElementById("remove-profile-btn");
+
+  imageInput.value = "";
+  imagePreview.innerHTML = `<span id="previewText">add profile</span>`;
+  imagePreview.classList.remove("has-image");
+  removeBtn.style.display = "none";
 }
 
 function removeCover() {
+  const coverInput = document.getElementById("cover_image");
+  const coverPreview = document.getElementById("cover_preview");
+  const removeBtn = document.getElementById("remove-cover-btn");
+
   coverInput.value = "";
-  coverPreview.innerHTML = '<span id="coverText">add cover</span>';
-  coverUploadBox.classList.remove("has-image");
+  coverPreview.innerHTML = `<span id="coverText">add cover photo</span>`;
+  coverPreview.classList.remove("has-image");
+  removeBtn.style.display = "none";
 }
 
 function updateAge() {
