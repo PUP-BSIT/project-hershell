@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'db_connection.php';
 
 if (!isset($_GET['token'])) {
@@ -41,10 +42,14 @@ $conn->begin_transaction();
 
 try {
   $conn->query("UPDATE user SET email_verified = 1 WHERE user_id = $user_id");
-  $conn->query("UPDATE email_verification 
-      SET verified_at = NOW() WHERE user_id = $user_id");
+  $conn->query("UPDATE email_verification SET verified_at = NOW() WHERE user_id = $user_id");
   $conn->commit();
-  echo "Your email has been successfully verified!";
+
+  $_SESSION['email_verified'] = true;
+  $_SESSION['pending_profile_user_id'] = $user_id;
+
+  header("Location: ../html/create_account.html");
+  exit();
 } catch (Exception $e) {
   $conn->rollback();
   echo "Verification failed: " . $e->getMessage();
