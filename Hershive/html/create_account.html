@@ -1,78 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Create New Account</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create New Account</title>
     <link rel="stylesheet" href="/Hershive/style/create_account.css"/>
-  </head>
+</head>
 
-  <body>
-    <div class="account-form-container">
-      <div class="account-form">
+<body>
+  <div class="account-form-container">
+    <div class="account-form">
+      <h2>Create new account</h2>
+
+      <form id="accountForm" enctype="multipart/form-data">
         <div class="image-upload" id="image_upload">
-          <label for="profileImage">
-            <div
-                class="image-circle"
-                id="image_preview"
-                onclick="triggerFileInput()">
-              <span id="previewText">add image</span>
+          <div class="cover-container">
+            <div class="cover-upload" id="cover_upload">
+              <label for="cover_image">
+                <div class="cover-preview" id="cover_preview">
+                  <span id="coverText">add cover photo</span>
+                </div>
+              </label>
+              <input 
+                  type="file"
+                  name="cover_image"
+                  id="cover_image"
+                  accept="image/*"
+                  onchange="previewCover(this)"/>
+              <button
+                  type="button"
+                  id="remove-cover-btn"
+                  class="remove-cover-btn"
+                  onclick="removeCover()">✖</button>
             </div>
-          </label>
-          <input
-              type="file"
-              id="profile_image"
-              accept="image/*"
-              onchange="previewImage(this)"/>
-          <button
+          
+            <label for="profile_image">
+              <div class="image-circle" id="image_preview">
+                <span id="previewText">add profile</span>
+              </div>
+            </label>
+            <input
+                type="file"
+                name="profile_image"
+                id="profile_image"
+                accept="image/*"
+                onchange="previewImage(this)"/>
+            <button
               type="button"
-              class="remove-btn"
-              onclick="removeImage()">✖
-          </button>
+              id="remove-profile-btn"
+              class="remove-profile-btn"
+              onclick="removeImage()">✖</button>
+          </div>
         </div>
 
-        <h2>Create new account</h2>
+        <div class="input-row">
+          <input type="text" name="first_name"
+              placeholder="First Name" required/>
+          <input type="text" name="middle_name"
+              placeholder="Middle Name (optional)"/>
+          <input type="text" name="last_name"
+              placeholder="Last Name" required/>
+        </div>
 
-        <form onsubmit="goToHome(event)">
-          <div class="input-row">
-            <input type="text" placeholder="First Name" required/>
-            <input type="text" placeholder="Last Name" required/>
-          </div>
+        <div class="input-row">
+          <label for="birthday" class="birthday-label">Birthday:</label>
+          <input
+              type="date"
+              id="birthday"
+              name="birthday"
+              required onchange="updateAge()"/>
+          <span class="birthday-label">Age:</span>
+          <span id="calculated_age">-</span>
+        </div>
 
-          <div class="input-row">
-            <label for="birthday" class="birthday-label">Birthday:</label>
-            <input type="date" id="birthday" name="birthday"
-                required onchange="updateAge()"/>
-            <span class="birthday-label">Age:</span>
-            <span id="calculated_age">-</span>
-          </div>
+        <div class="input-row">
+          <select name="status" required>
+            <option value="">Status</option>
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+            <option value="Other">Other</option>
+          </select>
+          <select name="gender" required>
+            <option value="">Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
 
-          <div class="input-row">
-            <select>
-              <option>Status</option>
-              <option>Single</option>
-              <option>Married</option>
-              <option>Other</option>
-            </select>
-            <select>
-              <option>Gender</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
-          </div>
+        <div class="input-row">
+          <input type="text" name="country" placeholder="Country" />
+          <input type="text" name="city" placeholder="City" />
+        </div>
 
-          <div class="input-row">
-            <input type="text" placeholder="Country"/>
-            <input type="text" placeholder="City"/>
-          </div>
+        <textarea name="bio" placeholder="Bio" rows="3"></textarea>
 
-          <textarea placeholder="Bio" rows="3"></textarea>
+        <div id="errorMessages" style="color: red;"></div>
+        <div id="successMessage" style="color: green;"></div>
 
-          <button type="submit">Create account</button>
-        </form>
-      </div>
+        <button type="submit">Create account</button>
+      </form>
     </div>
-    <script src="/Hershive/script/create_account.js"></script>
-  </body>
+  </div>
+
+  <script src="../script/create_account.js"></script>
+</body>
 </html>
