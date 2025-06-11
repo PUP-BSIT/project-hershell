@@ -134,7 +134,7 @@ function createPostElement(post) {
         </div>
 
         <div class="action-button">
-          <button class="comment-btn" onclick="toggleCommentModal(this.closest('.sample-post'))">
+          <button class="comment-btn" onclick="toggleCommentModal(this)">
             <img src="../assets/comment_icon.png" alt="Comment">
           </button>
           <span class="comment-count">${post.comments_count}</span>
@@ -142,11 +142,11 @@ function createPostElement(post) {
 
         <div class="comment-modal hidden">
           <div class="modal-content">
-            <span class="close-comment-modal" onclick="toggleCommentModal(this.closest('.sample-post'))">&times;</span>
-            <div class="comment-list"></div>
+            <span class="close-comment-modal" onclick="closeCommentModal(this)">&times;</span>
+            <div class="comment-list" id="comment-list"></div>
             <div class="comment-input">
               <input type="text" placeholder="Write a comment...">
-              <button class="send-comment" onclick="postComment(this)">Send</button>
+              <button class="send-comment" onclick="submitComment(this)">Send</button>
             </div>
           </div>
         </div>
@@ -536,33 +536,204 @@ function toggleNotificationPanel() {
   if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
 }
 
-function toggleCommentModal(postElement) {
-  const modal = postElement.querySelector(".comment-modal");
-  modal.classList.toggle("hidden");
+let currentPostIdForComments = null;
+
+function toggleCommentModal(button) {
+  const postElement = button.closest('.sample-post');
+  const modal = postElement.querySelector('.comment-modal');
+  const commentListContainer = modal.querySelector('.comment-list');
+  modal.classList.remove('hidden');
+
+  currentPostIdForComments = postElement.dataset.postId;
+  loadComments(currentPostIdForComments, commentListContainer);
 }
 
-function postComment(button) {
-  const input = button.previousElementSibling;
-  const commentText = input.value.trim();
-  const modal = button.closest(".comment-modal");
-  const list = modal.querySelector(".comment-list");
+function closeCommentModal(button) {
+  const modal = button.closest('.comment-modal');
+  modal.classList.add('hidden');
+}
 
-  if (commentText !== "") {
-    const comment = document.createElement("div");
-    comment.className = "comment";
-    comment.innerHTML = `
-      <img src="../assets/temporary_pfp.png" alt="Avatar" class="comment-avatar">
+function loadComments(postId, commentListContainer) {
+  fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        displayComments(data.comments, commentListContainer);
+      } else {
+        console.error(data.error);
+      }
+    });
+}
+
+function displayComments(comments, container) {
+  container.innerHTML = '';
+
+  comments.forEach(comment => {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment';
+    commentDiv.setAttribute('data-id', comment.comment_id);
+
+    const timeAgo = formatTime(comment.timestamp);
+
+    commentDiv.innerHTML = `
       <div class="comment-content">
-        <span class="comment-author">${currentUser}</span>
-        <p>${commentText}</p>
-      </div>`;
-    list.appendChild(comment);
-    input.value = "";
+        <button class="comment-options" onclick="showCommentOptionsMenu(event,
+              ${comment.comment_id}, ${comment.user_id})">&#8942;</button>
+        <img src="${comment.avatar}" class="comment-avatar" />
+        <div class="comment-header">
+          <span class="comment-author">${comment.username}</span>
+        </div>
+        <p class="comment-text">${comment.comment_content}</p>
+        <span class="comment-time">${timeAgo}</span>
+      </div>
+    `;
 
-    const post = button.closest(".sample-post");
-    const count = post.querySelector(".comment-count");
-    count.textContent = parseInt(count.textContent) + 1;
-  }
+    container.appendChild(commentDiv);
+  });
+}
+
+function showCommentOptionsMenu(e, commentId, commentUserId) {
+  e.stopPropagation();
+
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
+
+  const commentDiv = e.target.closest('.comment');
+  if (!commentDiv) return;
+
+  const newMenu = document.createElement('div');
+  newMenu.className = 'comment-context-menu';
+  newMenu.innerHTML = `
+    <button onclick="editComment(${commentId})">Edit</button>
+    <button onclick="deleteComment(${commentId})">Delete</button>
+    <button onclick="cancelCommentMenu(this)">Cancel</button>
+  `;
+
+  newMenu.style.position = 'absolute';
+  newMenu.style.top = '30px';
+  newMenu.style.right = '0';
+
+  commentDiv.appendChild(newMenu);
+
+  setTimeout(() => {
+    document.addEventListener('click', () => {
+      newMenu.remove();
+    }, { once: true });
+  }, 0);
+}
+
+function cancelCommentMenu(button) {
+  const menu = button.closest('.comment-context-menu');
+  if (menu) menu.remove();
+}
+
+function submitComment(btn) {
+  const input = btn.previousElementSibling;
+  const content = input.value.trim();
+  if (!content) return;
+
+  fetch('../php/comment_crud.php?action=add', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ post_id: currentPostIdForComments, content: content })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      input.value = '';
+      loadComments(currentPostIdForComments);
+    } else {
+      alert('Failed to add comment');
+    }
+  });
+}
+
+function formatTime(timeStr) {
+  const time = new Date(timeStr);
+  const now = new Date();
+  const diff = Math.floor((now - time) / 1000);
+
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function editComment(commentId) {
+  const commentDiv = document.querySelector(`.comment[data-id='${commentId}']`);
+  if (!commentDiv) return;
+
+  const contentP = commentDiv.querySelector('p');
+  const originalContent = contentP.textContent;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'edit-comment-input';
+  input.value = originalContent;
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = function () {
+    const newContent = input.value.trim();
+    if (!newContent) return;
+
+    fetch('../php/comment_crud.php?action=edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        comment_id: commentId,
+        content: newContent
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        contentP.textContent = newContent;
+        input.remove();
+        saveBtn.remove();
+        contentP.style.display = '';
+      } else {
+        alert('Failed to update comment');
+      }
+    });
+  };
+
+  contentP.style.display = 'none';
+  commentDiv.appendChild(input);
+  commentDiv.appendChild(saveBtn);
+}
+
+function deleteComment(commentId) {
+  if (!confirm("Are you sure you want to delete this comment?")) return;
+
+  fetch('../php/comment_crud.php?action=delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ comment_id: commentId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      loadComments(currentPostIdForComments);
+    } else {
+      alert('Failed to delete comment');
+    }
+  });
+}
+
+function toggleShareModal(postElement) {
+  const modal = document.getElementById("share_modal");
+  const preview = document.getElementById("shared_post_preview");
+  const postIdInput = document.getElementById("shared_post_id");
+  const linkInput = document.getElementById("share_link");
+
+  const content = postElement.querySelector(".content")?.innerHTML || "No content";
+  const postId = postElement.dataset.postId;
+
+  preview.innerHTML = content;
+  postIdInput.value = postId;
+  linkInput.value = `https://www.hershive.com/post/${postId}`;
+
+  modal.classList.remove("hidden");
 }
 
 function toggleShareModal(postElement) {
