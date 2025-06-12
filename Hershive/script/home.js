@@ -13,15 +13,15 @@ function checkUserSession() {
     .then((data) => {
       if (data.success) {
         currentUser = data.username;
-
+        
         document.getElementById("display_name").textContent = data.username;
         document.getElementById("username").textContent = "@" + data.username;
-
+        
         const modalUsername = document.querySelector(".create-post-modal .username");
         if (modalUsername) {
           modalUsername.textContent = data.username;
         }
-
+        
         loadPosts(); // Load posts after user is authenticated
       } else {
         window.location.href = "../html/login.html";
@@ -33,7 +33,7 @@ function checkUserSession() {
 }
 
 function loadPosts() {
-  fetch('../php/get_posts.php?unlimited=true')
+  fetch('../php/get-posts.php?unlimited=true')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -48,6 +48,7 @@ function loadPosts() {
 }
 
 window.onload = loadPosts;
+
 // Display posts in the feed
 function displayPosts(posts) {
   const leftContent = document.querySelector(".left-content");
@@ -69,7 +70,7 @@ function createPostElement(post) {
   postDiv.dataset.postId = post.post_id;
 
   // Determine if this post belongs to current user
-  const isOwner = post.username === currentUser;
+  const isOwner = (post.sharer_username || post.username) === currentUser;
   const isShared = post.shared && post.original_post;
 
   postDiv.innerHTML = `
@@ -99,22 +100,22 @@ function createPostElement(post) {
 
         ${isShared ? `
           <div class="shared-card">
-            <p class="shared-username">Originally posted by
+            <p class="shared-username">Originally posted by 
               <strong>
                 ${post.original_post.username}
               </strong>
             </p>
             <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ?
+            ${post.original_post.media_url ? 
               (post.original_post.media_type === 'video'
                 ? `<video controls class="preview-video">
                       <source src="${post.original_post.media_url}" type="video/mp4">
                     </video>`
-                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`)
+                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`) 
               : ""}
           </div>
         ` : `
-          ${post.media_url ?
+          ${post.media_url ? 
             (post.media_type === 'video'
               ? `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>`
               : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
@@ -155,6 +156,7 @@ function createPostElement(post) {
           <button class="share-btn" onclick="toggleShareModal(this.closest('.sample-post'))">
             <img src="../assets/share_icon.png" alt="Share">
           </button>
+          <span class="share-count">${post.shares_count}</span>
         </div>
 
         <div class="share-modal hidden">
@@ -164,7 +166,6 @@ function createPostElement(post) {
             <button onclick="copyLink(this)">
               <img src="../assets/copy_icon.png" alt="Copy">
             </button>
-            <span class="share-count">${post.shares_count}</span>
           </div>
         </div>
       </div>
@@ -199,7 +200,7 @@ function submitPost() {
   }
 
   // Submit to backend
-  fetch('../php/create_post.php', {
+  fetch('../php/create-post.php', {
     method: 'POST',
     body: formData
   })
@@ -239,7 +240,7 @@ function toggleLike(button, postId) {
   const isLiked = filledIcon && !filledIcon.classList.contains("hidden");
 
   // Send to backend
-  fetch('../php/toggle_like.php', {
+  fetch('../php/toggle-like.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -577,8 +578,7 @@ function displayComments(comments, container) {
 
     commentDiv.innerHTML = `
       <div class="comment-content">
-        <button class="comment-options" onclick="showCommentOptionsMenu(event,
-              ${comment.comment_id}, ${comment.user_id})">&#8942;</button>
+        <button class="comment-options" onclick="showCommentOptionsMenu(event, ${comment.comment_id}, ${comment.user_id})">&#8942;</button>
         <img src="${comment.avatar}" class="comment-avatar" />
         <div class="comment-header">
           <span class="comment-author">${comment.username}</span>
