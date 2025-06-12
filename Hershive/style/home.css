@@ -11,6 +11,7 @@ body {
   position: relative;
 }
 
+/* line 15 - 87: top bar style */
 .top-bar {
   display: flex;
   align-items: center;
@@ -85,6 +86,7 @@ body {
   align-items: center;
 }
 
+/* main container style */
 .main-container {
   display: flex;
   flex-direction: row;
@@ -93,6 +95,7 @@ body {
   gap: 30px;
 }
 
+/* line 99 - 161: create post style */
 .create-post {
   display: flex;
   justify-content: center;
@@ -157,6 +160,7 @@ select {
   border: none;
 }
 
+/* side panel for profile style */
 .side-panel {
   background-color: #dfdbcd;
   width: 350px;
@@ -165,6 +169,7 @@ select {
   font-family: sans-serif;
 }
 
+/* global wall style */
 .left-content {
   display: flex;
   flex-direction: column;
@@ -298,6 +303,7 @@ select {
   align-items: center;
 }
 
+/* create post modal style */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -552,7 +558,7 @@ select {
   height: auto;
   display: block;
   border-radius: 8px;
-  max-height: 180px; /* limit height for compact layout */
+  max-height: 180px;
   object-fit: cover;
 }
 
@@ -624,6 +630,7 @@ select {
   cursor: pointer;
   font-weight: bold;
 }
+
 .suggested-section {
   margin-top: 20px;
   padding: 15px;
@@ -679,6 +686,7 @@ select {
   background-color: #6c757d;
 }
 
+/* Menu Dropdown for settings and logout Style */
 #menu_dropdown {
   position: absolute;
   right: 20px;
@@ -708,6 +716,8 @@ select {
 .menu-dropdown-item:hover {
   background-color: #d2be94;
 }
+
+/* notification style */
 .notification-panel {
   display: none;
   position: absolute;
@@ -765,7 +775,7 @@ select {
   border-radius: 5px;
 }
 
-
+/* like, comment, share buttons style */
 .post-actions {
   display: flex !important;
   flex-direction: row !important;
@@ -818,6 +828,7 @@ select {
   transform: scale(0.95);
 }
 
+/* comment modal style */
 .comment-modal {
   background-color: #f5f0e9;
   border-radius: 12px;
@@ -904,6 +915,7 @@ flex-direction: column-reverse;
   cursor: pointer;
 }
 
+/* Share Modal Styling */
 #share_modal {
   position: fixed;
   top: 0;
@@ -946,7 +958,6 @@ flex-direction: column-reverse;
   font-size: 18px;
   cursor: pointer;
 }
-
 
 .share-modal-header button {
   background: none;
