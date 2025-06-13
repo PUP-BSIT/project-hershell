@@ -861,7 +861,7 @@ function performSearch() {
       const previewContainer = document.querySelector(".user-preview-container");
       if (previewContainer) previewContainer.innerHTML = "";
 
-      const postElements = document.querySelectorAll(".post");
+      const postElements = document.querySelectorAll(".sample-post");
       postElements.forEach(post => post.remove());
 
       if (data.type === "exact_user") {
