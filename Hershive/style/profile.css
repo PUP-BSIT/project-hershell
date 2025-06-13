@@ -444,21 +444,6 @@ body {
   margin-top: 10px;
 }
 
-/* Shared post card */
-.shared-post {
-  background-color: #f6f6f6;
-  border-left: 4px solid #999;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 10px;
-}
-
-.shared-post-username {
-  font-size: 0.9em;
-  color: #444;
-  margin-bottom: 6px;
-}
-
 .post-actions {
   display: flex !important;
   flex-direction: row !important;
@@ -528,4 +513,139 @@ body {
   color: #888;
   font-style: italic;
   margin-top: 20px;
+}
+
+/* Share Modal Styling */
+#share_modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.share-modal {
+  position: relative;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 60vw;
+  height: 90vh;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.share-modal-header button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.share-icons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.share-icons img {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.share-link-section label {
+  font-size: 14px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.link-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.link-box input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.link-box button {
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.link-box button img {
+  width: 16px;
+  height: 16px;
+}
+
+.share-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.shared-post-preview {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f9f9f9;
+  margin-bottom: 15px;
+  height: 100px;
+}
+
+#shared_post_preview img,
+#shared_post_preview video {
+  max-width: 100%;
+  max-height: 50%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: block;
+}
+
+.submit-share-btn {
+  background-color: #1877f2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 5px;
 }
