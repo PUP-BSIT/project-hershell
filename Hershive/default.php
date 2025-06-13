@@ -16,16 +16,16 @@ if (isset($_SESSION['username'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hershive</title>
-  <link rel="stylesheet" href="../style/homepage.css" />
+  <link rel="stylesheet" href="style/homepage.css" />
 </head>
 
 <body>
   <div class="container">
     <header>
-      <img src="../assets/logo.png" class="logo" />
+      <img src="assets/logo.png" class="logo" />
       <div class="auth-buttons">
-        <a href="../html/login.html" class="login-button">Log In</a>
-        <a href="../php/register.php" class="register-button">Register</a>
+        <a href="html/login.html" class="login-button">Log In</a>
+        <a href="php/register.php" class="register-button">Register</a>
       </div>
     </header>
 
@@ -44,7 +44,7 @@ if (isset($_SESSION['username'])) {
       </div>
 
       <div class="right-content">
-        <img src="../assets/homepage_image.png" />
+        <img src="assets/homepage_image.png" />
       </div>
     </main>
 
@@ -53,7 +53,7 @@ if (isset($_SESSION['username'])) {
       <a href="mailto:support@hershive.com">support@hershive.com</a>
     </footer>
   </div>
-  <script src="../script/homepage.js"></script>
+  <script src="script/homepage.js"></script>
 </body>
 
 </html>
