@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hershive</title>
+    <link rel="stylesheet" href="../style/home.css" >
+    <link rel="stylesheet" href="../style/suggestion.css" >
+  </head>
+
+  <body>
+    <div class="top-bar">
+      <img src="../assets/logo.png" alt="hershive logo" class="logo"/>
+
+      <div class="search-bar">
+        <input type="text" placeholder="Search"/>
+        <button class="search-button">
+          <img src="../assets/search_icon.png" alt="search_icon"/>
+        </button>
+      </div>
+
+      <div class="navigation-icons">
+        <button onclick="window.location.href='home.html'">
+          <img src="../assets/home_icon.png" alt="home" />
+        </button>
+
+        <button onclick="toggleNotificationPanel()">
+          <img src="../assets/notification_icon.png" alt="notification"/>
+        </button>
+
+        <div class="notification-panel" id="notification_panel">
+          <h4>Notification</h4>
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Doe</strong> Started following you.
+              <span class="time">1m</span>
+            </p>
+            <a href="#">Follow</a>
+          </div>
+
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Doe</strong> Liked your photo.
+              <span class="time">30m</span>
+            </p>
+            <img
+              src="../assets/sample-post.png"
+              alt="thumbnail"
+              class="notif-thumbnail"/>
+          </div>
+
+          <h4>Yesterday</h4>
+          <div class="notification">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user"
+              class="notif-pfp"/>
+            <p>
+              <strong>John Dy</strong> Liked your photo.
+              <span class="time">1d</span>
+            </p>
+            <img
+              src="../assets/sample-post.png"
+              alt="thumbnail"
+              class="notif-thumbnail"/>
+          </div>
+        </div>
+
+        <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
+      </div>
+    </div>
+
+    <div id="menu_dropdown" class="hidden">
+      <a href="../php/settings.php" class="menu-dropdown-item">
+        <img src="../assets/settings_icon.png" alt="settings"/>
+        Settings
+      </a>
+      <div onclick="toggleLogout()" class="menu-dropdown-item">
+        <img src="../assets/logout_icon.png" alt="logout"/>
+        <p>Log out</p>
+      </div>
+    </div>
+
+    <div id="logout" hidden>
+      <p><strong>Log out of your account?</strong></p>
+      <div class="button-holder">
+        <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
+        <button class="logout-btn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="left-contents">
+        <h2>Suggestions For You</h2>
+        <div id="suggested_users_container">
+        </div>
+      </div>
+
+      <div class="right-contents">
+        <h2>Select people's names to preview their profile.</h2>
+      </div>
+    </div>
+    <script src="../script/suggestion.js"></script>
+  </body>
+</html>
