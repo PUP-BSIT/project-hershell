@@ -837,6 +837,12 @@ function logout() {
   window.location.href = "../php/logout.php";
 }
 
+document.getElementById("search_input").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    performSearch();
+  }
+});
+
 function performSearch() {
   const query = document.getElementById("search_input").value.trim();
   if (!query) return;
