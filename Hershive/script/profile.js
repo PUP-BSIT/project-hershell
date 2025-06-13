@@ -79,7 +79,8 @@ function saveProfileUpdates() {
           const reader = new FileReader();
           reader.onload = function (e) {
             const src = e.target.result;
-            const profileImgs = document.querySelectorAll(".profile-img, .profile-img-preview");
+            const profileImgs =
+                document.querySelectorAll(".profile-img, .profile-img-preview");
             profileImgs.forEach(img => img.src = src);
           };
           reader.readAsDataURL(profileInput);
@@ -89,7 +90,8 @@ function saveProfileUpdates() {
           const reader = new FileReader();
           reader.onload = function (e) {
             const src = e.target.result;
-            const coverImgs = document.querySelectorAll(".cover-img, .cover-img-preview");
+            const coverImgs =
+                document.querySelectorAll(".cover-img, .cover-img-preview");
             coverImgs.forEach(img => img.src = src);
           };
           reader.readAsDataURL(coverInput);
@@ -135,7 +137,8 @@ function createPostElement(post) {
       </div>
       ${isOwner ? `
         <div class="more-option">
-          <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+          <img src="../assets/more_icon.png"
+              alt="more" onclick="toggleDropdown(this)">
           <div class="dropdown-menu">
             <button onclick="editPost(this)">Edit</button>
             <button onclick="deletePost(this)">Delete</button>
@@ -151,19 +154,23 @@ function createPostElement(post) {
 
         ${isShared ? `
           <div class="shared-post">
-            <p class="shared-post-username">Originally posted by <strong>${post.original_post.username}</strong></p>
+            <p class="shared-post-username">Originally posted by
+                <strong>${post.original_post.username}</strong></p>
             <p>${post.original_post.content}</p>
             ${post.original_post.media_url ? 
               (post.original_post.media_type === 'video'
-                ? `<video controls class="post-media"><source src="${post.original_post.media_url}" type="video/mp4"></video>`
-                : `<img src="${post.original_post.media_url}" class="post-media" alt="Shared Image">`)
-              : ""}
+                ? `<video controls class="post-media"><source src="
+                    ${post.original_post.media_url}" type="video/mp4"></video>`
+                : `<img src="${post.original_post.media_url}"
+                    class="post-media" alt="Shared Image">`): ""}
           </div>
         ` : `
           ${post.media_url ? 
             (post.media_type === 'video'
-              ? `<video controls class="post-media"><source src="${post.media_url}" type="video/mp4"></video>`
-              : `<img src="${post.media_url}" class="post-media" alt="Post Image">`)
+              ? `<video controls class="post-media"><source
+                  src="${post.media_url}" type="video/mp4"></video>`
+              : `<img src="${post.media_url}"
+                  class="post-media" alt="Post Image">`)
             : ""}
         `}
       </div>
@@ -171,21 +178,25 @@ function createPostElement(post) {
       <div class="post-actions">
         <div class="action-button">
           <button class="like-btn" onclick="toggleLike(this, ${post.post_id})">
-            <img class="heart-icon outline ${post.user_liked ? 'hidden' : ''}" src="../assets/heart_icon.png">
-            <img class="heart-icon filled ${post.user_liked ? '' : 'hidden'}" src="../assets/red_heart_icon.png">
+            <img class="heart-icon outline ${post.user_liked ? 'hidden' : ''}"
+                src="../assets/heart_icon.png">
+            <img class="heart-icon filled ${post.user_liked ? '' : 'hidden'}"
+                src="../assets/red_heart_icon.png">
           </button>
           <span class="like-count">${post.likes_count}</span>
         </div>
 
         <div class="action-button">
-          <button class="comment-btn" onclick="toggleCommentModal(this.closest('.user-post'))">
+          <button class="comment-btn" onclick="toggleCommentModal
+              (this.closest('.user-post'))">
             <img src="../assets/comment_icon.png" alt="Comment">
           </button>
           <span class="comment-count">${post.comments_count}</span>
         </div>
 
         <div class="action-button">
-          <button class="share-btn" onclick="toggleShareModal(this.closest('.user-post'))">
+          <button class="share-btn" onclick="toggleShareModal
+              (this.closest('.user-post'))">
             <img src="../assets/share_icon.png" alt="Share">
           </button>
           <span class="share-count">${post.shares_count}</span>
@@ -284,7 +295,8 @@ function toggleLike(button, postId) {
       if (isLiked) {
         outlineIcon.classList.remove("hidden");
         filledIcon.classList.add("hidden");
-        likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+        likeCountSpan.textContent = 
+            Math.max(0, parseInt(likeCountSpan.textContent) - 1);
       } else {
         outlineIcon.classList.add("hidden");
         filledIcon.classList.remove("hidden");
@@ -417,4 +429,66 @@ function deletePost(button) {
       console.error('Error deleting post:', error);
     });
   }
+}
+
+function toggleShareModal(postElement) {
+  const modal = document.getElementById("share_modal");
+  const preview = document.getElementById("shared_post_preview");
+  const postIdInput = document.getElementById("shared_post_id");
+  const linkInput = document.getElementById("share_link");
+
+  const content = postElement
+      .querySelector(".content")?.innerHTML || "No content";
+  const postId = postElement.dataset.postId;
+
+  preview.innerHTML = content;
+  postIdInput.value = postId;
+  linkInput.value = `https://www.hershive.com/post/${postId}`;
+
+  modal.classList.remove("hidden");
+}
+
+function closeShareModal() {
+  const shareModal = document.getElementById("share_modal");
+  if (shareModal) {
+    shareModal.classList.add("hidden");
+  }
+}
+
+function submitShare() {
+  const message = document.getElementById("share_message").value.trim();
+  const postId = document.getElementById("shared_post_id").value;
+
+  fetch("../php/share-post.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      post_id: postId,
+      content: message
+    })
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Post shared successfully!");
+        closeShareModal();
+        loadProfilePosts();
+      } else {
+        alert(data.error || "Error sharing post");
+      }
+    })
+    .catch((err) => {
+      console.error("Error:", err);
+      alert("Error sharing post");
+    });
+}
+
+function copyLink(button) {
+  const input = button.previousElementSibling;
+  if (!input) return;
+
+  navigator.clipboard
+    .writeText(input.value)
+    .then(() => alert("Link copied!"))
+    .catch(() => alert("Copy failed"));
 }
