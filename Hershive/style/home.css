@@ -1310,3 +1310,222 @@ flex-direction: column-reverse;
 .comment-context-menu button:hover {
   background: #eee;
 }
+
+.search-results-container {
+  width: 900px;
+  margin: 20px;
+  background: #dfdbcd;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.search-results-header {
+  padding: 16px 20px;
+  background: #f0e8dd;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  font-size: 18px;
+  color: #333;
+}
+
+/* Top User Result Card */
+.top-user-result {
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.top-user-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.top-user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+
+.top-user-info {
+  flex: 1;
+}
+
+.top-user-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.top-user-handle {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.top-user-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+.stat-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.follow-button {
+  padding: 0.4rem 1rem;
+  font-size: 14px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.follow-button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.follow-button.following {
+  background-color: #6c757d;
+}
+
+.follow-button.following:hover {
+  background-color: #6c757d;
+  border-color: #0056b3;
+}
+
+.more-people-header {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+#more_people_section {
+  padding: 20px;
+}
+
+#more_people_list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 240px;
+  overflow: hidden;
+}
+
+.more-people-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.more-people-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+
+.more-people-info {
+  flex: 1;
+}
+
+.more-people-name {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 2px 0;
+  font-size: 15px;
+}
+
+.more-people-handle {
+  color: #666;
+  font-size: 13px;
+  margin: 0;
+}
+
+.more-people-follow-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.more-people-follow-btn:hover {
+  background: #0056b3;
+}
+
+.more-people-follow-btn.following {
+  background: #6c757d;
+  color: white;
+}
+
+.more-people-follow-btn.following:hover {
+  background: #6c757d;
+}
+
+#more_people_list.expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+#see_more_users_button {
+  width: 100%;
+  background: none;
+  border: 1px solid #e4e6ea;
+  color: #1877f2;
+  padding: 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background-color 0.2s;
+}
+
+#see_more_users_button:hover {
+  background: #f0f2f5;
+}
+
+#no_results_message {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+/* Icons */
+.icon-people::before {
+  content: "👥";
+}
+
+.icon-followers::before {
+  content: "👁️";
+}
+
+/* Hidden state */
+.hidden {
+  display: none !important;
+}

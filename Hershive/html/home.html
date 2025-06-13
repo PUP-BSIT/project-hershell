@@ -12,14 +12,14 @@
       <img src="../assets/logo.png" alt="hershive logo" class="logo"/>
 
       <div class="search-bar">
-        <input type="text" placeholder="Search"/>
-        <button class="search-button">
-          <img src="../assets/search_icon.png" alt="search_icon"/>
+        <input type="text" id="search_input" placeholder="Search" />
+        <button class="search-button" onclick="performSearch()">
+          <img src="../assets/search_icon.png" alt="search_icon" />
         </button>
       </div>
 
       <div class="navigation-icons">
-        <button>
+        <button id="home_btn" onclick="resetWall()">
           <img src="../assets/home_icon.png" alt="home" />
         </button>
 
@@ -98,6 +98,7 @@
 
     <div class="main-container">
       <div class="left-content">
+        <div class="user-preview-container"></div>
         <div class="create-post" id="share_trigger" onclick="openPostModal()">
           <div class="main-create-post">
             <img
@@ -134,6 +135,23 @@
                 </select>
               </span>
             </div>
+          </div>
+        </div>
+
+        <div class="search-results-container hidden" id="search_results_container">
+          <div class="search-results-header">
+            Search results
+          </div>
+
+          <div id="no_results_message" class="hidden">No results found.</div>
+
+          <div class="top-user-result" id="top_user_result">
+          </div>
+
+          <div id="more_people_section" class="more-people-container hidden">
+            <div class="more-people-header">More people</div>
+            <div id="more_people_list"></div>
+            <button id="see_more_users_button" class="hidden">See more</button>
           </div>
         </div>
 
