@@ -3,7 +3,7 @@ let allSearchedUsers = [];
 
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
-  displaySuggestedUsers();
+  loadSuggestedUsers();
 });
 
 function checkUserSession() {
@@ -486,45 +486,44 @@ function addMediaToPost(file, isVideo = false, targetContentDiv) {
   reader.readAsDataURL(file);
 }
 
-const suggestedUsers = [
-  {
-    username: "John Doe",
-    handle: "@johndoe",
-    image: "../assets/temporary_pfp.png",
-  },
-  {
-    username: "Jane Smith",
-    handle: "@janesmith",
-    image: "../assets/temporary_pfp.png",
-  },
-  {
-    username: "Alice Ray",
-    handle: "@alice",
-    image: "../assets/temporary_pfp.png",
-  },
-  {
-    username: "Mark Zee",
-    handle: "@markz",
-    image: "../assets/temporary_pfp.png",
-  },
-];
+function loadSuggestedUsers(limit = 4, page = 1) {
+  fetch(`../php/get_suggestion.php?limit=${limit}&page=${page}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("HTTP error " + response.status);
+      }
+      return response.json();
+    })
+    .then((users) => {
+      const container = document.getElementById("suggested_users_container");
+      container.innerHTML = "";
 
-function displaySuggestedUsers() {
-  const container = document.getElementById("suggested_users_container");
-  if (!container) return;
+      if (users.length === 0) {
+        container.innerHTML = "<p>No suggestions available.</p>";
+        return;
+      }
 
-  suggestedUsers.forEach((user) => {
-    const div = document.createElement("div");
-    div.className = "suggested-user";
-    div.innerHTML = `
-      <img src="${user.image}" alt="${user.username}">
-      <div class="user-info">
-        <p><strong>${user.username}</strong></p>
-        <p>${user.handle}</p>
-      </div>
-      <button onclick="toggleFollow(this)">Follow</button>`;
-    container.appendChild(div);
-  });
+      users.forEach((user) => {
+        const div = document.createElement("div");
+        div.className = "suggested-user";
+        const fullName = `${user.first_name ?? ""} ${user.middle_name ?? ""} ${user.last_name ?? ""}`.trim();
+        const profileImg = user.profile_picture_url ? user.profile_picture_url : "../assets/temporary_pfp.png";
+
+        div.innerHTML = `
+          <img src="${profileImg}" alt="${user.username}">
+          <div class="user-info">
+            <p><strong>${fullName}</strong></p>
+            <p>@${user.username}</p>
+          </div>
+          <button onclick="toggleFollow(this)">Follow</button>
+        `;
+
+        container.appendChild(div);
+      });
+    })
+    .catch((error) => {
+      console.error("Error loading suggested users:", error);
+    });
 }
 
 function toggleFollow(button) {

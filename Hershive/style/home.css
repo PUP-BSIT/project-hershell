@@ -11,8 +11,11 @@ body {
   position: relative;
 }
 
-/* line 15 - 87: top bar style */
+/* line 15 - 90: top bar style */
 .top-bar {
+  position: sticky;
+  top: 0;
+  background-color: #f8f5ea;
   display: flex;
   align-items: center;
   padding: 10px 20px;
@@ -643,6 +646,21 @@ select {
   margin-bottom: 10px;
   font-size: 16px;
   font-weight: bold;
+}
+
+.suggested-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.suggested-section-header button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .suggested-user {
