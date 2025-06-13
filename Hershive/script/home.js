@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function() {
   displaySuggestedUsers();
 });
 
-// Check user session and load posts
 function checkUserSession() {
   fetch("../php/home.php")
     .then((res) => res.json())
@@ -17,7 +16,19 @@ function checkUserSession() {
         document.getElementById("display_name").textContent = data.username;
         document.getElementById("username").textContent = "@" + data.username;
 
-        const modalUsername = document.querySelector(".create-post-modal .username");
+        const mainCreatePostPic = document.querySelector
+            (".main-create-post .profile-pic");
+            if (mainCreatePostPic) {
+              mainCreatePostPic.src = data.profile_picture_url ||
+                  "../assets/temporary_pfp.png";
+            }
+
+        mainCreatePostPic.onerror = function () {
+          this.src = "../assets/temporary_pfp.png";
+        };
+
+        const modalUsername = document.querySelector
+            (".create-post-modal .username");
         if (modalUsername) {
           modalUsername.textContent = data.username;
         }
@@ -31,6 +42,7 @@ function checkUserSession() {
       window.location.href = "../html/login.html";
     });
 }
+
 
 function loadPosts() {
   fetch('../php/get-posts.php?unlimited=true')
