@@ -1,4 +1,5 @@
 let currentUser = null;
+let allSearchedUsers = [];
 
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
@@ -833,10 +834,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 });
 
-function logout() {
-  window.location.href = "../php/logout.php";
-}
-
 document.getElementById("search_input").addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
     performSearch();
@@ -858,23 +855,27 @@ function performSearch() {
         return;
       }
 
-      const previewContainer = document.querySelector(".user-preview-container");
-      if (previewContainer) previewContainer.innerHTML = "";
+      const oldPreviewContainer = document.querySelector(".user-preview-container");
+      if (oldPreviewContainer) oldPreviewContainer.innerHTML = "";
+
+      const searchResultsContainer = document.getElementById("search_results_container");
+      if (searchResultsContainer) {
+        searchResultsContainer.classList.remove("hidden");
+      }
 
       const postElements = document.querySelectorAll(".sample-post");
       postElements.forEach(post => post.remove());
 
       if (data.type === "exact_user") {
-        const card = renderUserPreviewCard(data.user);
-        previewContainer.appendChild(card);
+        renderTopUserResult(data.user);
+        renderMorePeople([]);
         displayPosts(data.posts);
       }
-
       else if (data.type === "user_post_mix") {
-        data.users.forEach(user => {
-          const card = renderUserPreviewCard(user);
-          previewContainer.appendChild(card);
-        });
+        if (data.users && data.users.length > 0) {
+          renderTopUserResult(data.users[0]);
+          renderMorePeople(data.users.slice(1));
+        }
         displayPosts(data.posts);
       }
     })
@@ -884,43 +885,127 @@ function performSearch() {
     });
 }
 
-function renderUserPreviewCard(user) {
-  const preview = document.createElement("div");
-  preview.className = "profile-card preview";
+function renderTopUserResult(user) {
+  const topUserResult = document.getElementById("top_user_result");
+  if (!topUserResult) return;
 
-  preview.innerHTML = `
-    <div class="profile-banner">
-      <img src="${user.background_picture_url || '../assets/cover_photo.png'}" class="cover-img" />
-      <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}" class="profile-img" />
-    </div>
-    <div class="profile-info">
-      <h3>${user.first_name} ${user.last_name}</h3>
-      <p>@${user.username}</p>
-      <div class="profile-stats">
-        <div><strong>${user.posts_count}</strong><p>Posts</p></div>
-        <div><strong>${user.followers_count}</strong><p>Followers</p></div>
-        <div><strong>${user.following_count}</strong><p>Following</p></div>
-      </div>
-      <div class="profile-controls">
-          <a href="../php/profile.php" class="profile-button">Profile</a>
-          ${user.username !== currentUser
-            ? `<div class="follow-wrapper">
-                 <button class="follow-btn">Follow</button>
-               </div>`
-            : ""}
+  topUserResult.innerHTML = `
+    <div class="top-user-card">
+      <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
+           class="top-user-avatar" alt="${user.first_name} ${user.last_name}">
+      <div class="top-user-info">
+        <h3 class="top-user-name">${user.first_name} ${user.last_name}</h3>
+        <p class="top-user-handle">@${user.username}</p>
+        <div class="top-user-stats">
+          <div class="stat-item">
+            <span class="icon-people"></span>
+            <span>0 following</span>
+          </div>
+          <div class="stat-item">
+            <span class="icon-followers"></span>
+            <span>${user.followers_count || 0} followers</span>
+          </div>
         </div>
-     `;
+        ${user.username !== currentUser
+          ? `<button class="follow-button" onclick="toggleTopUserFollow(this,
+          '${user.username}')">Follow</button>`: ""}
+      </div>
+    </div>
+  `;
+}
 
-  if (user.username !== currentUser) {
-  const followBtn = preview.querySelector(".follow-btn");
-  if (followBtn) {
-    followBtn.addEventListener("click", () => toggleFollow(followBtn));
+function renderMorePeople(users) {
+  const morePeopleList = document.getElementById("more_people_list");
+  const seeMoreBtn = document.getElementById("see_more_users_button");
+  const morePeopleSection = document.getElementById("more_people_section");
+
+  allSearchedUsers = users;
+
+  if (!morePeopleList || !seeMoreBtn || !morePeopleSection) return;
+
+  if (users.length === 0) {
+    morePeopleSection.classList.add("hidden");
+    return;
+  } else {
+    morePeopleSection.classList.remove("hidden");
+  }
+
+  morePeopleList.innerHTML = "";
+
+  const displayUsers = users.slice(0, 3);
+  displayUsers.forEach(user => {
+    morePeopleList.appendChild(createMoreUserElement(user));
+  });
+
+  if (users.length > 3) {
+    seeMoreBtn.classList.remove("hidden");
+    seeMoreBtn.onclick = showAllUsers;
+  } else {
+    seeMoreBtn.classList.add("hidden");
   }
 }
-  return preview;
+
+function toggleTopUserFollow(button, username) {
+  const isFollowing = button.classList.contains("following");
+
+  if (isFollowing) {
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  } else {
+    button.textContent = "Following";
+    button.classList.add("following");
+  }
+
+  console.log(`${isFollowing ? 'Unfollowed' : 'Followed'} ${username}`);
 }
 
-document.getElementById("home_btn").addEventListener("click", resetWall);
+function toggleMorePeopleFollow(button, username) {
+  const isFollowing = button.classList.contains("following");
+
+  if (isFollowing) {
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  } else {
+    button.textContent = "Following";
+    button.classList.add("following");
+  }
+
+  console.log(`${isFollowing ? 'Unfollowed' : 'Followed'} ${username}`);
+}
+
+function showAllUsers() {
+  const morePeopleList = document.getElementById("more_people_list");
+  const seeMoreBtn = document.getElementById("see_more_users_button");
+
+  if (!morePeopleList || !allSearchedUsers.length) return;
+
+  morePeopleList.innerHTML = "";
+
+  allSearchedUsers.forEach(user => {
+    morePeopleList.appendChild(createMoreUserElement(user));
+  });
+
+  morePeopleList.classList.add("expanded");
+
+  if (seeMoreBtn) seeMoreBtn.classList.add("hidden");
+}
+
+function createMoreUserElement(user) {
+  const userItem = document.createElement("div");
+  userItem.className = "more-people-item";
+  userItem.innerHTML = `
+    <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
+         class="more-people-avatar" alt="${user.first_name} ${user.last_name}">
+    <div class="more-people-info">
+      <p class="more-people-name">${user.first_name} ${user.last_name}</p>
+      <p class="more-people-handle">@${user.username}</p>
+    </div>
+    ${user.username !== currentUser
+      ? `<button class="more-people-follow-btn"
+      onclick="toggleMorePeopleFollow(this, '${user.username}')">
+           Follow</button>` : ""}`;
+  return userItem;
+}
 
 function resetWall() {
   document.getElementById("search_input").value = "";
@@ -928,11 +1013,21 @@ function resetWall() {
   const createBox = document.querySelector(".create-post");
   if (createBox) createBox.classList.remove("hidden");
 
+  const searchResultsContainer =
+      document.getElementById("search_results_container");
+  if (searchResultsContainer) {
+    searchResultsContainer.classList.add("hidden");
+  }
+
   const previewContainer = document.querySelector(".user-preview-container");
-  const postFeed = document.querySelector(".sample-post");
+  const postElements = document.querySelectorAll(".sample-post");
 
   if (previewContainer) previewContainer.innerHTML = "";
-  if (postFeed) postFeed.innerHTML = "";
+  postElements.forEach(post => post.remove());
 
   loadPosts();
+}
+
+function logout() {
+  window.location.href = "../php/logout.php";
 }
