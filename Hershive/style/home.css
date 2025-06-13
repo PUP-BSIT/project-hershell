@@ -1509,6 +1509,13 @@ flex-direction: column-reverse;
   background: #f0f2f5;
 }
 
+#no_results_message {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
 /* Icons */
 .icon-people::before {
   content: "👥";

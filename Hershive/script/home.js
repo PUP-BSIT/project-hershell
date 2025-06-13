@@ -855,6 +855,17 @@ function performSearch() {
         return;
       }
 
+      const noResultsMessage = document.getElementById("no_results_message");
+
+    const noUsers = (!data.user && (!data.users || data.users.length === 0));
+    const noPosts = !data.posts || data.posts.length === 0;
+
+    if (noUsers && noPosts) {
+      if (noResultsMessage) noResultsMessage.classList.remove("hidden");
+    } else {
+      if (noResultsMessage) noResultsMessage.classList.add("hidden");
+    }
+
       const oldPreviewContainer = document.querySelector(".user-preview-container");
       if (oldPreviewContainer) oldPreviewContainer.innerHTML = "";
 
@@ -1009,6 +1020,9 @@ function createMoreUserElement(user) {
 
 function resetWall() {
   document.getElementById("search_input").value = "";
+
+  const noResultsMessage = document.getElementById("no_results_message");
+  if (noResultsMessage) noResultsMessage.classList.add("hidden");
 
   const createBox = document.querySelector(".create-post");
   if (createBox) createBox.classList.remove("hidden");
