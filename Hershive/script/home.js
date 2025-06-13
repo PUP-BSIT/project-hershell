@@ -1,6 +1,5 @@
 let currentUser = null;
 
-// Initialize page when DOM loads
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
   displaySuggestedUsers();
@@ -13,16 +12,16 @@ function checkUserSession() {
     .then((data) => {
       if (data.success) {
         currentUser = data.username;
-        
+
         document.getElementById("display_name").textContent = data.username;
         document.getElementById("username").textContent = "@" + data.username;
-        
+
         const modalUsername = document.querySelector(".create-post-modal .username");
         if (modalUsername) {
           modalUsername.textContent = data.username;
         }
-        
-        loadPosts(); // Load posts after user is authenticated
+
+        loadPosts();
       } else {
         window.location.href = "../html/login.html";
       }
@@ -100,22 +99,22 @@ function createPostElement(post) {
 
         ${isShared ? `
           <div class="shared-card">
-            <p class="shared-username">Originally posted by 
+            <p class="shared-username">Originally posted by
               <strong>
                 ${post.original_post.username}
               </strong>
             </p>
             <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ? 
+            ${post.original_post.media_url ?
               (post.original_post.media_type === 'video'
                 ? `<video controls class="preview-video">
                       <source src="${post.original_post.media_url}" type="video/mp4">
                     </video>`
-                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`) 
+                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`)
               : ""}
           </div>
         ` : `
-          ${post.media_url ? 
+          ${post.media_url ?
             (post.media_type === 'video'
               ? `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>`
               : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
@@ -807,6 +806,16 @@ function toggleLogout() {
   if (logoutSection) logoutSection.hidden = false;
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  const settingsLink = document.querySelector('a[href*="settings"]');
+  if (settingsLink) {
+    settingsLink.addEventListener('click', function(e) {
+      console.log('Settings link clicked');
+      console.log('Href:', this.href);
+    });
+  }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     fetch('../php/get_user_stats.php')
         .then(response => response.json())
@@ -826,4 +835,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function logout() {
   window.location.href = "../php/logout.php";
+}
+
+function performSearch() {
+  const query = document.getElementById("search_input").value.trim();
+  if (!query) return;
+
+  const createBox = document.querySelector(".create-post");
+  if (createBox) createBox.classList.add("hidden");
+
+  fetch(`../php/search.php?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        alert(data.error || "Search failed");
+        return;
+      }
+
+      const previewContainer = document.querySelector(".user-preview-container");
+      if (previewContainer) previewContainer.innerHTML = "";
+
+      const postElements = document.querySelectorAll(".post");
+      postElements.forEach(post => post.remove());
+
+      if (data.type === "exact_user") {
+        const card = renderUserPreviewCard(data.user);
+        previewContainer.appendChild(card);
+        displayPosts(data.posts);
+      }
+
+      else if (data.type === "user_post_mix") {
+        data.users.forEach(user => {
+          const card = renderUserPreviewCard(user);
+          previewContainer.appendChild(card);
+        });
+        displayPosts(data.posts);
+      }
+    })
+    .catch(err => {
+      console.error("Search error:", err);
+      alert("Search failed. See console for details.");
+    });
+}
+
+function renderUserPreviewCard(user) {
+  const preview = document.createElement("div");
+  preview.className = "profile-card preview";
+
+  preview.innerHTML = `
+    <div class="profile-banner">
+      <img src="${user.background_picture_url || '../assets/cover_photo.png'}" class="cover-img" />
+      <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}" class="profile-img" />
+    </div>
+    <div class="profile-info">
+      <h3>${user.first_name} ${user.last_name}</h3>
+      <p>@${user.username}</p>
+      <div class="profile-stats">
+        <div><strong>${user.posts_count}</strong><p>Posts</p></div>
+        <div><strong>${user.followers_count}</strong><p>Followers</p></div>
+        <div><strong>${user.following_count}</strong><p>Following</p></div>
+      </div>
+      <div class="profile-controls">
+          <a href="../php/profile.php" class="profile-button">Profile</a>
+          ${user.username !== currentUser
+            ? `<div class="follow-wrapper">
+                 <button class="follow-btn">Follow</button>
+               </div>`
+            : ""}
+        </div>
+     `;
+
+  if (user.username !== currentUser) {
+  const followBtn = preview.querySelector(".follow-btn");
+  if (followBtn) {
+    followBtn.addEventListener("click", () => toggleFollow(followBtn));
+  }
+}
+  return preview;
+}
+
+document.getElementById("home_btn").addEventListener("click", resetWall);
+
+function resetWall() {
+  document.getElementById("search_input").value = "";
+
+  const createBox = document.querySelector(".create-post");
+  if (createBox) createBox.classList.remove("hidden");
+
+  const previewContainer = document.querySelector(".user-preview-container");
+  const postFeed = document.querySelector(".sample-post");
+
+  if (previewContainer) previewContainer.innerHTML = "";
+  if (postFeed) postFeed.innerHTML = "";
+
+  loadPosts();
 }
