@@ -1,11 +1,20 @@
+<?php
+session_start();
+if (!isset($_SESSION['username'])) {
+  header("Location: ../html/login.html");
+  exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hershive</title>
-  <link rel="stylesheet" href="../style/home.css"/>
-  <link rel="stylesheet" href="../style/settings.css"/>
+  <link rel="stylesheet" href="../style/home.css" />
+  <link rel="stylesheet" href="../style/settings.css" />
 </head>
 
 <body>
@@ -15,7 +24,7 @@
     <div class="search-bar">
       <input type="text" placeholder="Search">
       <button class="search-button"><img src="../assets/search_icon.png"
-        alt="search_icon"></button>
+          alt="search_icon"></button>
     </div>
 
     <div class="navigation-icons">
@@ -98,22 +107,22 @@
           <label>Current Password</label>
           <input type="password" id="current_password" required>
           <button type="button"
-                  id="toggle_new_pass"
-                  onclick="togglePassword('current_password', 'toggle_new_pass')">
+            id="toggle_pass"
+            onclick="togglePassword('current_password', 'toggle_pass')">
             Show
           </button>
         </div>
         <div class="form-group">
           <label>New Password</label>
-          <input type="password" 
-                id="new_password" 
-                oninput="validatePassword()"
-                onblur="hideRules()" 
-                required>
+          <input type="password"
+            id="new_password"
+            oninput="validatePassword()"
+            onblur="hideRules()"
+            required>
 
           <button type="button"
-                  id="toggle_new_pass"
-                  onclick="togglePassword('new_password', 'toggle_new_pass')">
+            id="toggle_new_pass"
+            onclick="togglePassword('new_password', 'toggle_new_pass')">
             Show
           </button>
         </div>
@@ -129,8 +138,8 @@
           <label>Confirm Password</label>
           <input type="password" id="confirm_password" required>
           <button type="button"
-                id="toggle_confirm_pass"
-                onclick="togglePassword(
+            id="toggle_confirm_pass"
+            onclick="togglePassword(
                     'confirm_password', 'toggle_confirm_pass'
                 )">Show
           </button>
@@ -149,8 +158,9 @@
     </div>
   </div>
 
-  <script src="../script/home.js"></script>
+  <!-- <script src="../script/home.js"></script> -->
   <script src="../script/settings.js"></script>
   <script src="../script/create_new_password.js"></script>
 </body>
+
 </html>
