@@ -1,14 +1,3 @@
-function validateForm() {
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirm_password").value;
-
-  if (password !== confirmPassword) {
-    alert("Passwords do not match!");
-    return false;
-  }
-  return true;
-}
-
 function toggleVisibility(id, btn) {
   const input = document.getElementById(id);
   if (input.type === "password") {
@@ -19,3 +8,9 @@ function toggleVisibility(id, btn) {
     btn.textContent = "Show";
   }
 }
+
+function showResponse(message, type) {
+  const responseDiv = document.getElementById("response");
+  responseDiv.className = `message ${type}`;
+  responseDiv.innerHTML = message;
+};
