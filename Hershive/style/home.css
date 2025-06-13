@@ -1310,3 +1310,75 @@ flex-direction: column-reverse;
 .comment-context-menu button:hover {
   background: #eee;
 }
+
+.hidden {
+  display: none !important;
+}
+
+.profile-card.preview .cover-img {
+  height: 80px;
+  object-fit: cover;
+}
+
+.profile-card.preview .profile-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 3px solid #f0e8dd;
+}
+
+.user-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.profile-card.preview {
+  flex: 1 1 220px;
+  max-width: 280px;
+  font-size: 14px;
+  background: #f0e8dd;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.follow-btn {
+  padding: 0.4rem 1rem;
+  font-size: 14px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+.follow-btn:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.follow-btn.following {
+  background-color: #6c757d;
+}
+
+.follow-btn.following:hover {
+  background-color: #6c757d;
+  border-color: #0056b3;
+}
+
+
+.profile-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
