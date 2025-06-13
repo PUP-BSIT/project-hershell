@@ -1411,11 +1411,6 @@ flex-direction: column-reverse;
   border-color: #0056b3;
 }
 
-/* More People Section */
-.more-people-section {
-  padding: 20px;
-}
-
 .more-people-header {
   font-size: 18px;
   font-weight: 600;
@@ -1423,7 +1418,11 @@ flex-direction: column-reverse;
   margin-bottom: 16px;
 }
 
-.more-people-list {
+#more_people_section {
+  padding: 20px;
+}
+
+#more_people_list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1488,7 +1487,12 @@ flex-direction: column-reverse;
   background: #6c757d;
 }
 
-.see-more-button {
+#more_people_list.expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+#see_more_users_button {
   width: 100%;
   background: none;
   border: 1px solid #e4e6ea;
@@ -1501,7 +1505,7 @@ flex-direction: column-reverse;
   transition: background-color 0.2s;
 }
 
-.see-more-button:hover {
+#see_more_users_button:hover {
   background: #f0f2f5;
 }
 
