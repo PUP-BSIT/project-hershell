@@ -106,7 +106,6 @@ function saveProfileUpdates() {
     });
 }
 
-// Event listeners for file inputs to show previews
 document.getElementById('media_input').addEventListener('change', function() {
   handleFileInput(this, document.getElementById("profile_img_preview"));
 });
@@ -114,6 +113,89 @@ document.getElementById('cover_media_input')
     .addEventListener('change', function() {handleFileInput(this, document
     .getElementById("cover_img_preview"));
 });
+
+const currentUser = document.body.dataset.username || "";
+
+function createPostElement(post) {
+  const postDiv = document.createElement("div");
+  postDiv.className = "user-post";
+  postDiv.dataset.postId = post.post_id;
+
+  const isOwner = post.sharer_username === currentUser;
+  const isShared = post.shared && post.original_post;
+
+  postDiv.innerHTML = `
+    <div class="post-header">
+      <div class="post-header-left">
+        <img src="../assets/temporary_pfp.png" class="profile-pic" alt="User" />
+        <div class="post-info">
+          <span class="username">${post.sharer_username}</span>
+          <span class="timestamp">${post.formatted_time}</span>
+        </div>
+      </div>
+      ${isOwner ? `
+        <div class="more-option">
+          <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+          <div class="dropdown-menu">
+            <button onclick="editPost(this)">Edit</button>
+            <button onclick="deletePost(this)">Delete</button>
+            <button onclick="cancelDropdown(this)">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="post-content">
+      <div class="content">
+        ${post.content ? `<p>${post.content}</p>` : ""}
+
+        ${isShared ? `
+          <div class="shared-post">
+            <p class="shared-post-username">Originally posted by <strong>${post.original_post.username}</strong></p>
+            <p>${post.original_post.content}</p>
+            ${post.original_post.media_url ? 
+              (post.original_post.media_type === 'video'
+                ? `<video controls class="post-media"><source src="${post.original_post.media_url}" type="video/mp4"></video>`
+                : `<img src="${post.original_post.media_url}" class="post-media" alt="Shared Image">`)
+              : ""}
+          </div>
+        ` : `
+          ${post.media_url ? 
+            (post.media_type === 'video'
+              ? `<video controls class="post-media"><source src="${post.media_url}" type="video/mp4"></video>`
+              : `<img src="${post.media_url}" class="post-media" alt="Post Image">`)
+            : ""}
+        `}
+      </div>
+
+      <div class="post-actions">
+        <div class="action-button">
+          <button class="like-btn" onclick="toggleLike(this, ${post.post_id})">
+            <img class="heart-icon outline ${post.user_liked ? 'hidden' : ''}" src="../assets/heart_icon.png">
+            <img class="heart-icon filled ${post.user_liked ? '' : 'hidden'}" src="../assets/red_heart_icon.png">
+          </button>
+          <span class="like-count">${post.likes_count}</span>
+        </div>
+
+        <div class="action-button">
+          <button class="comment-btn" onclick="toggleCommentModal(this.closest('.user-post'))">
+            <img src="../assets/comment_icon.png" alt="Comment">
+          </button>
+          <span class="comment-count">${post.comments_count}</span>
+        </div>
+
+        <div class="action-button">
+          <button class="share-btn" onclick="toggleShareModal(this.closest('.user-post'))">
+            <img src="../assets/share_icon.png" alt="Share">
+          </button>
+          <span class="share-count">${post.shares_count}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return postDiv;
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     fetch('../php/get_user_stats.php')
@@ -154,6 +236,22 @@ function getProfileUserId() {
 
   const params = new URLSearchParams(window.location.search);
   return params.get("user_id") || "";
+}
+
+function displayPostsInContainer(posts) {
+  const container = document.getElementById("post-container");
+
+  if (!container) {
+    console.error("No #post-container element found.");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  posts.forEach(post => {
+    const postElement = createPostElement(post);
+    container.appendChild(postElement);
+  });
 }
 
 function toggleLike(button, postId) {
