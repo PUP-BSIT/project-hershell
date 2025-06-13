@@ -115,6 +115,14 @@ button {
   object-fit: cover;
 }
 
+.error-message {
+    color: red;
+}
+
+.success-message {
+    color: green;
+}
+
 .remove-cover-btn,
 .remove-profile-btn {
   display: none;
