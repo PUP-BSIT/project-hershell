@@ -642,6 +642,9 @@ function submitComment(btn) {
   const content = input.value.trim();
   if (!content) return;
 
+  const modal = btn.closest('.comment-modal');
+  const commentListContainer = modal.querySelector('.comment-list');
+
   fetch('../php/comment_crud.php?action=add', {
     method: 'POST',
     headers: { 'Content-Type':'application/x-www-form-urlencoded' },
@@ -651,7 +654,7 @@ function submitComment(btn) {
   .then(data => {
     if (data.success) {
       input.value = '';
-      loadComments(currentPostIdForComments);
+      loadComments(currentPostIdForComments, commentListContainer);
     } else {
       alert('Failed to add comment');
     }
