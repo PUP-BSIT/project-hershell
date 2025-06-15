@@ -1,70 +1,61 @@
 <?php
 session_start();
-header("Content-Type: application/json");
 require_once 'db_connection.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['username']) || !isset($_SESSION['user_id'])) {
-    echo json_encode(["success" => false, "error" => "Not authenticated"]);
-    exit;
-}
+header('Content-Type: application/json');
 
-// Only allow POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["success" => false, "error" => "Method not allowed"]);
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
-$content = trim($_POST['content'] ?? '');
 
-if (empty($content)) {
-    echo json_encode(["success" => false, "error" => "Post content cannot be empty"]);
-    exit;
+// Sanitize text content with allowed tags
+function sanitize_input($input, $allow_html = false) {
+    if ($allow_html) {
+        return strip_tags($input, '<b><i><u><strong><em><br><p>');
+    } else {
+        return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+    }
 }
 
+$content = isset($_POST['content']) ? sanitize_input($_POST['content'],
+    true) : null;
 $media_url = null;
+$media_type = isset($_POST['media_type']) ? $_POST['media_type'] : null;
 
-// Handle file upload if present
 if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
-    $upload_dir = '../uploads/';
+    $uploadDir = '../uploads/';
+    $mediaName = basename($_FILES['media']['name']);
+    $mediaTmp = $_FILES['media']['tmp_name'];
+    $targetFile = $uploadDir . time() . '_' . $mediaName;
 
-    // Create upload directory if it doesn't exist
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
-    }
+    $allowedTypes = ['image' => ['jpg', 'jpeg', 'png', 'gif'], 'video' =>
+        ['mp4', 'webm']];
+    $ext = strtolower(pathinfo($mediaName, PATHINFO_EXTENSION));
 
-    $file_extension = pathinfo($_FILES['media']['name'], PATHINFO_EXTENSION);
-    $filename = uniqid() . '.' . $file_extension;
-    $upload_path = $upload_dir . $filename;
-
-    // Validate file type
-    $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'];
-    if (!in_array(strtolower($file_extension), $allowed_types)) {
-        echo json_encode(["success" => false, "error" => "Invalid file type"]);
+    if (!in_array($ext, $allowedTypes[$media_type] ?? [])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid media type']);
         exit;
     }
 
-    // Validate file size (10MB max)
-    if ($_FILES['media']['size'] > 10 * 1024 * 1024) {
-        echo json_encode(["success" => false, "error" => "File too large"]);
+    if (move_uploaded_file($mediaTmp, $targetFile)) {
+        $media_url = $targetFile;
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Failed to upload media']);
         exit;
-    }
-
-    if (move_uploaded_file($_FILES['media']['tmp_name'], $upload_path)) {
-        $media_url = $upload_path;
     }
 }
 
-// Insert post into database using your existing post table structure
-$stmt = $conn->prepare("INSERT INTO post (user_id, content, media_url, created_at, visibility) VALUES (?, ?, ?, NOW(), 'public')");
+$stmt = $conn->prepare("INSERT INTO
+    post (user_id, content, media_url, visibility) VALUES (?, ?, ?, 'public')");
 $stmt->bind_param("iss", $user_id, $content, $media_url);
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Post created successfully"]);
+    echo json_encode(['success' => true, 'post_id' => $stmt->insert_id]);
 } else {
-    echo json_encode(["success" => false, "error" => "Failed to create post"]);
+    echo json_encode(['success' => false, 'error' => 'Database insert failed']);
 }
 
 $stmt->close();
