@@ -38,6 +38,7 @@ if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
     $filtering = true;
 }
 
+//add sharer.profile_picture_url for post's profile picture
 if ($filtering) {
     $sql = "
         SELECT
