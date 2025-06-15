@@ -75,20 +75,21 @@ function displayPosts(posts) {
   });
 }
 
-// Create individual post element
 function createPostElement(post) {
   const postDiv = document.createElement("div");
   postDiv.className = "sample-post";
   postDiv.dataset.postId = post.post_id;
 
-  // Determine if this post belongs to current user
   const isOwner = (post.sharer_username || post.username) === currentUser;
   const isShared = post.shared && post.original_post;
+
+  const profilePicUrl = post.sharer_profile_pic || "../assets/temporary_pfp.png";
 
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+        <img src="${profilePicUrl}" alt="user profile" class="profile-pic"
+            onerror="this.src='../assets/temporary_pfp.png'">
         <div class="post-info">
           <span class="username">${post.sharer_username}</span>
           <span class="timestamp">${post.formatted_time}</span>
@@ -96,7 +97,8 @@ function createPostElement(post) {
       </div>
       ${isOwner ? `
       <div class="more-option">
-        <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+        <img src="../assets/more_icon.png" alt="more"
+            onclick="toggleDropdown(this)">
         <div class="dropdown-menu">
           <button onclick="editPost(this)">Edit</button>
           <button onclick="deletePost(this)">Delete</button>
@@ -123,16 +125,17 @@ function createPostElement(post) {
                 ? `<video controls class="preview-video">
                       <source src="${post.original_post.media_url}" type="video/mp4">
                     </video>`
-                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`)
+                : `<img src="${post.original_post.media_url}"
+                    class="preview-image" alt="Shared Image">`)
               : ""}
-          </div>
-        ` : `
+          </div>` : `
           ${post.media_url ?
             (post.media_type === 'video'
-              ? `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>`
-              : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
-            : ""}
-        `}
+              ? `<video controls class="preview-video"><source src="${post.media_url}"
+                  type="video/mp4"></video>`
+              : `<img src="${post.media_url}" class="preview-image"
+                  alt="Post Image">`)
+            : ""}`}
       </div>
 
       <div class="post-actions">
@@ -173,8 +176,10 @@ function createPostElement(post) {
 
         <div class="share-modal hidden">
           <div class="modal-content">
-            <span class="close-share-modal" onclick="toggleShareModal(this.closest('.sample-post'))">&times;</span>
-            <input class="share-link" type="text" value="https://example.com/post/${post.post_id}" readonly>
+            <span class="close-share-modal"
+                onclick="toggleShareModal(this.closest('.sample-post'))">&times;</span>
+            <input class="share-link" type="text"
+                value="https://example.com/post/${post.post_id}" readonly>
             <button onclick="copyLink(this)">
               <img src="../assets/copy_icon.png" alt="Copy">
             </button>
