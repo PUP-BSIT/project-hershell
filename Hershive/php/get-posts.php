@@ -25,7 +25,6 @@ $filtering = false;
 if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
 	$filter_user_id = (int) $_GET['user_id'];
 
-	// Validate user exists
 	$check_stmt = $conn->prepare("SELECT 1 FROM user WHERE user_id = ?");
 	$check_stmt->bind_param("i", $filter_user_id);
 	$check_stmt->execute();
@@ -40,19 +39,22 @@ if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
 }
 
 if ($filtering) {
-	// For profile page – get only user’s posts or shared posts
 	$sql = "
-        SELECT 
+        SELECT
             p.post_id,
             p.user_id AS sharer_id,
             sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
             p.content,
             p.media_url,
             p.created_at,
             p.is_shared,
-            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
-            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
-            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
+            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id)
+                as likes_count,
+            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as
+                comments_count,
+            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as
+                shares_count,
             CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
 
             original.post_id AS original_post_id,
@@ -76,19 +78,22 @@ if ($filtering) {
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param("iii", $current_user_id, $filter_user_id, $filter_user_id);
 } else {
-	// For home page – fetch all public posts
 	$sql = "
-        SELECT 
+        SELECT
             p.post_id,
             p.user_id AS sharer_id,
             sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
             p.content,
             p.media_url,
             p.created_at,
             p.is_shared,
-            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
-            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
-            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
+            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id)
+                as likes_count,
+            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as
+                comments_count,
+            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id)
+                as shares_count,
             CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
 
             original.post_id AS original_post_id,
@@ -119,12 +124,14 @@ while ($row = $result->fetch_assoc()) {
 
 	if (!empty($row['original_media_url'])) {
 		$ext = strtolower(pathinfo($row['original_media_url'], PATHINFO_EXTENSION));
-		$row['original_media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
+		$row['original_media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm'])
+        ? 'video' : 'image';
 	}
 
 	if (!empty($row['media_url'])) {
 		$ext = strtolower(pathinfo($row['media_url'], PATHINFO_EXTENSION));
-		$row['media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
+		$row['media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm'])
+        ? 'video' : 'image';
 	}
 
 	if ($row['is_shared']) {
@@ -156,3 +163,4 @@ echo json_encode([
 
 $stmt->close();
 $conn->close();
+?>
