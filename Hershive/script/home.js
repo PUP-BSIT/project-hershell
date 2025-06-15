@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
   loadSuggestedUsers();
   initializeMediaUpload();
+  syncPrivacyToModal()
 });
 
 function checkUserSession() {
@@ -195,55 +196,46 @@ function createPostElement(post) {
   return postDiv;
 }
 
-// Updated submitPost function to use database
 function submitPost() {
   const editor = document.getElementById("editor");
-  const postText = editor.innerHTML.trim();
-  const imageFile = imageInput.files[0];
-  const videoFile = videoInput.files[0];
+  const content = editor.innerHTML.trim();
 
-  if (!postText || postText === "<br>") {
-    alert("Please enter some text to post.");
+  const imageInput = document.getElementById("media_input");
+  const videoInput = document.getElementById("media_input_video");
+
+  const hasImage = imageInput.files.length > 0;
+  const hasVideo = videoInput.files.length > 0;
+  const hasText = content !== "" && content !== "<br>";
+
+  if (!hasText && !hasImage && !hasVideo) {
+    alert("Please write something or upload media.");
     return;
   }
 
-  // Create FormData for file upload if needed
   const formData = new FormData();
-  formData.append('content', postText);
+  formData.append("content", content);
+  if (hasImage) formData.append("media", imageInput.files[0]);
+  if (hasVideo) formData.append("media", videoInput.files[0]);
 
-  if (imageFile) {
-    formData.append('media', imageFile);
-    formData.append('media_type', 'image');
-  } else if (videoFile) {
-    formData.append('media', videoFile);
-    formData.append('media_type', 'video');
-  }
 
-  // Submit to backend
-  fetch('../php/create-post.php', {
-    method: 'POST',
-    body: formData
+  fetch("../php/create-post.php", {
+    method: "POST",
+    body: formData,
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      // Clear form
-      editor.innerHTML = "";
-      imageInput.value = "";
-      videoInput.value = "";
-      previewContainer.innerHTML = "";
-      closePostModal();
-
-      // Reload posts to show the new one
-      loadPosts();
-    } else {
-      alert(data.error || 'Error creating post');
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error creating post');
-  });
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Post created!");
+        closePostModal();
+        loadPosts();
+      } else {
+        alert("Error: " + data.error);
+      }
+    })
+    .catch((err) => {
+      alert("Post failed.");
+      console.error(err);
+    });
 }
 
 // Updated toggleLike function to work with database
@@ -290,12 +282,43 @@ function toggleLike(button, postId) {
   });
 }
 
+function syncPrivacyToModal() {
+  const miniPrivacy = document.getElementById("privacy");
+  const modalPrivacy = document.getElementById("privacy_setting");
+
+  if (miniPrivacy && modalPrivacy) {
+    modalPrivacy.value = miniPrivacy.value;
+  }
+}
+
+function syncPrivacyToMini() {
+  const miniPrivacy = document.getElementById("privacy");
+  const modalPrivacy = document.getElementById("privacy_setting");
+
+  if (miniPrivacy && modalPrivacy) {
+    miniPrivacy.value = modalPrivacy.value;
+  }
+}
+
+const modalPrivacy = document.getElementById("privacy_setting");
+if (modalPrivacy) {
+  modalPrivacy.onchange = syncPrivacyToMini;
+}
+
 // Rest of your existing functions
-function openPostModal() {
+function openPostModal(event) {
+  // Prevent modal from opening when clicking the mini privacy <select>
+  if (event && event.target.closest("#privacy")) {
+    return;
+  }
+
   const postModal = document.getElementById("post_modal");
   postModal.classList.remove("hidden");
   postModal.classList.add("flex-center");
+
+  syncPrivacyToModal(); // sync outside to modal privacy
 }
+
 
 function closePostModal() {
   const postModal = document.getElementById("post_modal");
