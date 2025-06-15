@@ -14,8 +14,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Sanitize helper
+function sanitize_input($input, $allow_html = false) {
+    return $allow_html
+        ? strip_tags($input, '<b><i><u><strong><em><br><p>')
+        : htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+}
+
 $post_id = $_POST['post_id'] ?? null;
-$content = trim($_POST['content'] ?? '');
+$content = sanitize_input(trim($_POST['content'] ?? ''), true);
 
 if (!$post_id) {
     echo json_encode(["success" => false, "error" => "Post ID is required"]);
@@ -63,7 +70,7 @@ if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
         exit;
     }
 
-    if ($_FILES['media']['size'] > 10 * 1024 * 1024) { // 10MB max
+    if ($_FILES['media']['size'] > 10 * 1024 * 1024) {
         echo json_encode(["success" => false, "error" => "File too large"]);
         $stmt->close();
         $conn->close();
@@ -88,10 +95,12 @@ if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
 }
 
 if ($media_url) {
-    $stmt_update = $conn->prepare("UPDATE post SET content = ?, media_url = ?, updated_at = NOW() WHERE post_id = ? AND user_id = ?");
+    $stmt_update = $conn->prepare("UPDATE post SET content = ?, media_url = ?,
+        updated_at = NOW() WHERE post_id = ? AND user_id = ?");
     $stmt_update->bind_param("ssii", $content, $media_url, $post_id, $_SESSION['user_id']);
 } else {
-    $stmt_update = $conn->prepare("UPDATE post SET content = ?, updated_at = NOW() WHERE post_id = ? AND user_id = ?");
+    $stmt_update = $conn->prepare("UPDATE post SET content = ?,
+        updated_at = NOW() WHERE post_id = ? AND user_id = ?");
     $stmt_update->bind_param("sii", $content, $post_id, $_SESSION['user_id']);
 }
 
