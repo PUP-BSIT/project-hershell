@@ -4,6 +4,7 @@ let allSearchedUsers = [];
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
   loadSuggestedUsers();
+  initializeMediaUpload();
 });
 
 function checkUserSession() {
@@ -491,6 +492,72 @@ function addMediaToPost(file, isVideo = false, targetContentDiv) {
     targetContentDiv.appendChild(media);
   };
   reader.readAsDataURL(file);
+}
+
+function initializeMediaUpload() {
+  const triggerImageInput = document.getElementById("trigger_media_image");
+  const triggerVideoInput = document.getElementById("trigger_media_video");
+
+  const modalImageInput = document.getElementById("media_input");
+  const modalVideoInput = document.getElementById("media_input_video");
+  const previewContainer = document.getElementById("preview_container");
+
+  function handleFilePreview(input, isVideo = false) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      previewContainer.innerHTML = "";
+
+      const media = document.createElement(isVideo ? "video" : "img");
+      if (isVideo) media.controls = true;
+      media.src = e.target.result;
+      media.classList.add("preview-media");
+
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("preview-item");
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "✕";
+      removeBtn.onclick = () => {
+        previewContainer.innerHTML = "";
+        input.value = "";
+      };
+
+      wrapper.appendChild(media);
+      wrapper.appendChild(removeBtn);
+      previewContainer.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (triggerImageInput && modalImageInput) {
+    triggerImageInput.onchange = () => {
+      const file = triggerImageInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalImageInput.files = dt.files;
+        modalImageInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalImageInput, false);
+      }
+    };
+  }
+
+  if (triggerVideoInput && modalVideoInput) {
+    triggerVideoInput.onchange = () => {
+      const file = triggerVideoInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalVideoInput.files = dt.files;
+        modalVideoInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalVideoInput, true);
+      }
+    };
+  }
 }
 
 function loadSuggestedUsers(limit = 4, page = 1) {
