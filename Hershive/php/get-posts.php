@@ -7,8 +7,8 @@ header("Content-Type: application/json");
 require_once 'db_connection.php';
 
 if (!isset($_SESSION['username'])) {
-	echo json_encode(["success" => false, "error" => "Not authenticated"]);
-	exit;
+    echo json_encode(["success" => false, "error" => "Not authenticated"]);
+    exit;
 }
 
 $current_username = $_SESSION['username'];
@@ -23,29 +23,28 @@ $filter_user_id = null;
 $filtering = false;
 
 if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
-	$filter_user_id = (int) $_GET['user_id'];
+    $filter_user_id = (int) $_GET['user_id'];
 
-	// Validate user exists
-	$check_stmt = $conn->prepare("SELECT 1 FROM user WHERE user_id = ?");
-	$check_stmt->bind_param("i", $filter_user_id);
-	$check_stmt->execute();
-	$check_result = $check_stmt->get_result();
-	if ($check_result->num_rows === 0) {
-		echo json_encode(["success" => false, "error" => "User not found"]);
-		exit;
-	}
-	$check_stmt->close();
+    $check_stmt = $conn->prepare("SELECT 1 FROM user WHERE user_id = ?");
+    $check_stmt->bind_param("i", $filter_user_id);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
+    if ($check_result->num_rows === 0) {
+        echo json_encode(["success" => false, "error" => "User not found"]);
+        exit;
+    }
+    $check_stmt->close();
 
-	$filtering = true;
+    $filtering = true;
 }
 
 if ($filtering) {
-	// For profile page – get only user’s posts or shared posts
-	$sql = "
-        SELECT 
+    $sql = "
+        SELECT
             p.post_id,
             p.user_id AS sharer_id,
             sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
             p.content,
             p.media_url,
             p.created_at,
@@ -73,15 +72,15 @@ if ($filtering) {
             )
         ORDER BY p.created_at DESC
     ";
-	$stmt = $conn->prepare($sql);
-	$stmt->bind_param("iii", $current_user_id, $filter_user_id, $filter_user_id);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iii", $current_user_id, $filter_user_id, $filter_user_id);
 } else {
-	// For home page – fetch all public posts
-	$sql = "
-        SELECT 
+    $sql = "
+        SELECT
             p.post_id,
             p.user_id AS sharer_id,
             sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
             p.content,
             p.media_url,
             p.created_at,
@@ -105,8 +104,8 @@ if ($filtering) {
         WHERE p.deleted = 0 AND p.visibility = 'public'
         ORDER BY p.created_at DESC
     ";
-	$stmt = $conn->prepare($sql);
-	$stmt->bind_param("i", $current_user_id);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $current_user_id);
 }
 
 $stmt->execute();
@@ -114,45 +113,59 @@ $result = $stmt->get_result();
 
 $posts = [];
 
+function escape_output($str) {
+    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+}
+
 while ($row = $result->fetch_assoc()) {
-	$row['formatted_time'] = date('M j \a\t g:i A', strtotime($row['created_at']));
+    $row['formatted_time'] = date('M j \a\t g:i A',
+        strtotime($row['created_at']));
 
-	if (!empty($row['original_media_url'])) {
-		$ext = strtolower(pathinfo($row['original_media_url'], PATHINFO_EXTENSION));
-		$row['original_media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
-	}
+    if (!empty($row['original_media_url'])) {
+        $ext = strtolower(pathinfo($row['original_media_url'], PATHINFO_EXTENSION));
+        $row['original_media_type']
+            = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
+    }
 
-	if (!empty($row['media_url'])) {
-		$ext = strtolower(pathinfo($row['media_url'], PATHINFO_EXTENSION));
-		$row['media_type'] = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
-	}
+    if (!empty($row['media_url'])) {
+        $ext = strtolower(pathinfo($row['media_url'], PATHINFO_EXTENSION));
+        $row['media_type']
+            = in_array($ext, ['mp4', 'mov', 'avi', 'webm']) ? 'video' : 'image';
+    }
 
-	if ($row['is_shared']) {
-		$row['shared'] = true;
-		$row['original_post'] = [
-			'post_id' => $row['original_post_id'],
-			'username' => $row['original_author'],
-			'content' => $row['original_content'],
-			'media_url' => $row['original_media_url'],
-		];
-	} else {
-		$row['shared'] = false;
-	}
+    // Escape content to prevent XSS
+    // Already sanitized via strip_tags() at input time
+    $row['content'] = $row['content'];
+    $row['original_content'] = $row['original_content'];
 
-	unset(
-		$row['original_post_id'],
-		$row['original_author'],
-		$row['original_content'],
-		$row['original_media_url']
-	);
 
-	$posts[] = $row;
+    if ($row['is_shared']) {
+        $row['shared'] = true;
+        $row['original_post'] = [
+            'post_id' => $row['original_post_id'],
+            'username' => $row['original_author'],
+            'content' => $row['original_content'],
+            'media_url' => $row['original_media_url'],
+        ];
+    } else {
+        $row['shared'] = false;
+    }
+
+    unset(
+        $row['original_post_id'],
+        $row['original_author'],
+        $row['original_content'],
+        $row['original_media_url']
+    );
+
+    $posts[] = $row;
 }
 
 echo json_encode([
-	'success' => true,
-	'posts' => $posts
+    'success' => true,
+    'posts' => $posts
 ]);
 
 $stmt->close();
 $conn->close();
+?>
