@@ -75,20 +75,21 @@ function displayPosts(posts) {
   });
 }
 
-// Create individual post element
 function createPostElement(post) {
   const postDiv = document.createElement("div");
   postDiv.className = "sample-post";
   postDiv.dataset.postId = post.post_id;
 
-  // Determine if this post belongs to current user
   const isOwner = (post.sharer_username || post.username) === currentUser;
   const isShared = post.shared && post.original_post;
+
+  const profilePicUrl = post.sharer_profile_pic || "../assets/temporary_pfp.png";
 
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" alt="user profile" class="profile-pic">
+        <img src="${profilePicUrl}" alt="user profile"
+            class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
         <div class="post-info">
           <span class="username">${post.sharer_username}</span>
           <span class="timestamp">${post.formatted_time}</span>
@@ -123,13 +124,15 @@ function createPostElement(post) {
                 ? `<video controls class="preview-video">
                       <source src="${post.original_post.media_url}" type="video/mp4">
                     </video>`
-                : `<img src="${post.original_post.media_url}" class="preview-image" alt="Shared Image">`)
+                : `<img src="${post.original_post.media_url}"
+                    class="preview-image" alt="Shared Image">`)
               : ""}
           </div>
         ` : `
           ${post.media_url ?
             (post.media_type === 'video'
-              ? `<video controls class="preview-video"><source src="${post.media_url}" type="video/mp4"></video>`
+              ? `<video controls class="preview-video"><source
+                  src="${post.media_url}" type="video/mp4"></video>`
               : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
             : ""}
         `}
@@ -155,7 +158,8 @@ function createPostElement(post) {
 
         <div class="comment-modal hidden">
           <div class="modal-content">
-            <span class="close-comment-modal" onclick="closeCommentModal(this)">&times;</span>
+            <span class="close-comment-modal"
+                onclick="closeCommentModal(this)">&times;</span>
             <div class="comment-list" id="comment-list"></div>
             <div class="comment-input">
               <input type="text" placeholder="Write a comment...">
@@ -165,7 +169,8 @@ function createPostElement(post) {
         </div>
 
         <div class="action-button">
-          <button class="share-btn" onclick="toggleShareModal(this.closest('.sample-post'))">
+          <button class="share-btn"
+              onclick="toggleShareModal(this.closest('.sample-post'))">
             <img src="../assets/share_icon.png" alt="Share">
           </button>
           <span class="share-count">${post.shares_count}</span>
@@ -173,8 +178,10 @@ function createPostElement(post) {
 
         <div class="share-modal hidden">
           <div class="modal-content">
-            <span class="close-share-modal" onclick="toggleShareModal(this.closest('.sample-post'))">&times;</span>
-            <input class="share-link" type="text" value="https://example.com/post/${post.post_id}" readonly>
+            <span class="close-share-modal"
+                onclick="toggleShareModal(this.closest('.sample-post'))">&times;</span>
+            <input class="share-link" type="text"
+                value="https://example.com/post/${post.post_id}" readonly>
             <button onclick="copyLink(this)">
               <img src="../assets/copy_icon.png" alt="Copy">
             </button>
