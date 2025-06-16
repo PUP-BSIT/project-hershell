@@ -98,15 +98,15 @@ function createPostElement(post) {
         </div>
       </div>
       ${isOwner ? `
-      <div class="more-option">
-        <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
-        <div class="dropdown-menu">
-          <button onclick="editPost(this)">Edit</button>
-          <button onclick="deletePost(this)">Delete</button>
-          <button onclick="cancelDropdown(this)">Cancel</button>
+        <div class="more-option">
+          <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+          <div class="dropdown-menu" onclick="event.stopPropagation()">
+            <button onclick="editPost(this)">Edit</button>
+            <button onclick="deletePost(this)">Delete</button>
+            <button onclick="cancelDropdown(this)">Cancel</button>
+          </div>
         </div>
-      </div>
-      ` : ''}
+        ` : ''}
     </div>
 
     <div class="post-content">
@@ -283,10 +283,6 @@ function editPost(button) {
   saveButton.innerText = 'Save';
   saveButton.className = 'save-edit-button';
 
-  const cancelButton = document.createElement('button');
-  cancelButton.innerText = 'Cancel';
-  cancelButton.className = 'cancel-edit-button';
-
   saveButton.onclick = () => {
     const updatedContent = editorDiv.innerHTML.trim();
 
@@ -354,7 +350,6 @@ function editPost(button) {
                 if (image) {
                   image.src = e.target.result;
                 } else {
-                  // Remove existing video if switching to image
                   if (video) video.remove();
                   const newImg = document.createElement('img');
                   newImg.src = e.target.result;
@@ -367,11 +362,9 @@ function editPost(button) {
             reader.readAsDataURL(fileInput.files[0]);
           }
 
-          // Clean up edit interface
           editorDiv.remove();
           fileInput.remove();
           saveButton.remove();
-          cancelButton.remove();
         } else {
           alert(data.error || 'Failed to update post');
         }
@@ -382,37 +375,13 @@ function editPost(button) {
       });
   };
 
-  cancelButton.onclick = () => {
-    // Clean up edit interface without saving
-    editorDiv.remove();
-    fileInput.remove();
-    saveButton.remove();
-    cancelButton.remove();
-
-    // Show original content
-    if (paragraph) {
-      paragraph.classList.remove('hidden');
-    }
-  };
-
-  // Hide original paragraph if it exists
   if (paragraph) {
     paragraph.classList.add('hidden');
   }
 
-  // Insert edit interface
-  if (paragraph) {
-    contentDiv.insertBefore(editorDiv, paragraph);
-    contentDiv.insertBefore(fileInput, paragraph);
-    contentDiv.insertBefore(saveButton, paragraph);
-    contentDiv.insertBefore(cancelButton, paragraph);
-  } else {
-    // For media-only posts, insert at the beginning
-    contentDiv.insertBefore(editorDiv, contentDiv.firstChild);
-    contentDiv.insertBefore(fileInput, contentDiv.firstChild);
-    contentDiv.insertBefore(saveButton, contentDiv.firstChild);
-    contentDiv.insertBefore(cancelButton, contentDiv.firstChild);
-  }
+  contentDiv.insertBefore(saveButton, contentDiv.firstChild);
+  contentDiv.insertBefore(fileInput, contentDiv.firstChild);
+  contentDiv.insertBefore(editorDiv, contentDiv.firstChild);
 }
 
 // Updated toggleLike function to work with database
@@ -510,14 +479,45 @@ window.addEventListener("click", function (e) {
   }
 });
 
-function toggleDropdown(icon) {
-  const parent = icon.parentElement;
-  parent.classList.toggle("active");
-}
-
 function cancelDropdown(button) {
   const parent = button.closest(".more-option");
   parent.classList.remove("active");
+
+  // Clean up any existing edit interface
+  const post = button.closest('.sample-post');
+  const contentDiv = post.querySelector('.content');
+
+  const editorDiv = contentDiv.querySelector('.edit-editor');
+  const fileInput = contentDiv.querySelector('.edit-media-input');
+  const saveButton = contentDiv.querySelector('.save-edit-button');
+  const paragraph = contentDiv.querySelector('p');
+
+  if (editorDiv) editorDiv.remove();
+  if (fileInput) fileInput.remove();
+  if (saveButton) saveButton.remove();
+
+  // Show original content
+  if (paragraph) {
+    paragraph.classList.remove('hidden');
+  }
+}
+
+function toggleDropdown(icon) {
+  const parent = icon.parentElement;
+
+  document.querySelectorAll('.more-option.active').forEach(dropdown => {
+    if (dropdown !== parent) {
+      dropdown.classList.remove('active');
+    }
+  });
+
+  parent.classList.toggle("active");
+
+  if (parent.classList.contains("active")) {
+    document.body.onclick = handleOutsideClick;
+  } else {
+    document.body.onclick = null;
+  }
 }
 
 function deletePost(button) {
@@ -1231,6 +1231,15 @@ function resetWall() {
   postElements.forEach(post => post.remove());
 
   loadPosts();
+}
+
+function handleOutsideClick(event) {
+  const dropdowns = document.querySelectorAll('.more-option.active');
+  dropdowns.forEach(dropdown => {
+    if (!dropdown.contains(event.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
 }
 
 function logout() {
