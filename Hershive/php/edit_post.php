@@ -1,116 +1,129 @@
 <?php
 session_start();
-header("Content-Type: application/json");
 require_once 'db_connection.php';
 
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(["success" => false, "error" => "Not authenticated"]);
+    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["success" => false, "error" => "Method not allowed"]);
-    exit;
-}
-
-// Sanitize helper
-function sanitize_input($input, $allow_html = false) {
-    return $allow_html
-        ? strip_tags($input, '<b><i><u><strong><em><br><p>')
-        : htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
-}
-
+$user_id = $_SESSION['user_id'];
 $post_id = $_POST['post_id'] ?? null;
-$content = sanitize_input(trim($_POST['content'] ?? ''), true);
+$content = $_POST['content'] ?? '';
 
 if (!$post_id) {
-    echo json_encode(["success" => false, "error" => "Post ID is required"]);
-    exit;
-}
-if (!$content) {
-    echo json_encode(["success" => false, "error" => "Post content cannot be empty"]);
+    echo json_encode(['success' => false, 'error' => 'Post ID required']);
     exit;
 }
 
-$stmt = $conn->prepare("SELECT user_id, media_url FROM post WHERE post_id = ?");
+// Verify post ownership
+$stmt = $conn->prepare("SELECT user_id, media_url FROM post WHERE post_id = ? AND deleted = 0");
 $stmt->bind_param("i", $post_id);
 $stmt->execute();
 $result = $stmt->get_result();
-$post = $result->fetch_assoc();
 
-if (!$post) {
-    echo json_encode(["success" => false, "error" => "Post not found"]);
-    $stmt->close();
-    $conn->close();
+if ($result->num_rows === 0) {
+    echo json_encode(['success' => false, 'error' => 'Post not found']);
     exit;
 }
 
-if ($post['user_id'] != $_SESSION['user_id']) {
-    echo json_encode(["success" => false, "error" => "Unauthorized to edit this post"]);
-    $stmt->close();
-    $conn->close();
+$post_data = $result->fetch_assoc();
+if ($post_data['user_id'] != $user_id) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
 
-$media_url = null;
+$stmt->close();
 
-if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
-    $upload_dir = '../uploads/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
-    }
+// Sanitize content and handle whitespace-only input
+function sanitize_input($input, $allow_html = false) {
+    if ($allow_html) {
+        $sanitized = strip_tags($input, '<b><i><u><strong><em><br><p>');
+        // Remove HTML tags temporarily to check if content is only whitespace
+        $text_only = strip_tags($sanitized);
+        $trimmed = trim($text_only);
 
-    $file_extension = strtolower(pathinfo($_FILES['media']['name'], PATHINFO_EXTENSION));
-    $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'];
-    if (!in_array($file_extension, $allowed_types)) {
-        echo json_encode(["success" => false, "error" => "Invalid file type"]);
-        $stmt->close();
-        $conn->close();
-        exit;
-    }
-
-    if ($_FILES['media']['size'] > 10 * 1024 * 1024) {
-        echo json_encode(["success" => false, "error" => "File too large"]);
-        $stmt->close();
-        $conn->close();
-        exit;
-    }
-
-    $filename = uniqid() . '.' . $file_extension;
-    $upload_path = $upload_dir . $filename;
-
-    if (move_uploaded_file($_FILES['media']['tmp_name'], $upload_path)) {
-        $media_url = $upload_path;
-
-        if ($post['media_url'] && file_exists($post['media_url'])) {
-            unlink($post['media_url']);
+        // If after removing HTML tags and trimming, nothing remains, return empty string
+        if (empty($trimmed)) {
+            return '';
         }
+
+        return $sanitized;
     } else {
-        echo json_encode(["success" => false, "error" => "Failed to upload media"]);
-        $stmt->close();
-        $conn->close();
+        return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$content = sanitize_input($content, true);
+$media_url = $post_data['media_url']; // Keep existing media URL by default
+
+// Handle new media upload
+if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
+    $uploadDir = '../uploads/';
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $mediaName = basename($_FILES['media']['name']);
+    $mediaTmp = $_FILES['media']['tmp_name'];
+    $targetFile = $uploadDir . time() . '_' . $mediaName;
+
+    // Validate file type
+    $ext = strtolower(pathinfo($mediaName, PATHINFO_EXTENSION));
+    $imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $videoTypes = ['mp4', 'webm', 'mov', 'avi'];
+
+    if (!in_array($ext, array_merge($imageTypes, $videoTypes))) {
+        echo json_encode(['success' => false, 'error' => 'Invalid file type']);
+        exit;
+    }
+
+    // Validate file size (10MB limit)
+    if ($_FILES['media']['size'] > 10 * 1024 * 1024) {
+        echo json_encode(['success' => false, 'error' => 'File size too large. Maximum 10MB allowed.']);
+        exit;
+    }
+
+    if (move_uploaded_file($mediaTmp, $targetFile)) {
+        // Delete old media file if it exists
+        if ($media_url && file_exists($media_url)) {
+            unlink($media_url);
+        }
+        $media_url = $targetFile;
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Failed to upload media']);
         exit;
     }
 }
 
-if ($media_url) {
-    $stmt_update = $conn->prepare("UPDATE post SET content = ?, media_url = ?,
-        updated_at = NOW() WHERE post_id = ? AND user_id = ?");
-    $stmt_update->bind_param("ssii", $content, $media_url, $post_id, $_SESSION['user_id']);
-} else {
-    $stmt_update = $conn->prepare("UPDATE post SET content = ?,
-        updated_at = NOW() WHERE post_id = ? AND user_id = ?");
-    $stmt_update->bind_param("sii", $content, $post_id, $_SESSION['user_id']);
+// Check if content is empty or whitespace-only after sanitization
+$has_content = !empty($content);
+$has_media = !empty($media_url);
+
+// Check if post has content or media (reject whitespace-only posts)
+if (!$has_content && !$has_media) {
+    echo json_encode(['success' => false, 'error' => 'Post must contain either text or media']);
+    exit;
 }
 
-if ($stmt_update->execute()) {
-    echo json_encode(["success" => true, "message" => "Post updated successfully"]);
-} else {
-    echo json_encode(["success" => false, "error" => "Failed to update post"]);
+// If content is empty (whitespace-only), set it to null for database
+if (!$has_content) {
+    $content = null;
 }
 
-$stmt_update->close();
+// Update post
+$stmt = $conn->prepare("UPDATE post SET content = ?, media_url = ?, updated_at = CURRENT_TIMESTAMP WHERE post_id = ?");
+$stmt->bind_param("ssi", $content, $media_url, $post_id);
+
+if ($stmt->execute()) {
+    echo json_encode(['success' => true]);
+} else {
+    echo json_encode(['success' => false, 'error' => 'Failed to update post']);
+}
+
 $stmt->close();
 $conn->close();
 ?>

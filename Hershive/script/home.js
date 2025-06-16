@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
   loadSuggestedUsers();
   initializeMediaUpload();
-  syncPrivacyToModal()
+  syncPrivacyToModal();
 });
 
 function checkUserSession() {
@@ -205,7 +205,9 @@ function submitPost() {
 
   const hasImage = imageInput.files.length > 0;
   const hasVideo = videoInput.files.length > 0;
-  const hasText = content !== "" && content !== "<br>";
+
+  const textOnly = content.replace(/<[^>]*>/g, '').trim();
+  const hasText = textOnly !== "" && textOnly !== "&nbsp;";
 
   if (!hasText && !hasImage && !hasVideo) {
     alert("Please write something or upload media.");
@@ -213,10 +215,13 @@ function submitPost() {
   }
 
   const formData = new FormData();
-  formData.append("content", content);
+
+  if (hasText) {
+    formData.append("content", content);
+  }
+
   if (hasImage) formData.append("media", imageInput.files[0]);
   if (hasVideo) formData.append("media", videoInput.files[0]);
-
 
   fetch("../php/create-post.php", {
     method: "POST",
@@ -225,8 +230,17 @@ function submitPost() {
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
-        alert("Post created!");
         closePostModal();
+
+        editor.innerHTML = "";
+        imageInput.value = "";
+        videoInput.value = "";
+
+        const previewContainer = document.getElementById("preview_container");
+        if (previewContainer) {
+          previewContainer.innerHTML = "";
+        }
+
         loadPosts();
       } else {
         alert("Error: " + data.error);
@@ -236,6 +250,169 @@ function submitPost() {
       alert("Post failed.");
       console.error(err);
     });
+}
+
+function editPost(button) {
+  const post = button.closest('.sample-post');
+  const postId = post.dataset.postId;
+
+  const contentDiv = post.querySelector('.content');
+  const paragraph = contentDiv.querySelector('p');
+  const image = contentDiv.querySelector('img');
+  const video = contentDiv.querySelector('video');
+
+  if (contentDiv.querySelector('.edit-editor')) return;
+
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'edit-editor';
+  editorDiv.contentEditable = true;
+
+  if (paragraph) {
+    editorDiv.innerHTML = paragraph.innerHTML;
+  } else {
+    editorDiv.innerHTML = '';
+    editorDiv.placeholder = 'Add some text...';
+  }
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,video/*';
+  fileInput.className = 'edit-media-input';
+
+  const saveButton = document.createElement('button');
+  saveButton.innerText = 'Save';
+  saveButton.className = 'save-edit-button';
+
+  const cancelButton = document.createElement('button');
+  cancelButton.innerText = 'Cancel';
+  cancelButton.className = 'cancel-edit-button';
+
+  saveButton.onclick = () => {
+    const updatedContent = editorDiv.innerHTML.trim();
+
+    const textOnly = updatedContent.replace(/<[^>]*>/g, '').trim();
+    const hasContent = textOnly !== "" && textOnly !== "&nbsp;";
+
+    const hasExistingMedia = image || video;
+    const hasNewMedia = fileInput.files.length > 0;
+
+    if (!hasContent && !hasExistingMedia && !hasNewMedia) {
+      alert('Post must contain either text or media');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('post_id', postId);
+
+    if (hasContent) {
+      formData.append('content', updatedContent);
+    } else {
+      formData.append('content', '');
+    }
+
+    if (fileInput.files.length > 0) {
+      formData.append('media', fileInput.files[0]);
+    }
+
+    fetch('../php/edit_post.php', {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          if (paragraph) {
+            if (hasContent) {
+              paragraph.innerHTML = updatedContent;
+              paragraph.classList.remove('hidden');
+            } else {
+              paragraph.remove();
+            }
+          } else if (hasContent) {
+            const newParagraph = document.createElement('p');
+            newParagraph.innerHTML = updatedContent;
+            contentDiv.insertBefore(newParagraph, contentDiv.firstChild);
+          }
+
+          if (fileInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const mediaType = fileInput.files[0].type;
+
+              if (mediaType.startsWith('video')) {
+                if (video) {
+                  video.src = e.target.result;
+                } else {
+                  if (image) image.remove();
+                  const newVideo = document.createElement('video');
+                  newVideo.controls = true;
+                  newVideo.src = e.target.result;
+                  newVideo.className = 'preview-video';
+                  contentDiv.appendChild(newVideo);
+                }
+              } else if (mediaType.startsWith('image')) {
+                if (image) {
+                  image.src = e.target.result;
+                } else {
+                  // Remove existing video if switching to image
+                  if (video) video.remove();
+                  const newImg = document.createElement('img');
+                  newImg.src = e.target.result;
+                  newImg.alt = 'Post media';
+                  newImg.className = 'preview-image';
+                  contentDiv.appendChild(newImg);
+                }
+              }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+          }
+
+          // Clean up edit interface
+          editorDiv.remove();
+          fileInput.remove();
+          saveButton.remove();
+          cancelButton.remove();
+        } else {
+          alert(data.error || 'Failed to update post');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating post:', error);
+        alert('Error updating post');
+      });
+  };
+
+  cancelButton.onclick = () => {
+    // Clean up edit interface without saving
+    editorDiv.remove();
+    fileInput.remove();
+    saveButton.remove();
+    cancelButton.remove();
+
+    // Show original content
+    if (paragraph) {
+      paragraph.classList.remove('hidden');
+    }
+  };
+
+  // Hide original paragraph if it exists
+  if (paragraph) {
+    paragraph.classList.add('hidden');
+  }
+
+  // Insert edit interface
+  if (paragraph) {
+    contentDiv.insertBefore(editorDiv, paragraph);
+    contentDiv.insertBefore(fileInput, paragraph);
+    contentDiv.insertBefore(saveButton, paragraph);
+    contentDiv.insertBefore(cancelButton, paragraph);
+  } else {
+    // For media-only posts, insert at the beginning
+    contentDiv.insertBefore(editorDiv, contentDiv.firstChild);
+    contentDiv.insertBefore(fileInput, contentDiv.firstChild);
+    contentDiv.insertBefore(saveButton, contentDiv.firstChild);
+    contentDiv.insertBefore(cancelButton, contentDiv.firstChild);
+  }
 }
 
 // Updated toggleLike function to work with database
@@ -342,103 +519,6 @@ function cancelDropdown(button) {
   const parent = button.closest(".more-option");
   parent.classList.remove("active");
 }
-
-function editPost(button) {
-  const post = button.closest('.sample-post');
-  const postId = post.dataset.postId;
-
-  const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('p');
-  const image = contentDiv.querySelector('img');
-  const video = contentDiv.querySelector('video');
-
-  if (contentDiv.querySelector('.edit-editor')) return;
-
-  const editorDiv = document.createElement('div');
-  editorDiv.className = 'edit-editor';
-  editorDiv.contentEditable = true;
-  editorDiv.innerHTML = paragraph.innerHTML;
-
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*,video/*';
-  fileInput.className = 'edit-media-input';
-
-  const saveButton = document.createElement('button');
-  saveButton.innerText = 'Save';
-  saveButton.className = 'save-edit-button';
-
-  saveButton.onclick = () => {
-    const updatedContent = editorDiv.innerHTML.trim();
-
-    if (!updatedContent || updatedContent === '<br>') {
-      alert('Post content cannot be empty');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('post_id', postId);
-    formData.append('content', updatedContent);
-
-    if (fileInput.files.length > 0) {
-      formData.append('media', fileInput.files[0]);
-    }
-
-    fetch('../php/edit_post.php', {
-      method: 'POST',
-      body: formData
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-
-          paragraph.innerHTML = updatedContent;
-          paragraph.classList.remove('hidden');
-
-          if (fileInput.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              if (video) {
-                video.src = e.target.result;
-              } else if (image) {
-                image.src = e.target.result;
-              } else {
-                const mediaType = fileInput.files[0].type;
-                if (mediaType.startsWith('video')) {
-                  const newVideo = document.createElement('video');
-                  newVideo.controls = true;
-                  newVideo.src = e.target.result;
-                  contentDiv.appendChild(newVideo);
-                } else if (mediaType.startsWith('image')) {
-                  const newImg = document.createElement('img');
-                  newImg.src = e.target.result;
-                  newImg.alt = 'Post media';
-                  newImg.className = 'preview-image';
-                  contentDiv.appendChild(newImg);
-                }
-              }
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-          }
-
-          editorDiv.remove();
-          fileInput.remove();
-          saveButton.remove();
-        } else {
-          alert(data.error || 'Failed to update post');
-        }
-      })
-      .catch(error => {
-        console.error('Error updating post:', error);
-        alert('Error updating post');
-      });
-  };
-
-  paragraph.classList.add('hidden');
-  contentDiv.insertBefore(editorDiv, paragraph);
-  contentDiv.insertBefore(fileInput, paragraph);
-  contentDiv.insertBefore(saveButton, paragraph);
-};
 
 function deletePost(button) {
   const post = button.closest('.sample-post');
