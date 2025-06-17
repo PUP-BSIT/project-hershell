@@ -3,9 +3,11 @@ let allSearchedUsers = [];
 
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
+  loadPosts();
   loadSuggestedUsers();
   initializeMediaUpload();
   syncPrivacyToModal();
+  bindPrivacyEvents();
 });
 
 function checkUserSession() {
@@ -61,8 +63,6 @@ function loadPosts() {
     });
 }
 
-window.onload = loadPosts;
-
 // Display posts in the feed
 function displayPosts(posts) {
   const leftContent = document.querySelector(".left-content");
@@ -87,14 +87,24 @@ function createPostElement(post) {
 
   const profilePicUrl = post.sharer_profile_pic || "../assets/temporary_pfp.png";
 
+  // Select correct visibility icon
+  const visibilityIcon = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png",
+  }[post.visibility] || "../assets/public_icon.png";
+
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
         <img src="${profilePicUrl}" alt="user profile"
-            class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
+             class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
         <div class="post-info">
-          <span class="username">${post.sharer_username}</span>
-          <span class="timestamp">${post.formatted_time}</span>
+          <span class="username">${post.sharer_username || post.username}</span>
+          <span class="timestamp">
+            ${post.formatted_time}
+            <img src="${visibilityIcon}" class="visibility-icon" alt="${post.visibility}">
+          </span>
         </div>
       </div>
       ${isOwner ? `
@@ -106,7 +116,7 @@ function createPostElement(post) {
             <button onclick="cancelDropdown(this)">Cancel</button>
           </div>
         </div>
-        ` : ''}
+      ` : ''}
     </div>
 
     <div class="post-content">
@@ -116,27 +126,26 @@ function createPostElement(post) {
         ${isShared ? `
           <div class="shared-card">
             <p class="shared-username">Originally posted by
-              <strong>
-                ${post.original_post.username}
-              </strong>
+              <strong>${post.original_post.username}</strong>
             </p>
             <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ?
-              (post.original_post.media_type === 'video'
+            ${post.original_post.media_url ? (
+              post.original_post.media_type === "video"
                 ? `<video controls class="preview-video">
-                      <source src="${post.original_post.media_url}" type="video/mp4">
-                    </video>`
-                : `<img src="${post.original_post.media_url}"
-                    class="preview-image" alt="Shared Image">`)
-              : ""}
+                     <source src="${post.original_post.media_url}" type="video/mp4">
+                   </video>`
+                : `<img src="${post.original_post.media_url}" class="preview-image"
+                    alt="Shared Image">`
+            ) : ""}
           </div>
         ` : `
-          ${post.media_url ?
-            (post.media_type === 'video'
-              ? `<video controls class="preview-video"><source
-                  src="${post.media_url}" type="video/mp4"></video>`
-              : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`)
-            : ""}
+          ${post.media_url ? (
+            post.media_type === "video"
+              ? `<video controls class="preview-video">
+                   <source src="${post.media_url}" type="video/mp4">
+                 </video>`
+              : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`
+          ) : ""}
         `}
       </div>
 
@@ -160,9 +169,8 @@ function createPostElement(post) {
 
         <div class="comment-modal hidden">
           <div class="modal-content">
-            <span class="close-comment-modal"
-                onclick="closeCommentModal(this)">&times;</span>
-            <div class="comment-list" id="comment-list"></div>
+            <span class="close-comment-modal" onclick="closeCommentModal(this)">&times;</span>
+            <div class="comment-list"></div>
             <div class="comment-input">
               <input type="text" placeholder="Write a comment...">
               <button class="send-comment" onclick="submitComment(this)">Send</button>
@@ -171,8 +179,7 @@ function createPostElement(post) {
         </div>
 
         <div class="action-button">
-          <button class="share-btn"
-              onclick="toggleShareModal(this.closest('.sample-post'))">
+          <button class="share-btn" onclick="toggleShareModal(this.closest('.sample-post'))">
             <img src="../assets/share_icon.png" alt="Share">
           </button>
           <span class="share-count">${post.shares_count}</span>
@@ -216,12 +223,24 @@ function submitPost() {
 
   const formData = new FormData();
 
-  if (hasText) {
-    formData.append("content", content);
+  if (hasText) formData.append("content", content);
+  if (hasImage && hasVideo) {
+    alert("You can only upload one media at a time.");
+    return;
   }
 
-  if (hasImage) formData.append("media", imageInput.files[0]);
-  if (hasVideo) formData.append("media", videoInput.files[0]);
+  if (hasImage) {
+   formData.append("media", imageInput.files[0]);
+   formData.append("media_type", "image");
+  } else if (hasVideo) {
+    formData.append("media", videoInput.files[0]);
+    formData.append("media_type", "video");
+  }
+
+  // Get visibility from modal or fallback to mini post privacy
+  const privacy = document.getElementById("privacy_setting")?.value ||
+      document.getElementById("privacy").value;
+  formData.append("visibility", privacy);
 
   fetch("../php/create-post.php", {
     method: "POST",
@@ -231,15 +250,12 @@ function submitPost() {
     .then((data) => {
       if (data.success) {
         closePostModal();
-
         editor.innerHTML = "";
         imageInput.value = "";
         videoInput.value = "";
 
         const previewContainer = document.getElementById("preview_container");
-        if (previewContainer) {
-          previewContainer.innerHTML = "";
-        }
+        if (previewContainer) previewContainer.innerHTML = "";
 
         loadPosts();
       } else {
@@ -429,27 +445,42 @@ function toggleLike(button, postId) {
 }
 
 function syncPrivacyToModal() {
-  const miniPrivacy = document.getElementById("privacy");
-  const modalPrivacy = document.getElementById("privacy_setting");
+  const miniSelect = document.getElementById("privacy");
+  const modalSelect = document.getElementById("privacy_setting");
 
-  if (miniPrivacy && modalPrivacy) {
-    modalPrivacy.value = miniPrivacy.value;
+  if (miniSelect && modalSelect) {
+    modalSelect.value = miniSelect.value;
+    updatePrivacyIcons(miniSelect.value);
   }
 }
 
 function syncPrivacyToMini() {
-  const miniPrivacy = document.getElementById("privacy");
-  const modalPrivacy = document.getElementById("privacy_setting");
+  const miniSelect = document.getElementById("privacy");
+  const modalSelect = document.getElementById("privacy_setting");
 
-  if (miniPrivacy && modalPrivacy) {
-    miniPrivacy.value = modalPrivacy.value;
+  if (miniSelect && modalSelect) {
+    miniSelect.value = modalSelect.value;
+    updatePrivacyIcons(modalSelect.value);
   }
 }
 
-const modalPrivacy = document.getElementById("privacy_setting");
-if (modalPrivacy) {
-  modalPrivacy.onchange = syncPrivacyToMini;
-}
+// Initial event bindings
+ function bindPrivacyEvents() {
+    const miniSelect = document.getElementById("privacy");
+    const modalSelect = document.getElementById("privacy_setting");
+
+    if (miniSelect) {
+      miniSelect.addEventListener("change", () => {
+        syncPrivacyToModal();
+      });
+    }
+
+    if (modalSelect) {
+      modalSelect.addEventListener("change", () => {
+        syncPrivacyToMini();
+      });
+    }
+  }
 
 // Rest of your existing functions
 function openPostModal(event) {

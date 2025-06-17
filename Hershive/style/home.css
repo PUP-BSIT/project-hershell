@@ -22,6 +22,7 @@ body {
   border-bottom: 1px solid black;
   justify-content: space-between;
   margin-bottom: 10px;
+  z-index: 9999;
 }
 
 .logo {
@@ -68,7 +69,7 @@ body {
   gap: 10px;
 }
 
-.navigation-icons > button {
+.navigation-icons>button {
   background: none;
   border: none;
   cursor: pointer;
@@ -221,6 +222,8 @@ select {
 
 .timestamp {
   margin: 0 10px;
+  font-size: 12px;
+  color: #666;
 }
 
 .post-content div {
@@ -371,10 +374,6 @@ select {
 
 .modal-header h2 {
   font-size: 18px;
-}
-
-.username {
-  font-weight: bold;
 }
 
 .textarea {
@@ -713,7 +712,7 @@ select {
   border-radius: 6px;
   min-width: 150px;
   z-index: 1;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .menu-dropdown-item {
@@ -745,7 +744,7 @@ select {
   background-color: #f8f5ea;
   border: 1px solid #000000;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 15px;
   z-index: 1000;
 }
@@ -856,7 +855,7 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .comment-modal-header {
@@ -884,13 +883,13 @@ select {
 }
 
 .comment {
-display: flex;
-align-items: stretch;
-margin-bottom: 10px;
-position: relative;
-align-content: stretch;
-flex-wrap: wrap;
-flex-direction: column-reverse;
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 10px;
+  position: relative;
+  align-content: stretch;
+  flex-wrap: wrap;
+  flex-direction: column-reverse;
 }
 
 .comment-avatar {
@@ -1081,7 +1080,7 @@ flex-direction: column-reverse;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   z-index: 100;
 }
 
@@ -1127,6 +1126,7 @@ flex-direction: column-reverse;
   border-radius: 10px;
   margin-bottom: 6px;
 }
+
 .comment-modal {
   background-color: #f4ead5;
   border-radius: 12px;
@@ -1166,7 +1166,7 @@ flex-direction: column-reverse;
   background: white;
   border-radius: 12px;
   padding: 0.5rem 0.75rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   max-width: 200px;
 }
 
@@ -1242,7 +1242,8 @@ flex-direction: column-reverse;
   gap: 10px;
 }
 
-.cancel-btn, .logout-btn {
+.cancel-btn,
+.logout-btn {
   text-align: center;
   width: 50%;
   margin-bottom: 10px;
@@ -1310,7 +1311,7 @@ flex-direction: column-reverse;
   padding: 4px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .comment-context-menu button {
@@ -1537,4 +1538,22 @@ flex-direction: column-reverse;
 
 .icon-followers::before {
   content: "👁️";
+}
+
+/* Privacy icon styles */
+.timestamp-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visibility-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.visibility-icon:hover {
+  opacity: 1.5;
 }

@@ -1,9 +1,9 @@
 <?php
 // db.php
-$host = "srv544.hstgr.io";
-$db_user = "u954940298_hershell";
-$db_pass = "Hershell_db_p4ss";
-$dbname = "u954940298_hershive_db";
+$host = "localhost";
+$db_user = "root";
+$db_pass = "";
+$dbname = "hershell";
 
 $conn = new mysqli($host, $db_user, $db_pass, $dbname);
 
