@@ -2,9 +2,9 @@
   display: flex;
   padding: 40px;
   max-width: 900px;
-  margin: auto;
+  margin: 40px auto 0;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .sidebar {
@@ -13,9 +13,10 @@
   align-items: center;
   background-color: #ded7c7;
   padding: 30px 20px;
-  width: 250px;
-  height: inherit;
   border-radius: 10px;
+  width: 250px;
+  min-width: 250px;
+  flex-shrink: 0;
 }
 
 .sidebar h2 {
@@ -28,16 +29,34 @@
   width: 100%;
   margin-bottom: 10px;
   padding: 10px;
-  background: white;
-  border: 2px solid #000;
-  border-radius: 25px;
+  background: none;
+  border: none;
   cursor: pointer;
+  position: relative;
+}
+
+.sidebar button.active {
+  background: white;
+  border-radius: 25px;
+  border: 2px solid #000;
 }
 
 .sidebar .delete-btn {
-  background: #f8f5ea;
   color: #ff0000;
   margin-top: 40px;
+  border: none;
+}
+
+.sidebar .delete-btn.active {
+  background: #ff0000;
+  color: white;
+  border-radius: 25px;
+  border: 2px solid #ff0000;
+}
+
+.delete-btn:active {
+  border: 2px solid #000;
+  background-color: white;
 }
 
 button.inactive {
@@ -46,16 +65,113 @@ button.inactive {
   margin-left: 2px;
 }
 
-#personal_details, #password {
-  background-color: #ded7c7;
+.content-area {
   flex-grow: 1;
+  margin-left: 40px;
+  min-height: 500px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+#personal_details, #password, #delete_account {
+  background-color: #ded7c7;
+  width: 500px;
+  min-height: 400px;
   padding: 30px;
-  margin-left: 20px;
   border-radius: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+#password {
+  overflow-y: auto;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.popup-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.popup-buttons button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#popup_ok_btn, #popup_confirm_btn {
+  background: #000;
+  color: white;
+}
+
+#popup_cancel_btn {
+  background: #ccc;
+  color: #000;
+}
+
+.popup-buttons button:hover {
+  opacity: 0.8;
 }
 
 .form-group {
   margin-bottom: 15px;
+  position: relative;
+}
+
+.toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 20px;
+}
+
+.toggle-btn:hover {
+  color: #000;
 }
 
 label {
@@ -131,10 +247,8 @@ button:disabled {
 }
 
 #delete_account {
-  position: fixed;
   background-color: #ded7c7;
   padding: 30px;
-  margin-top: 20px;
   border-radius: 10px;
 }
 
@@ -145,7 +259,7 @@ button:disabled {
   gap: 10px;
 }
 
-.delete-btn, .cancel-btn, .logout-btn {
+.delete-btn, .cancel-btn{
   text-align: center;
   width: 50%;
   margin-bottom: 10px;
@@ -156,14 +270,35 @@ button:disabled {
   cursor: pointer;
 }
 
-.delete-btn {
-  background: black;
-  color: #ff0000;
+.button-holder {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
 }
 
-.logout-btn {
-  background: black;
+.cancel-btn {
+  background-color: #ccc;
+  color: #000;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background-color: #bbb;
+}
+
+.delete-btn {
+  background-color: #ff0000;
   color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 #logout {
@@ -175,4 +310,30 @@ button:disabled {
   padding: 10px 20px;
   border-radius: 10px;
   border: 1px solid black;
+}
+
+.cancel-btn, .logout-btn {
+  text-align: center;
+  width: 50%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: black;
+  color: white;
+  border: 2px solid black;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: white;
+  color: black;
+}
+
+#logout {
+  z-index: 1100;
+  display: none;
+}
+
+#logout:not([hidden]) {
+  display: block !important;
 }
