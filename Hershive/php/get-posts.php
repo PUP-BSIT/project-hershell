@@ -1,7 +1,6 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
 session_start();
 header("Content-Type: application/json");
 require_once 'db_connection.php';
@@ -12,14 +11,13 @@ if (!isset($_SESSION['username'])) {
 }
 
 $current_username = $_SESSION['username'];
-
 $stmt = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
 $stmt->bind_param("s", $current_username);
 $stmt->execute();
 $current_user_id = $stmt->get_result()->fetch_assoc()['user_id'];
 $stmt->close();
 
-// Fetch posts
+// Get posts
 $sql = "
 SELECT
     p.post_id,
@@ -50,6 +48,7 @@ LEFT JOIN user original_user ON original.user_id = original_user.user_id
 WHERE p.deleted = 0
 ORDER BY p.created_at DESC
 ";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $current_user_id);
 $stmt->execute();
@@ -75,7 +74,6 @@ while ($row = $result->fetch_assoc()) {
         $checkFollow->bind_param("ii", $current_user_id, $postUserId);
         $checkFollow->execute();
         $checkFollow->store_result();
-
         if ($checkFollow->num_rows > 0) {
             $shouldShow = true;
         }
@@ -84,7 +82,6 @@ while ($row = $result->fetch_assoc()) {
 
     if (!$shouldShow) continue;
 
-    // Format timestamp
     $row['formatted_time'] = date("M j \a\\t g:i A", strtotime($row['created_at']));
 
     // Detect media types
@@ -130,3 +127,4 @@ echo json_encode([
 
 $stmt->close();
 $conn->close();
+?>

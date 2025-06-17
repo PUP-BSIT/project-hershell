@@ -39,21 +39,14 @@ $stmt->close();
 
 // Sanitize content and handle whitespace-only input
 function sanitize_input($input, $allow_html = false) {
-    if ($allow_html) {
-        $sanitized = strip_tags($input, '<b><i><u><strong><em><br><p>');
-        // Remove HTML tags temporarily to check if content is only whitespace
-        $text_only = strip_tags($sanitized);
-        $trimmed = trim($text_only);
-
-        // If after removing HTML tags and trimming, nothing remains, return empty string
-        if (empty($trimmed)) {
-            return '';
-        }
-
-        return $sanitized;
-    } else {
-        return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
-    }
+  if ($allow_html) {
+      $sanitized = strip_tags($input, '<b><i><u><strong><em><br><p>');
+      $sanitized = preg_replace('/(<\w+\s*)style="[^"]*"/i', '$1', $sanitized);
+      $text_only = strip_tags($sanitized);
+      $trimmed = trim($text_only);
+      return empty($trimmed) ? '' : $sanitized;
+  }
+  return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
 $content = sanitize_input($content, true);

@@ -224,8 +224,18 @@ function submitPost() {
   const formData = new FormData();
 
   if (hasText) formData.append("content", content);
-  if (hasImage) formData.append("media", imageInput.files[0]);
-  if (hasVideo) formData.append("media", videoInput.files[0]);
+  if (hasImage && hasVideo) {
+    alert("You can only upload one media at a time.");
+    return;
+  }
+
+  if (hasImage) {
+   formData.append("media", imageInput.files[0]);
+   formData.append("media_type", "image");
+  } else if (hasVideo) {
+    formData.append("media", videoInput.files[0]);
+    formData.append("media_type", "video");
+  }
 
   // Get visibility from modal or fallback to mini post privacy
   const privacy = document.getElementById("privacy_setting")?.value ||
