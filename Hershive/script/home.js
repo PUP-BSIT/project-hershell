@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
   loadSuggestedUsers();
   initializeMediaUpload();
   syncPrivacyToModal();
+  bindPrivacyEvents();
 });
 
 function checkUserSession() {
@@ -445,27 +446,42 @@ function toggleLike(button, postId) {
 }
 
 function syncPrivacyToModal() {
-  const miniPrivacy = document.getElementById("privacy");
-  const modalPrivacy = document.getElementById("privacy_setting");
+  const miniSelect = document.getElementById("privacy");
+  const modalSelect = document.getElementById("privacy_setting");
 
-  if (miniPrivacy && modalPrivacy) {
-    modalPrivacy.value = miniPrivacy.value;
+  if (miniSelect && modalSelect) {
+    modalSelect.value = miniSelect.value;
+    updatePrivacyIcons(miniSelect.value);
   }
 }
 
 function syncPrivacyToMini() {
-  const miniPrivacy = document.getElementById("privacy");
-  const modalPrivacy = document.getElementById("privacy_setting");
+  const miniSelect = document.getElementById("privacy");
+  const modalSelect = document.getElementById("privacy_setting");
 
-  if (miniPrivacy && modalPrivacy) {
-    miniPrivacy.value = modalPrivacy.value;
+  if (miniSelect && modalSelect) {
+    miniSelect.value = modalSelect.value;
+    updatePrivacyIcons(modalSelect.value);
   }
 }
 
-const modalPrivacy = document.getElementById("privacy_setting");
-if (modalPrivacy) {
-  modalPrivacy.onchange = syncPrivacyToMini;
-}
+// Initial event bindings
+ function bindPrivacyEvents() {
+    const miniSelect = document.getElementById("privacy");
+    const modalSelect = document.getElementById("privacy_setting");
+
+    if (miniSelect) {
+      miniSelect.addEventListener("change", () => {
+        syncPrivacyToModal();
+      });
+    }
+
+    if (modalSelect) {
+      modalSelect.addEventListener("change", () => {
+        syncPrivacyToMini();
+      });
+    }
+  }
 
 // Rest of your existing functions
 function openPostModal(event) {
