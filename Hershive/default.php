@@ -4,7 +4,7 @@ session_start();
 // Check if user is already logged in
 if (isset($_SESSION['username'])) {
   // User is logged in, redirect to home page
-  header("Location: project-hershell/html/home.html");
+  header("Location: project-hershell/Hershive/html/home.html");
   exit;
 }
 ?>
@@ -16,16 +16,23 @@ if (isset($_SESSION['username'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hershive</title>
-  <link rel="stylesheet" href="style/homepage.css" />
+  <link rel="stylesheet" href="project-hershell/Hershive/style/homepage.css" />
 </head>
 
 <body>
   <div class="container">
     <header>
-      <img src="assets/logo.png" class="logo" />
+      <img src="project-hershell/Hershive/assets/logo.png" class="logo" />
       <div class="auth-buttons">
-        <a href="./html/login.html" class="login-button">Log In</a>
-        <a href="./php/register.php" class="register-button">Register</a>
+        <a href="project-hershell/Hershive/html/login.html"
+          class="login-button">
+          Log In
+        </a>
+
+        <a href="project-hershell/Hershive/php/register.php"
+          class="register-button">
+          Register
+        </a>
       </div>
     </header>
 
@@ -44,7 +51,7 @@ if (isset($_SESSION['username'])) {
       </div>
 
       <div class="right-content">
-        <img src="./assets/homepage_image.png" />
+        <img src="project-hershell/Hershive/assets/homepage_image.png" />
       </div>
     </main>
 
