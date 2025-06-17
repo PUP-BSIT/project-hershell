@@ -3,6 +3,7 @@ let allSearchedUsers = [];
 
 document.addEventListener("DOMContentLoaded", function() {
   checkUserSession();
+  loadPosts();
   loadSuggestedUsers();
   initializeMediaUpload();
   syncPrivacyToModal();
@@ -61,8 +62,6 @@ function loadPosts() {
       console.error('Error loading posts:', error);
     });
 }
-
-window.onload = loadPosts;
 
 // Display posts in the feed
 function displayPosts(posts) {
