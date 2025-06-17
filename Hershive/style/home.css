@@ -1235,10 +1235,6 @@ flex-direction: column-reverse;
   vertical-align: middle;
 }
 
-.hidden {
-  display: none !important;
-}
-
 .button-holder {
   display: flex;
   justify-content: space-between;
@@ -1541,9 +1537,4 @@ flex-direction: column-reverse;
 
 .icon-followers::before {
   content: "👁️";
-}
-
-/* Hidden state */
-.hidden {
-  display: none !important;
 }
