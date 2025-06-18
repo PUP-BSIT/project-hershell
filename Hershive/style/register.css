@@ -5,9 +5,12 @@
 }
 
 body {
-  font-family: "Segoe UI", sans-serif;
-  background-color: #f9f6f1;
-  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f5ea;
+  color: #333;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,55 +18,73 @@ body {
 
 .wrapper {
   display: flex;
-  width: 900px;
-  height: 500px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 5%;
+  width: 100%;
 }
 
 .left {
-  width: 50%;
-  padding: 40px;
-  background-color: #f9f6f1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  flex: 1;
   text-align: center;
 }
 
 .left h1 {
-  font-size: 32px;
+  font-size: 50px;
   margin-bottom: 10px;
+  font-weight: bold;
 }
 
 .left p {
-  font-size: 16px;
+  font-size: 18px;
   color: #555;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .left img {
-  max-width: 100%;
-  height: auto;
+  width: 280px;
 }
 
 .right {
-  width: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  flex: 1;
+  max-width: 400px;
+  background-color: #fcfaf2;
+}
+
+.right p {
+  margin: 5px 0 20px;
+  font-size: 14px;
+  color: #888;
 }
 
 .form-box {
-  background-color: #fff;
+  max-width: 400px;
+  background-color: #fcfaf2;
+  padding: 40px 30px;
   border: 1px solid #ccc;
-  border-radius: 15px;
-  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 320px;
+}
+
+.message {
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.message.error {
+  background-color: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.message.success {
+  background-color: #efe;
+  color: #060;
+  border: 1px solid #cfc;
 }
 
 form {
@@ -75,24 +96,62 @@ input[type="email"],
 input[type="text"],
 input[type="password"] {
   padding: 10px;
-  margin: 10px 0;
-  border-radius: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
   border: 1px solid #ccc;
+  font-size: 14px;
   outline: none;
 }
 
-button {
-  padding: 12px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 15px;
-  background-color: #000;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+input[type="email"]:focus,
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: #0066cc;
 }
 
-button:hover {
+.password-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.password-wrapper input {
+  margin-bottom: 0;
+  padding-right: 100px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: #0066cc;
+  padding: 0;
+  margin: 0;
+}
+
+.toggle-password:hover {
+  color: #004499;
+  text-decoration: underline;
+}
+
+button[type="submit"] {
+  background-color: black;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+button[type="submit"]:hover {
   background-color: #333;
 }
 
@@ -100,6 +159,7 @@ button:hover {
   margin-top: 15px;
   font-size: 14px;
   text-align: center;
+  color: #333;
 }
 
 .login-link a {
@@ -109,24 +169,4 @@ button:hover {
 
 .login-link a:hover {
   text-decoration: underline;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 0px;
-  top: 30%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 0.9em;
-  cursor: pointer;
-  color: #264872;
-}
-
-.toggle-password:hover {
-  color: #fff;
-}
-
-.password-wrapper {
-  position: relative;
 }
