@@ -26,7 +26,7 @@ if ($row = $result->fetch_assoc()) {
             $auth_path = '/php/oauth_authorize.php';
             break;
         case 'devhive':
-            $auth_path = '/public_html/oauth_login/index.html';
+            $auth_path = '/api/oauth/oauth_authorize.php';
             break;
         default:
             die('Unsupported provider.');
