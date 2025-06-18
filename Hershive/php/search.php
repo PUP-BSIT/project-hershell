@@ -1,11 +1,9 @@
 <?php
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-require_once 'db_connection.php';
 session_start();
-header('Content-Type: application/json');
+header("Content-Type: application/json");
+require_once 'db_connection.php';
 
 try {
     if (!isset($_SESSION['username']) || !isset($_SESSION['user_id'])) {
@@ -14,40 +12,20 @@ try {
 
     $user_id = (int)$_SESSION['user_id'];
     $q = trim($_GET['q'] ?? '');
-    if ($q === '') {
-        throw new Exception("Empty query");
-    }
+    if ($q === '') throw new Exception("Empty query");
 
     $escapedQ = $conn->real_escape_string($q);
 
-    $exactMatch = $conn->query("SELECT * FROM user WHERE username = '$escapedQ'");
+    // Exact match - exclude deleted accounts
+    $exactMatch = $conn->query("SELECT * FROM user WHERE username = '$escapedQ' AND deleted_account = 0");
     if ($exactMatch && $exactMatch->num_rows === 1) {
         $user = $exactMatch->fetch_assoc();
 
-        $postsRes = $conn->query("SELECT COUNT(*) AS total FROM post
-            WHERE user_id = {$user['user_id']} AND deleted = 0");
-        $followerRes = $conn->query("SELECT COUNT(*) AS total FROM follow
-            WHERE following_id = {$user['user_id']}");
-        $followingRes = $conn->query("SELECT COUNT(*) AS total FROM follow
-            WHERE follower_id = {$user['user_id']}");
+        $user['posts_count'] = getCount($conn, "SELECT COUNT(*) FROM post WHERE user_id = {$user['user_id']} AND deleted = 0");
+        $user['followers_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE following_id = {$user['user_id']}");
+        $user['following_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE follower_id = {$user['user_id']}");
 
-        $user['posts_count'] = $postsRes->fetch_assoc()['total'] ?? 0;
-        $user['followers_count'] = $followerRes->fetch_assoc()['total'] ?? 0;
-        $user['following_count'] = $followingRes->fetch_assoc()['total'] ?? 0;
-
-        $posts = [];
-        $postQuery = $conn->query("
-            SELECT post.*, user.username
-            FROM post
-            JOIN user ON post.user_id = user.user_id
-            WHERE post.user_id = {$user['user_id']} AND deleted = 0
-            ORDER BY post.created_at DESC
-        ");
-        while ($post = $postQuery->fetch_assoc()) {
-            $post['sharer_username'] = $post['username'];
-            $post['shared'] = false;
-            $posts[] = enrichPost($post, $conn, $user_id);
-        }
+        $posts = fetchPostsByUserId($user['user_id'], $user_id, $conn);
 
         echo json_encode([
             "success" => true,
@@ -59,125 +37,213 @@ try {
     }
 
     $likeQ = "%" . $escapedQ . "%";
+
+    // User matches - exclude deleted
     $userMatches = $conn->query("
         SELECT * FROM user
-        WHERE username LIKE '$likeQ' OR first_name LIKE '$likeQ'
-            OR last_name LIKE '$likeQ'
+        WHERE deleted_account = 0 AND (
+            username LIKE '$likeQ' OR first_name LIKE '$likeQ' OR last_name LIKE '$likeQ'
+        )
         ORDER BY first_name
         LIMIT 5
     ");
 
+    $users = [];
     if ($userMatches && $userMatches->num_rows > 0) {
-        $users = [];
-
         while ($user = $userMatches->fetch_assoc()) {
-            $postsRes = $conn->query("SELECT COUNT(*) AS total FROM post
-                WHERE user_id = {$user['user_id']} AND deleted = 0");
-            $followerRes = $conn->query("SELECT COUNT(*) AS total FROM follow
-                WHERE following_id = {$user['user_id']}");
-            $followingRes = $conn->query("SELECT COUNT(*) AS total FROM follow
-                WHERE follower_id = {$user['user_id']}");
-
-            $user['posts_count'] = $postsRes->fetch_assoc()['total'] ?? 0;
-            $user['followers_count'] = $followerRes->fetch_assoc()['total'] ?? 0;
-            $user['following_count'] = $followingRes->fetch_assoc()['total'] ?? 0;
-
+            $user['posts_count'] = getCount($conn, "SELECT COUNT(*) FROM post WHERE user_id = {$user['user_id']} AND deleted = 0");
+            $user['followers_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE following_id = {$user['user_id']}");
+            $user['following_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE follower_id = {$user['user_id']}");
             $users[] = $user;
         }
     }
 
-    $postMatches = $conn->query("
-        SELECT post.*, user.username
-        FROM post
-        JOIN user ON post.user_id = user.user_id
-        WHERE post.content LIKE '$likeQ' AND post.deleted = 0
-        ORDER BY post.created_at DESC
+    // Post matches - exclude deleted posts and deleted users
+    $posts = [];
+    $searchPostQuery = $conn->prepare("
+        SELECT
+            p.post_id,
+            p.user_id AS sharer_id,
+            sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
+            p.content,
+            p.media_url,
+            p.created_at,
+            p.visibility,
+            p.is_shared,
+            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
+            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
+            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
+            CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
+
+            original.post_id AS original_post_id,
+            original_user.username AS original_author,
+            original.content AS original_content,
+            original.media_url AS original_media_url
+
+        FROM post p
+        JOIN user sharer ON p.user_id = sharer.user_id AND sharer.deleted_account = 0
+        LEFT JOIN heart_react hr ON p.post_id = hr.post_id AND hr.user_id = ?
+        LEFT JOIN share s ON s.post_wrapper_id = p.post_id
+        LEFT JOIN post original ON s.post_id = original.post_id
+        LEFT JOIN user original_user ON original.user_id = original_user.user_id
+        WHERE p.content LIKE ? AND p.deleted = 0
+        ORDER BY p.created_at DESC
         LIMIT 10
     ");
+    $searchPostQuery->bind_param("is", $user_id, $likeQ);
+    $searchPostQuery->execute();
+    $result = $searchPostQuery->get_result();
 
-    $posts = [];
-    while ($post = $postMatches->fetch_assoc()) {
-        $post['sharer_username'] = $post['username'];
-        $post['shared'] = false;
-        $posts[] = enrichPost($post, $conn, $user_id);
+    while ($row = $result->fetch_assoc()) {
+        $postUserId = $row['sharer_id'];
+        $visibility = $row['visibility'];
+        $shouldShow = false;
+
+        if ($visibility === 'public' || $postUserId == $user_id) {
+            $shouldShow = true;
+        } elseif ($visibility === 'followers') {
+            $follow = $conn->prepare("SELECT 1 FROM follow WHERE follower_id = ? AND following_id = ? LIMIT 1");
+            $follow->bind_param("ii", $user_id, $postUserId);
+            $follow->execute();
+            $follow->store_result();
+            $shouldShow = $follow->num_rows > 0;
+            $follow->close();
+        }
+
+        if (!$shouldShow) continue;
+
+        $row['formatted_time'] = date("M j \a\\t g:i A", strtotime($row['created_at']));
+
+        // Media type detection
+        if (!empty($row['original_media_url'])) {
+            $ext = strtolower(pathinfo($row['original_media_url'], PATHINFO_EXTENSION));
+            $row['original_media_type'] = in_array($ext, ['mp4','webm','mov']) ? 'video' : 'image';
+        }
+
+        if (!empty($row['media_url'])) {
+            $ext = strtolower(pathinfo($row['media_url'], PATHINFO_EXTENSION));
+            $row['media_type'] = in_array($ext, ['mp4','webm','mov']) ? 'video' : 'image';
+        }
+
+        // Shared post formatting
+        if ($row['is_shared']) {
+            $row['shared'] = true;
+            $row['original_post'] = [
+                'post_id' => $row['original_post_id'],
+                'username' => $row['original_author'],
+                'content' => $row['original_content'],
+                'media_url' => $row['original_media_url'],
+                'media_type' => $row['original_media_type'] ?? null
+            ];
+        } else {
+            $row['shared'] = false;
+        }
+
+        unset(
+            $row['original_post_id'],
+            $row['original_author'],
+            $row['original_content'],
+            $row['original_media_url'],
+            $row['original_media_type']
+        );
+
+        $posts[] = $row;
     }
 
     echo json_encode([
         "success" => true,
         "type" => "user_post_mix",
-        "users" => $users ?? [],
+        "users" => $users,
         "posts" => $posts
     ]);
 
 } catch (Throwable $e) {
-    echo json_encode([
-        "success" => false,
-        "error" => "Server error: " . $e->getMessage()
-    ]);
-    exit;
+    echo json_encode(["success" => false, "error" => "Server error: " . $e->getMessage()]);
 }
 
-function enrichPost($post, $conn, $current_user_id) {
-    $post_id = (int)$post['post_id'];
+// === helper functions ===
+function getCount($conn, $sql) {
+    $res = $conn->query($sql);
+    return $res ? ((int)($res->fetch_assoc()['total'] ?? 0)) : 0;
+}
 
-    // Reaction counts
-    $likes = $conn->query("SELECT COUNT(*) AS total FROM heart_react
-        WHERE post_id = $post_id");
-    $comments = $conn->query("SELECT COUNT(*) AS total FROM comment
-        WHERE post_id = $post_id");
-    $shares = $conn->query("SELECT COUNT(*) AS total FROM share
-        WHERE post_id = $post_id");
-    $liked = $conn->query("SELECT 1 FROM heart_react WHERE post_id = $post_id
-        AND user_id = $current_user_id");
+function fetchPostsByUserId($target_user_id, $viewer_user_id, $conn) {
+    $posts = [];
 
-    $post['likes_count'] = $likes->fetch_assoc()['total'] ?? 0;
-    $post['comments_count'] = $comments->fetch_assoc()['total'] ?? 0;
-    $post['shares_count'] = $shares->fetch_assoc()['total'] ?? 0;
-    $post['user_liked'] = ($liked && $liked->num_rows > 0);
+    $sql = "
+        SELECT
+            p.post_id,
+            p.user_id AS sharer_id,
+            sharer.username AS sharer_username,
+            sharer.profile_picture_url AS sharer_profile_pic,
+            p.content,
+            p.media_url,
+            p.created_at,
+            p.visibility,
+            p.is_shared,
+            (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
+            (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
+            (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
+            CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
 
-    $post['formatted_time'] = date("M j \\a\\t g:iA",
-        strtotime($post['created_at'] ?? $post['shared_time']
-        ?? date('Y-m-d H:i:s')));
+            original.post_id AS original_post_id,
+            original_user.username AS original_author,
+            original.content AS original_content,
+            original.media_url AS original_media_url
 
-    $shareQuery = $conn->query("
-        SELECT s.timestamp AS shared_time, u.username AS sharer_username
-        FROM share s
-        JOIN user u ON s.user_id = u.user_id
-        WHERE s.post_id = $post_id
-        ORDER BY s.timestamp DESC
-        LIMIT 1
-    ");
+        FROM post p
+        JOIN user sharer ON p.user_id = sharer.user_id AND sharer.deleted_account = 0
+        LEFT JOIN heart_react hr ON p.post_id = hr.post_id AND hr.user_id = ?
+        LEFT JOIN share s ON s.post_wrapper_id = p.post_id
+        LEFT JOIN post original ON s.post_id = original.post_id
+        LEFT JOIN user original_user ON original.user_id = original_user.user_id
+        WHERE p.user_id = ? AND p.deleted = 0
+        ORDER BY p.created_at DESC
+    ";
 
-    if ($shareQuery && $shareQuery->num_rows > 0) {
-        $shareInfo = $shareQuery->fetch_assoc();
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $viewer_user_id, $target_user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
 
-        $post['shared'] = true;
-        $post['shared_time'] = $shareInfo['shared_time'];
-        $post['sharer_username'] = $shareInfo['sharer_username'];
-        $post['formatted_time'] = date("M j \\a\\t g:iA",
-            strtotime($shareInfo['shared_time']));
+    while ($row = $res->fetch_assoc()) {
+        $row['formatted_time'] = date("M j \a\\t g:i A", strtotime($row['created_at']));
 
-        $post['original_post'] = [
-            'username' => $post['username'],
-            'content' => $post['content'],
-            'media_url' => $post['media_url'],
-            'media_type' => $post['media_url'] ?
-                (strpos($post['media_url'], '.mp4') !== false ?
-                'video' : 'image') : null
-        ];
+        if (!empty($row['original_media_url'])) {
+            $ext = strtolower(pathinfo($row['original_media_url'], PATHINFO_EXTENSION));
+            $row['original_media_type'] = in_array($ext, ['mp4','webm','mov']) ? 'video' : 'image';
+        }
 
-        $post['content'] = null;
-        $post['media_url'] = null;
-        $post['media_type'] = null;
-    } else {
-        $post['shared'] = false;
-        $post['sharer_username'] = $post['username'];
-        $post['original_post'] = null;
-        $post['media_type'] = $post['media_url'] ?
-            (strpos($post['media_url'], '.mp4') !== false ?
-            'video' : 'image') : null;
+        if (!empty($row['media_url'])) {
+            $ext = strtolower(pathinfo($row['media_url'], PATHINFO_EXTENSION));
+            $row['media_type'] = in_array($ext, ['mp4','webm','mov']) ? 'video' : 'image';
+        }
+
+        if ($row['is_shared']) {
+            $row['shared'] = true;
+            $row['original_post'] = [
+                'post_id' => $row['original_post_id'],
+                'username' => $row['original_author'],
+                'content' => $row['original_content'],
+                'media_url' => $row['original_media_url'],
+                'media_type' => $row['original_media_type'] ?? null
+            ];
+        } else {
+            $row['shared'] = false;
+        }
+
+        unset(
+            $row['original_post_id'],
+            $row['original_author'],
+            $row['original_content'],
+            $row['original_media_url'],
+            $row['original_media_type']
+        );
+
+        $posts[] = $row;
     }
 
-    return $post;
+    return $posts;
 }
 ?>
