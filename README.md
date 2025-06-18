@@ -1,6 +1,6 @@
 <div align="center">
 
-# Hershive
+# 🐚 Hershive
 
 **Hershive** is a social media platform where people from all backgrounds can connect, share their ideas and stories, and support each other in a creative and welcoming space.
 </div>
@@ -13,10 +13,20 @@
 
 ---
 
-### :computer: Tech Stack 
+### 👤 Sample User
 
-| Frontend || Backend || Database |
-| :---: | :---: |:---: | :---: | :---: |
-| HTML | |PHP | | MySQL |
-| CSS | |JavaScript|
-| JavaScript |
+| Username           | Password     |
+|--------------------|--------------|
+| `hershell_testuser` | `Testing123` |
+
+Use this test account to explore the platform's features and UI.
+
+---
+
+### 🛠️ Tech Stack
+
+| Frontend        | Backend      | Database |
+|-----------------|--------------|----------|
+| HTML            | PHP          | MySQL    |
+| CSS             | JavaScript   |          |
+| JavaScript      |              |          |
