@@ -492,3 +492,13 @@ function copyLink(button) {
     .then(() => alert("Link copied!"))
     .catch(() => alert("Copy failed"));
 }
+
+function hideLogout() {
+  const logoutSection = document.getElementById("logout");
+  if (logoutSection) logoutSection.hidden = true;
+}
+
+function toggleLogout() {
+  const logoutSection = document.getElementById("logout");
+  if (logoutSection) logoutSection.hidden = false;
+}
