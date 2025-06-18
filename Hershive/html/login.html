@@ -13,9 +13,9 @@
         <h1>Log in</h1>
         <p>Connect, Share, Explore.</p>
         <img
-          src="../assets/Login_image.png"
-          alt="Login Design Image"
-          class="login-image"/>
+            src="../assets/Login_image.png"
+            alt="Login Design Image"
+            class="login-image"/>
       </div>
 
       <div class="right-section">
@@ -27,29 +27,32 @@
         <form id="login-form" onsubmit="return validateForm();">
           <label>Username</label>
           <input type="text" id="username" placeholder="username" required/>
-
+        
           <label>Password</label>
           <input
-            type="password"
-            id="password"
-            placeholder="password"
-            required/>
-
-          <a href="../html/forgot_password.html" class="forgot-link">forgot password?</a>
+              type="password"
+              id="password"
+              placeholder="password"
+              required/>
+        
+          <a href="../html/forgot_password.html" class="forgot-link">
+            forgot password?
+          </a>
           <button type="submit" class="login-btn">Log in</button>
-
+        
           <p class="or-text">or Log in with</p>
-            <div class="social-icons">
-              <a href="../php/oauth_login.php?provider=devhive">
-                <img src="../assets/devhive_logo.jpg" alt="Devhive">
-              </a>
-              <a href="/php/oauth_login.php?provider=heybleepi">
-                <img src="../assets/heybleepi_logo.png" alt="HeyBleepi">
-              </a>
-            </div>
-
-          <p>Don't have an account? <a href="../php/register.php">
-                Register here</a></p>
+          <div class="social-icons">
+            <a href="../php/oauth_login.php?provider=devhive">
+              <img src="../assets/devhive_logo.jpg" alt="Devhive">
+            </a>
+            <a href="/php/oauth_login.php?provider=heybleepi">
+              <img src="../assets/heybleepi_logo.png" alt="HeyBleepi">
+            </a>
+          </div>
+        
+          <p>Don't have an account?
+            <a href="../php/register.php">Register here</a>
+          </p>
         </form>
       </div>
     </div>
