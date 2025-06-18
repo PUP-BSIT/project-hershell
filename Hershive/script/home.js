@@ -444,6 +444,22 @@ function toggleLike(button, postId) {
   });
 }
 
+function updatePrivacyIcons(value) {
+  const iconMap = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png"
+  };
+
+  const selectedIcon = iconMap[value];
+
+  const modalIcon = document.getElementById("modal_privacy_icon");
+  const miniIcon = document.getElementById("mini_privacy_icon");
+
+  if (modalIcon) modalIcon.src = selectedIcon;
+  if (miniIcon) miniIcon.src = selectedIcon;
+}
+
 function syncPrivacyToModal() {
   const miniSelect = document.getElementById("privacy");
   const modalSelect = document.getElementById("privacy_setting");
