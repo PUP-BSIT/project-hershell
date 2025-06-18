@@ -20,8 +20,12 @@ function loadSuggestedUsers(limit = 100, page = 1) {
       users.forEach((user) => {
         const div = document.createElement("div");
         div.className = "suggested-user";
-        const fullName = `${user.first_name ?? ""} ${user.middle_name ?? ""} ${user.last_name ?? ""}`.trim();
-        const profileImg = user.profile_picture_url ? user.profile_picture_url : "../assets/temporary_pfp.png";
+        const fullName = `${user.first_name ?? ""} 
+                          ${user.middle_name ?? ""} 
+                          ${user.last_name ?? ""}`.trim();
+        const profileImg = user.profile_picture_url 
+                        ? user.profile_picture_url 
+                        : "../assets/temporary_pfp.png";
 
         div.innerHTML = `
           <img src="${profileImg}" alt="${user.username}">
