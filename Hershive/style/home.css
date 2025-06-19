@@ -1531,7 +1531,6 @@ select {
   margin-top: 20px;
 }
 
-/* Icons */
 .icon-people::before {
   content: "👥";
 }
@@ -1540,7 +1539,6 @@ select {
   content: "👁️";
 }
 
-/* Privacy icon styles */
 .timestamp-container {
   display: flex;
   align-items: center;
@@ -1556,4 +1554,36 @@ select {
 
 .visibility-icon:hover {
   opacity: 1.5;
+}
+
+.username-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-follow-btn {
+  background: none;
+  border: none;
+  color: #1da1f2;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.post-follow-btn:hover {
+  color: #0d8bd9;
+  text-decoration: underline;
+}
+
+.post-follow-btn.following {
+  color: #657786;
+}
+
+.post-follow-btn.following:hover {
+  color: #dc3545;
 }

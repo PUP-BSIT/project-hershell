@@ -100,7 +100,15 @@ function createPostElement(post) {
         <img src="${profilePicUrl}" alt="user profile"
              class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
         <div class="post-info">
-          <span class="username">${post.sharer_username || post.username}</span>
+          <div class="username-container">
+            <span class="username">${post.sharer_username || post.username}</span>
+            ${!isOwner ? `
+              <button class="post-follow-btn" onclick="togglePostFollow(this,
+                  '${post.sharer_username || post.username}')">
+                Follow
+              </button>
+            ` : ''}
+          </div>
           <span class="timestamp">
             ${post.formatted_time}
             <img src="${visibilityIcon}" class="visibility-icon" alt="${post.visibility}">
@@ -201,6 +209,20 @@ function createPostElement(post) {
   `;
 
   return postDiv;
+}
+
+function togglePostFollow(button, username) {
+  const isFollowing = button.classList.contains("following");
+
+  if (isFollowing) {
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  } else {
+    button.textContent = "Following";
+    button.classList.add("following");
+  }
+
+  console.log(`${isFollowing ? 'Unfollowed' : 'Followed'} ${username}`);
 }
 
 function submitPost() {
