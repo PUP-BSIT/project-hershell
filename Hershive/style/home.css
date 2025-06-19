@@ -1550,22 +1550,17 @@ select {
   height: 16px;
   opacity: 0.7;
   transition: opacity 0.2s ease;
+  transform: translateY(3px);
 }
 
 .visibility-icon:hover {
   opacity: 1.5;
 }
 
-.username-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .post-follow-btn {
   background: none;
   border: none;
-  color: #1da1f2;
+  color: #007bff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -1576,8 +1571,7 @@ select {
 }
 
 .post-follow-btn:hover {
-  color: #0d8bd9;
-  text-decoration: underline;
+  color: #0e496e;
 }
 
 .post-follow-btn.following {
