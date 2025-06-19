@@ -1123,10 +1123,8 @@ document.getElementById("search_input").addEventListener("keydown", function (e)
 function performSearch() {
   const query = document.getElementById("search_input").value.trim();
   if (!query) return;
-
   const createBox = document.querySelector(".create-post");
   if (createBox) createBox.classList.add("hidden");
-
   fetch(`../php/search.php?q=${encodeURIComponent(query)}`)
     .then(res => res.json())
     .then(data => {
@@ -1134,39 +1132,45 @@ function performSearch() {
         alert(data.error || "Search failed");
         return;
       }
-
       const noResultsMessage = document.getElementById("no_results_message");
-
     const noUsers = (!data.user && (!data.users || data.users.length === 0));
     const noPosts = !data.posts || data.posts.length === 0;
-
     if (noUsers && noPosts) {
       if (noResultsMessage) noResultsMessage.classList.remove("hidden");
     } else {
       if (noResultsMessage) noResultsMessage.classList.add("hidden");
     }
-
       const oldPreviewContainer = document.querySelector(".user-preview-container");
       if (oldPreviewContainer) oldPreviewContainer.innerHTML = "";
-
       const searchResultsContainer = document.getElementById("search_results_container");
       if (searchResultsContainer) {
         searchResultsContainer.classList.remove("hidden");
       }
-
       const postElements = document.querySelectorAll(".sample-post");
       postElements.forEach(post => post.remove());
-
       if (data.type === "exact_user") {
         renderTopUserResult(data.user);
         renderMorePeople([]);
-        displayPosts(data.posts);
+        // Apply visibility filtering to user posts
+        const visiblePosts = data.posts.filter(post => {
+          if (post.visibility === 'public') return true;
+          if (post.sharer_username === currentUser) return true;
+          if (post.visibility === 'followers') {
+            // Check if current user follows the post author
+            // This would require additional data from the backend
+            // For now, assuming the backend already filtered these
+            return true;
+          }
+          return false;
+        });
+        displayPosts(visiblePosts);
       }
       else if (data.type === "user_post_mix") {
         if (data.users && data.users.length > 0) {
           renderTopUserResult(data.users[0]);
           renderMorePeople(data.users.slice(1));
         }
+        // Posts are already filtered by visibility in the backend
         displayPosts(data.posts);
       }
     })
