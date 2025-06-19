@@ -273,9 +273,12 @@ function editPost(button) {
   const postId = post.dataset.postId;
 
   const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('p');
-  const image = contentDiv.querySelector('img');
-  const video = contentDiv.querySelector('video');
+
+  // For shared posts, only edit the sharer's content (the <p> tag before the shared-card)
+  const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
+  const sharedCard = contentDiv.querySelector('.shared-card');
+  const image = contentDiv.querySelector('img:not(.shared-card img)');
+  const video = contentDiv.querySelector('video:not(.shared-card video)');
 
   if (contentDiv.querySelector('.edit-editor')) return;
 
@@ -283,9 +286,15 @@ function editPost(button) {
   editorDiv.className = 'edit-editor';
   editorDiv.contentEditable = true;
 
-  if (paragraph) {
+  // Only populate with the sharer's content, not the shared content
+  if (paragraph && !sharedCard) {
+    // Regular post - edit the paragraph content
+    editorDiv.innerHTML = paragraph.innerHTML;
+  } else if (paragraph && sharedCard) {
+    // Shared post - only edit the sharer's added text (before shared-card)
     editorDiv.innerHTML = paragraph.innerHTML;
   } else {
+    // No content to edit
     editorDiv.innerHTML = '';
     editorDiv.placeholder = 'Add some text...';
   }
@@ -305,10 +314,13 @@ function editPost(button) {
     const textOnly = updatedContent.replace(/<[^>]*>/g, '').trim();
     const hasContent = textOnly !== "" && textOnly !== "&nbsp;";
 
+    // For shared posts, we still need media/content validation but don't count shared content
     const hasExistingMedia = image || video;
     const hasNewMedia = fileInput.files.length > 0;
+    const hasSharedContent = !!sharedCard;
 
-    if (!hasContent && !hasExistingMedia && !hasNewMedia) {
+    // If it's a shared post, it's valid even without new content since it has shared content
+    if (!hasContent && !hasExistingMedia && !hasNewMedia && !hasSharedContent) {
       alert('Post must contain either text or media');
       return;
     }
@@ -333,19 +345,36 @@ function editPost(button) {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          if (paragraph) {
+          // Update only the sharer's content, preserve shared content
+          if (paragraph && !sharedCard) {
+            // Regular post
             if (hasContent) {
               paragraph.innerHTML = updatedContent;
               paragraph.classList.remove('hidden');
             } else {
               paragraph.remove();
             }
+          } else if (paragraph && sharedCard) {
+            // Shared post - update only the sharer's text
+            if (hasContent) {
+              paragraph.innerHTML = updatedContent;
+              paragraph.classList.remove('hidden');
+            } else {
+              paragraph.remove();
+            }
+          } else if (hasContent && sharedCard) {
+            // Shared post with no previous sharer content - add new paragraph before shared card
+            const newParagraph = document.createElement('p');
+            newParagraph.innerHTML = updatedContent;
+            contentDiv.insertBefore(newParagraph, sharedCard);
           } else if (hasContent) {
+            // Regular post with no previous content
             const newParagraph = document.createElement('p');
             newParagraph.innerHTML = updatedContent;
             contentDiv.insertBefore(newParagraph, contentDiv.firstChild);
           }
 
+          // Handle new media upload
           if (fileInput.files.length > 0) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -360,7 +389,13 @@ function editPost(button) {
                   newVideo.controls = true;
                   newVideo.src = e.target.result;
                   newVideo.className = 'preview-video';
-                  contentDiv.appendChild(newVideo);
+
+                  // Insert before shared card if it exists, otherwise append
+                  if (sharedCard) {
+                    contentDiv.insertBefore(newVideo, sharedCard);
+                  } else {
+                    contentDiv.appendChild(newVideo);
+                  }
                 }
               } else if (mediaType.startsWith('image')) {
                 if (image) {
@@ -371,7 +406,13 @@ function editPost(button) {
                   newImg.src = e.target.result;
                   newImg.alt = 'Post media';
                   newImg.className = 'preview-image';
-                  contentDiv.appendChild(newImg);
+
+                  // Insert before shared card if it exists, otherwise append
+                  if (sharedCard) {
+                    contentDiv.insertBefore(newImg, sharedCard);
+                  } else {
+                    contentDiv.appendChild(newImg);
+                  }
                 }
               }
             };
@@ -391,6 +432,7 @@ function editPost(button) {
       });
   };
 
+  // Hide only the sharer's paragraph, not the shared content
   if (paragraph) {
     paragraph.classList.add('hidden');
   }
