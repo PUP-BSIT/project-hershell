@@ -5,38 +5,33 @@ session_start();
 header("Content-Type: application/json");
 require_once 'db_connection.php';
 
-if (!isset($_SESSION['username'])) {
+$current_user_id = $_SESSION['user_id'] ?? null;
+if (!$current_user_id) {
     echo json_encode(["success" => false, "error" => "Not authenticated"]);
     exit;
 }
 
-$current_username = $_SESSION['username'];
-$stmt = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
-$stmt->bind_param("s", $current_username);
-$stmt->execute();
-$current_user_id = $stmt->get_result()->fetch_assoc()['user_id'];
-$stmt->close();
+$target_user_id = $_GET['user_id'] ?? null;
 
-// Get posts
 $sql = "
-SELECT
-    p.post_id,
-    p.user_id AS sharer_id,
-    sharer.username AS sharer_username,
-    sharer.profile_picture_url AS sharer_profile_pic,
-    p.content,
-    p.media_url,
-    p.created_at,
-    p.visibility,
-    p.is_shared,
-    (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
-    (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
-    (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
+SELECT 
+    p.post_id, 
+    p.user_id AS sharer_id, 
+    sharer.username AS sharer_username, 
+    sharer.profile_picture_url AS sharer_profile_pic, 
+    p.content, 
+    p.media_url, 
+    p.created_at, 
+    p.visibility, 
+    p.is_shared, 
+    (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count, 
+    (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count, 
+    (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count, 
     CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
 
-    original.post_id AS original_post_id,
-    original_user.username AS original_author,
-    original.content AS original_content,
+    original.post_id AS original_post_id, 
+    original_user.username AS original_author, 
+    original.content AS original_content, 
     original.media_url AS original_media_url
 
 FROM post p
@@ -46,11 +41,21 @@ LEFT JOIN share s ON s.post_wrapper_id = p.post_id
 LEFT JOIN post original ON s.post_id = original.post_id
 LEFT JOIN user original_user ON original.user_id = original_user.user_id
 WHERE p.deleted = 0
-ORDER BY p.created_at DESC
 ";
 
+$params = [$current_user_id];
+$types = "i";
+
+if ($target_user_id) {
+    $sql .= " AND p.user_id = ?";
+    $params[] = $target_user_id;
+    $types .= "i";
+}
+
+$sql .= " ORDER BY p.created_at DESC";
+
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $current_user_id);
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
