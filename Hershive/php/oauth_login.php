@@ -31,8 +31,7 @@ if ($row = $result->fetch_assoc()) {
             die('Unsupported provider.');
     }
 
-    $auth_url = "{$provider_url}{$auth_path}?client_id={$client_id}
-        &redirect_uri=" . urlencode($redirect_uri);
+    $auth_url = "{$provider_url}{$auth_path}?client_id={$client_id}&redirect_uri=" . urlencode($redirect_uri);
     header("Location: $auth_url");
     exit;
 } else {
