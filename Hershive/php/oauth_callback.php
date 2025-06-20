@@ -2,42 +2,56 @@
 session_start();
 require_once 'db_connection.php';
 
-$provider = $_GET['provider'];
-$token = $_GET['token'] ?? "";
+$provider = $_GET['provider'] ?? null;
+$token = $_GET['token'] ?? '';
+
+if (!$provider || !$token) {
+    header('Location: ../html/login.html?error=missing_data');
+    exit;
+}
 
 $_SESSION['oauth_token_' . $provider] = $token;
 
-$stmt = $conn->prepare("SELECT provider_url FROM oauth_clients WHERE provider_name = ?");
+$stmt = $conn->prepare("SELECT provider_url 
+    FROM oauth_clients WHERE provider_name = ?");
 $stmt->bind_param("s", $provider);
 $stmt->execute();
 $result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $provider_url = rtrim($row['provider_url'], '/');
-} else {
-    die('Unknown provider.');
+
+if (!($row = $result->fetch_assoc())) {
+    header('Location: ../html/login.html?error=unknown_provider');
+    exit;
 }
+$stmt->close();
+
+$provider_url = rtrim($row['provider_url'], '/');
 
 switch ($provider) {
     case 'heybleepi':
-        $getUserDataPath = "$provider_url/get-user-data.php";
+        $user_data_url = $provider_url . '/get-user-data.php';
         break;
-    case 'hershive':
-        $getUserDataPath = "$provider_url/php/get_user_data.php";
-        break;
+
     case 'devhive':
-        $getUserDataPath = "$provider_url/api/oauth/get-user-data.php";
+        $user_data_url = $provider_url . '/public_html/oauth_login/index.html';
         break;
+
     default:
-        $getUserDataPath = "$provider_url/get-user-data.php";
-        break;
+        header('Location: ../html/login.html?error=invalid_provider_path');
+        exit;
 }
 
-$userDataJson = file_get_contents("$getUserDataPath?token=$token");
-    $userData = json_decode($userDataJson, true);
+$userDataUrl = "$user_data_url?token=$token&provider=$provider";
+$userDataJson = file_get_contents($userDataUrl);
 
-if (!$userData || isset($userData['error'])) {
-    header('Location: ../html/login.html?error=oauth_failed');
-    exit;
+if ($userDataJson === false) {
+  die("Failed to fetch user data from provider.");
+}
+
+$userData = json_decode($userDataJson, true);
+
+if (!$userData || isset($userData['error_message'])) {
+	header('Location: ../html/login.html?error=oauth_failed');
+	exit;
 }
 
 $stmt = $conn->prepare("SELECT * FROM user WHERE username = ?");
@@ -46,9 +60,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    $stmt = $conn->prepare("INSERT INTO 
-        user (username, first_name, middle_name, last_name, email,
-        birthday, password) VALUES (?, ?, ?, ?, ?, ?, '')");
+    $stmt = $conn->prepare("INSERT INTO user
+				(username, first_name, middle_name, last_name, email, birthday,
+						password) VALUES (?, ?, ?, ?, ?, ?, '')");
     $stmt->bind_param(
         "ssssss",
         $userData['username'],
@@ -59,6 +73,7 @@ if ($result->num_rows === 0) {
         $userData['birthday']
     );
     $stmt->execute();
+    $stmt->close();
 }
 
 $stmt = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
@@ -77,14 +92,12 @@ $stmt->close();
 
 $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-$stmt = $conn->prepare("INSERT INTO oauth_tokens (user_id, client_id,
-    token, expires_at) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("isss", $local_user_id,
-    $local_client_id, $token, $expires_at);
+$stmt = $conn->prepare("INSERT INTO oauth_tokens
+		(user_id, client_id, token, expires_at) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("isss", $local_user_id, $local_client_id, $token, $expires_at);
 $stmt->execute();
 $stmt->close();
 
-// Set session variables for 
 $_SESSION['user_id'] = $local_user_id;
 $_SESSION['username'] = $userData['username'];
 $_SESSION['user_email'] = $userData['email'];
