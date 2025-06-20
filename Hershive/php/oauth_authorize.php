@@ -9,12 +9,28 @@ $error = '';
 // Allow/Deny logic
 if (isset($_POST['allow'])) {
     $user_id = $_SESSION['user_id'];
-    $token = bin2hex(random_bytes(32));
-    $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
-    $stmt = $conn->prepare("INSERT INTO oauth_tokens
-        (user_id, client_id, token, expires_at) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $user_id, $client_id, $token, $expires_at);
+    
+    $stmt = $conn->prepare("
+        SELECT token 
+        FROM oauth_tokens 
+        WHERE user_id = ? AND client_id = ? AND expires_at > NOW()
+        ORDER BY created_at DESC 
+        LIMIT 1
+    ");
+    $stmt->bind_param("is", $user_id, $client_id);
     $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        $token = $row['token'];
+    } else {
+        $token = bin2hex(random_bytes(32));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $stmt = $conn->prepare("INSERT INTO oauth_tokens (user_id, client_id, token, expires_at) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $user_id, $client_id, $token, $expires_at);
+        $stmt->execute();
+    }
+    
     header("Location: $redirect_uri&token=$token");
     exit;
 }
