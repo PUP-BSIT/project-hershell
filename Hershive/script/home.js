@@ -100,7 +100,15 @@ function createPostElement(post) {
         <img src="${profilePicUrl}" alt="user profile"
              class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
         <div class="post-info">
-          <span class="username">${post.sharer_username || post.username}</span>
+          <div class="username-container">
+            <span class="username">${post.sharer_username || post.username}</span>
+            ${!isOwner ? `
+              <button class="post-follow-btn" onclick="togglePostFollow(this,
+                  '${post.sharer_username || post.username}')">
+                Follow
+              </button>
+            ` : ''}
+          </div>
           <span class="timestamp">
             ${post.formatted_time}
             <img src="${visibilityIcon}" class="visibility-icon" alt="${post.visibility}">
@@ -203,6 +211,20 @@ function createPostElement(post) {
   return postDiv;
 }
 
+function togglePostFollow(button, username) {
+  const isFollowing = button.classList.contains("following");
+
+  if (isFollowing) {
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  } else {
+    button.textContent = "Following";
+    button.classList.add("following");
+  }
+
+  console.log(`${isFollowing ? 'Unfollowed' : 'Followed'} ${username}`);
+}
+
 function submitPost() {
   const editor = document.getElementById("editor");
   const content = editor.innerHTML.trim();
@@ -273,9 +295,12 @@ function editPost(button) {
   const postId = post.dataset.postId;
 
   const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('p');
-  const image = contentDiv.querySelector('img');
-  const video = contentDiv.querySelector('video');
+
+  // For shared posts, only edit the sharer's content (the <p> tag before the shared-card)
+  const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
+  const sharedCard = contentDiv.querySelector('.shared-card');
+  const image = contentDiv.querySelector('img:not(.shared-card img)');
+  const video = contentDiv.querySelector('video:not(.shared-card video)');
 
   if (contentDiv.querySelector('.edit-editor')) return;
 
@@ -283,9 +308,15 @@ function editPost(button) {
   editorDiv.className = 'edit-editor';
   editorDiv.contentEditable = true;
 
-  if (paragraph) {
+  // Only populate with the sharer's content, not the shared content
+  if (paragraph && !sharedCard) {
+    // Regular post - edit the paragraph content
+    editorDiv.innerHTML = paragraph.innerHTML;
+  } else if (paragraph && sharedCard) {
+    // Shared post - only edit the sharer's added text (before shared-card)
     editorDiv.innerHTML = paragraph.innerHTML;
   } else {
+    // No content to edit
     editorDiv.innerHTML = '';
     editorDiv.placeholder = 'Add some text...';
   }
@@ -305,10 +336,13 @@ function editPost(button) {
     const textOnly = updatedContent.replace(/<[^>]*>/g, '').trim();
     const hasContent = textOnly !== "" && textOnly !== "&nbsp;";
 
+    // For shared posts, we still need media/content validation but don't count shared content
     const hasExistingMedia = image || video;
     const hasNewMedia = fileInput.files.length > 0;
+    const hasSharedContent = !!sharedCard;
 
-    if (!hasContent && !hasExistingMedia && !hasNewMedia) {
+    // If it's a shared post, it's valid even without new content since it has shared content
+    if (!hasContent && !hasExistingMedia && !hasNewMedia && !hasSharedContent) {
       alert('Post must contain either text or media');
       return;
     }
@@ -333,19 +367,36 @@ function editPost(button) {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          if (paragraph) {
+          // Update only the sharer's content, preserve shared content
+          if (paragraph && !sharedCard) {
+            // Regular post
             if (hasContent) {
               paragraph.innerHTML = updatedContent;
               paragraph.classList.remove('hidden');
             } else {
               paragraph.remove();
             }
+          } else if (paragraph && sharedCard) {
+            // Shared post - update only the sharer's text
+            if (hasContent) {
+              paragraph.innerHTML = updatedContent;
+              paragraph.classList.remove('hidden');
+            } else {
+              paragraph.remove();
+            }
+          } else if (hasContent && sharedCard) {
+            // Shared post with no previous sharer content - add new paragraph before shared card
+            const newParagraph = document.createElement('p');
+            newParagraph.innerHTML = updatedContent;
+            contentDiv.insertBefore(newParagraph, sharedCard);
           } else if (hasContent) {
+            // Regular post with no previous content
             const newParagraph = document.createElement('p');
             newParagraph.innerHTML = updatedContent;
             contentDiv.insertBefore(newParagraph, contentDiv.firstChild);
           }
 
+          // Handle new media upload
           if (fileInput.files.length > 0) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -360,7 +411,13 @@ function editPost(button) {
                   newVideo.controls = true;
                   newVideo.src = e.target.result;
                   newVideo.className = 'preview-video';
-                  contentDiv.appendChild(newVideo);
+
+                  // Insert before shared card if it exists, otherwise append
+                  if (sharedCard) {
+                    contentDiv.insertBefore(newVideo, sharedCard);
+                  } else {
+                    contentDiv.appendChild(newVideo);
+                  }
                 }
               } else if (mediaType.startsWith('image')) {
                 if (image) {
@@ -371,7 +428,13 @@ function editPost(button) {
                   newImg.src = e.target.result;
                   newImg.alt = 'Post media';
                   newImg.className = 'preview-image';
-                  contentDiv.appendChild(newImg);
+
+                  // Insert before shared card if it exists, otherwise append
+                  if (sharedCard) {
+                    contentDiv.insertBefore(newImg, sharedCard);
+                  } else {
+                    contentDiv.appendChild(newImg);
+                  }
                 }
               }
             };
@@ -391,6 +454,7 @@ function editPost(button) {
       });
   };
 
+  // Hide only the sharer's paragraph, not the shared content
   if (paragraph) {
     paragraph.classList.add('hidden');
   }
@@ -1081,10 +1145,8 @@ document.getElementById("search_input").addEventListener("keydown", function (e)
 function performSearch() {
   const query = document.getElementById("search_input").value.trim();
   if (!query) return;
-
   const createBox = document.querySelector(".create-post");
   if (createBox) createBox.classList.add("hidden");
-
   fetch(`../php/search.php?q=${encodeURIComponent(query)}`)
     .then(res => res.json())
     .then(data => {
@@ -1092,39 +1154,45 @@ function performSearch() {
         alert(data.error || "Search failed");
         return;
       }
-
       const noResultsMessage = document.getElementById("no_results_message");
-
     const noUsers = (!data.user && (!data.users || data.users.length === 0));
     const noPosts = !data.posts || data.posts.length === 0;
-
     if (noUsers && noPosts) {
       if (noResultsMessage) noResultsMessage.classList.remove("hidden");
     } else {
       if (noResultsMessage) noResultsMessage.classList.add("hidden");
     }
-
       const oldPreviewContainer = document.querySelector(".user-preview-container");
       if (oldPreviewContainer) oldPreviewContainer.innerHTML = "";
-
       const searchResultsContainer = document.getElementById("search_results_container");
       if (searchResultsContainer) {
         searchResultsContainer.classList.remove("hidden");
       }
-
       const postElements = document.querySelectorAll(".sample-post");
       postElements.forEach(post => post.remove());
-
       if (data.type === "exact_user") {
         renderTopUserResult(data.user);
         renderMorePeople([]);
-        displayPosts(data.posts);
+        // Apply visibility filtering to user posts
+        const visiblePosts = data.posts.filter(post => {
+          if (post.visibility === 'public') return true;
+          if (post.sharer_username === currentUser) return true;
+          if (post.visibility === 'followers') {
+            // Check if current user follows the post author
+            // This would require additional data from the backend
+            // For now, assuming the backend already filtered these
+            return true;
+          }
+          return false;
+        });
+        displayPosts(visiblePosts);
       }
       else if (data.type === "user_post_mix") {
         if (data.users && data.users.length > 0) {
           renderTopUserResult(data.users[0]);
           renderMorePeople(data.users.slice(1));
         }
+        // Posts are already filtered by visibility in the backend
         displayPosts(data.posts);
       }
     })

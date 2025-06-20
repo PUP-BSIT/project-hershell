@@ -208,6 +208,23 @@ function fetchPostsByUserId($target_user_id, $viewer_user_id, $conn) {
     $res = $stmt->get_result();
 
     while ($row = $res->fetch_assoc()) {
+        $postUserId = $row['sharer_id'];
+        $visibility = $row['visibility'];
+        $shouldShow = false;
+
+        if ($visibility === 'public' || $postUserId == $viewer_user_id) {
+            $shouldShow = true;
+        } elseif ($visibility === 'followers') {
+            $follow = $conn->prepare("SELECT 1 FROM follow WHERE follower_id = ? AND following_id = ? LIMIT 1");
+            $follow->bind_param("ii", $viewer_user_id, $postUserId);
+            $follow->execute();
+            $follow->store_result();
+            $shouldShow = $follow->num_rows > 0;
+            $follow->close();
+        }
+
+        if (!$shouldShow) continue;
+
         $row['formatted_time'] = date("M j \a\\t g:i A", strtotime($row['created_at']));
 
         if (!empty($row['original_media_url'])) {
