@@ -22,12 +22,11 @@ if ($row = $result->fetch_assoc()) {
         case 'heybleepi':
             $auth_path = '/oauth_authorize.php';
             break;
-        case 'hershive':
-            $auth_path = '/php/oauth_authorize.php';
-            break;
+
         case 'devhive':
             $auth_path = '/api/oauth/oauth_authorize.php';
             break;
+            
         default:
             die('Unsupported provider.');
     }
