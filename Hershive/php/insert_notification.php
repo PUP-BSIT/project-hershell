@@ -71,6 +71,7 @@ switch ($type) {
       $recipientId = $postId;
     }
     $stmt->close();
+    $postId = null;
     break;
 }
 
