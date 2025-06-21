@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
   initializeMediaUpload();
   syncPrivacyToModal();
   bindPrivacyEvents();
+  loadNotifications();
 
   setTimeout(() => {
     initializeFollowStatus();
@@ -548,6 +549,8 @@ function toggleLike(button, postId) {
         outlineIcon.classList.add("hidden");
         filledIcon.classList.remove("hidden");
         likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+
+        sendNotification('like', postId, 'liked your post.');
       }
     }
   })
@@ -851,7 +854,7 @@ function loadSuggestedUsers(limit = 4, page = 1) {
             <p><strong>${fullName}</strong></p>
             <p>@${user.username}</p>
           </div>
-          <button onclick="toggleFollow(this)">Follow</button>
+          <button onclick="toggleFollow(this)" data-user-id="${user.user_id}">Follow</button>
         `;
 
         container.appendChild(div);
@@ -865,9 +868,11 @@ function loadSuggestedUsers(limit = 4, page = 1) {
       console.error("Error loading suggested users:", error);
     });
 }
+
 function toggleFollow(button) {
   const userCard = button.closest('.suggested-user');
   const username = userCard.querySelector('.user-info p:last-child').textContent.replace('@', '');
+  const userId = button.dataset.userId;
 
   const isFollowing = button.classList.contains("following");
   const action = isFollowing ? 'unfollow' : 'follow';
@@ -893,6 +898,7 @@ function toggleFollow(button) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        sendNotification('follow', userId, 'Started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -928,6 +934,71 @@ function menuToggleDropdown() {
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
   if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
+  loadNotifications();
+}
+
+function sendNotification(type, postId, message) {
+  fetch('../php/insert_notification.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      type: type,
+      post_id: postId,
+      message: message
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Notification sent successfully.');
+    } else {
+      console.error('Failed to send notification:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Network error while sending notification:', error);
+  });
+}
+
+function loadNotifications() {
+  fetch('../php/get_notifications.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const container = document.getElementById('notification_container');
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+          container.innerHTML = "<p>No notifications available.</p>";
+          return;
+        }
+
+        data.notifications.forEach(notif => {
+          const div = document.createElement('div');
+          div.className = "notification";
+
+          let html = `
+            <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
+            <div class="notif-content">
+              <div class="notif-middle-content">
+                <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
+                <p class="time">${formatTime(notif.created_at)}</p>
+              </div>
+              ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
+            </div>
+          `;
+
+          div.innerHTML = html;
+          container.appendChild(div);
+        });
+      }
+    });
+}
+
+function formatTime(timestamp) {
+  return new Date(timestamp).toLocaleTimeString();
 }
 
 let currentPostIdForComments = null;
