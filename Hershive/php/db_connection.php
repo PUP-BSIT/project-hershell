@@ -6,6 +6,7 @@ $db_pass = "Hershell_db_p4ss";
 $dbname = "u954940298_hershive_db";
 
 $conn = new mysqli($host, $db_user, $db_pass, $dbname);
+$conn->query("SET time_zone = '+08:00'");
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
