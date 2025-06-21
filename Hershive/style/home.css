@@ -792,6 +792,13 @@ select {
   border-radius: 5px;
 }
 
+.notif-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 /* like, comment, share buttons style */
 .post-actions {
   display: flex !important;
