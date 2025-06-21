@@ -28,49 +28,12 @@
         </button>
 
         <div class="notification-panel" id="notification_panel">
-          <h4>Notification</h4>
-          <div class="notification">
-            <img
-              src="../assets/temporary_pfp.png"
-              alt="user"
-              class="notif-pfp"/>
-            <p>
-              <strong>John Doe</strong> Started following you.
-              <span class="time">1m</span>
-            </p>
-            <a href="#">Follow</a>
+          <div class="notification-header">
+            <h4>Notification</h4>
+            <button onclick="toggleNotificationPage()">See all</button>
           </div>
 
-          <div class="notification">
-            <img
-              src="../assets/temporary_pfp.png"
-              alt="user"
-              class="notif-pfp"/>
-            <p>
-              <strong>John Doe</strong> Liked your photo.
-              <span class="time">30m</span>
-            </p>
-            <img
-              src="../assets/sample-post.png"
-              alt="thumbnail"
-              class="notif-thumbnail"/>
-          </div>
-
-          <h4>Yesterday</h4>
-          <div class="notification">
-            <img
-              src="../assets/temporary_pfp.png"
-              alt="user"
-              class="notif-pfp"/>
-            <p>
-              <strong>John Dy</strong> Liked your photo.
-              <span class="time">1d</span>
-            </p>
-            <img
-              src="../assets/sample-post.png"
-              alt="thumbnail"
-              class="notif-thumbnail"/>
-          </div>
+          <div id="notification_container"></div>
         </div>
 
         <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
@@ -385,6 +348,6 @@
         </div>
       </div>
     </div>
-    <script src="../script/home.js"></script>
+    <script src="../script/home.js?v=2.1"></script>
   </body>
 </html>
