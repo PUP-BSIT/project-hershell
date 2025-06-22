@@ -7,7 +7,9 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Email Sent</title>
-  <link rel="stylesheet" href="../style/email_sent.css" />
+  <link rel="stylesheet" href="../style/email_sent.css"/>
+  <link rel="icon" href="../assets/logo.png"/>
+
 </head>
 <body>
   <div class="overlay">
