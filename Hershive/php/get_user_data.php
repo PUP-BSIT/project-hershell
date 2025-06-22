@@ -14,7 +14,7 @@ if (!$token) {
 $stmt = $conn->prepare("
     SELECT user_id 
     FROM oauth_tokens 
-    WHERE token = ? AND expires_at > NOW()
+    WHERE token = ?
 ");
 $stmt->bind_param("s", $token);
 $stmt->execute();
@@ -26,18 +26,23 @@ if ($row = $result->fetch_assoc()) {
   switch ($provider) {
     case 'heybleepi':
       $query = "
-          SELECT username AS user_name,
-            first_name, middle_name, last_name, email, birthday AS birthdate 
-          FROM users 
-          WHERE id = ?";
+        SELECT username AS user_name, first_name, middle_name, last_name, email, birthday AS birthdate 
+        FROM users 
+        WHERE id = ?";
       break;
 
     case 'devhive':
       $query = "
-          SELECT username,
-            first_name, middle_name, last_name, email, birthday 
-          FROM user
-          WHERE user_id = ?";
+        SELECT username, first_name, middle_name, last_name, email, birthday 
+        FROM user
+        WHERE user_id = ?";
+      break;
+    
+    case 'hershive':
+      $query = "
+        SELECT username, first_name, middle_name, last_name, email, birthday 
+        FROM user
+        WHERE user_id = ?";
       break;
 
     default:
