@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
           <p class="login-link">
             Already have an account?
-            <a href="./login.php">Log in here</a>
+            <a href="/project-hershell/Hershive/php/login.php">Log in here</a>
           </p>
         </form>
         <?php endif; ?>
