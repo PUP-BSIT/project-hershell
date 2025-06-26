@@ -35,7 +35,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="../style/profile.css"/>
+  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=2"/>
   <title>Profile Page</title>
   <link rel="icon" href="../assets/logo.png"/>
 </head>
@@ -98,6 +98,46 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 
         <span id="profile_user_id" 
             style="display:none;"><?php echo $userId; ?></span>
+        
+      <div class="create-post" id="share_trigger" onclick="openPostModal(event)">
+        <div class="main-create-post">
+          <img
+            src="<?php echo $profilePic; ?>"
+            alt="user profile"
+            class="profile-pic"/>
+          <span>Share something</span>
+        </div>
+        
+          <div class="sub-create-post">
+            <label class="upload-option">
+              <div class="image">
+                <img src="../assets/camera_icon.png" alt="image"/>
+                <span>image</span>
+              </div>
+              <input type="file" accept="image/*" hidden id="trigger_media_image"/>
+            </label>
+        
+            <label class="upload-option">
+              <div class="video">
+                <img src="../assets/video_icon.png" alt="video"/>
+                <span>video</span>
+              </div>
+              <input type="file" accept="video/*" hidden id="trigger_media_video"/>
+            </label>
+        
+            <div class="privacy">
+              <img id="mini_privacy_icon" src="../assets/public_icon.png"
+                  alt="public" />
+              <span>
+                <select name="visibility" id="privacy">
+                  <option value="public">Public</option>
+                  <option value="followers">Followers</option>
+                  <option value="private">Private</option>
+                </select>
+              </span>
+            </div>
+          </div>
+      </div>    
         
       <div id="post-container" class="post-container"></div>
 
@@ -187,7 +227,59 @@ $bio = htmlspecialchars($user['bio'] ?? '');
             </div>
           </div>
     </div>
+    
+    <div class="modal-overlay hidden" id="post_modal">
+      <div class="create-post-modal">
+        <div class="modal-header">
+          <h2>Create Post</h2>
+          <button class="close-button" onclick="closePostModal()">×</button>
+        </div>
+        <span class="username"><?php echo $username; ?></span>
+        <div
+          class="text-editor"
+          id="editor"
+          contenteditable="true"
+          placeholder="Share something..."></div>
+    
+        <div class="preview" id="preview_container"></div>
+    
+        <div class="formatting-options">
+          <button onclick="formatText('bold')">B</button>
+          <button onclick="formatText('italic')">I</button>
+          <button onclick="formatText('underline')">U</button>
+        </div>
+    
+        <div class="upload-controls">
+          <label class="icon-button">
+            <img src="../assets/camera_icon.png" alt="Image Icon"/>
+            <input type="file" id="media_input" accept="image/*" hidden />
+            <span>Image</span>
+          </label>
+          <label class="icon-button">
+            <img src="../assets/video_icon.png" alt="Video Icon"/>
+            <input type="file" id="media_input_video" accept="video/*" hidden/>
+            <span>Video</span>
+          </label>
+          <div class="privacy-select">
+            <img id="modal_privacy_icon" src="../assets/public_icon.png"
+                alt="Privacy Icon" />
+            <select id="privacy_setting">
+              <option value="public">Public</option>
+              <option value="followers">Followers</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+    
+        <button
+          class="submit-button"
+          id="submit_post_button"
+          onclick="submitPost()">
+          Post
+        </button>
+      </div>
+    </div>
 
-  <script src="../script/profile.js"></script>
+  <script src="/project-hershell/Hershive/script/profile.js?v=2"></script>
 </body>
 </html>
