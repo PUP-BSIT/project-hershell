@@ -40,7 +40,7 @@ LEFT JOIN heart_react hr ON p.post_id = hr.post_id AND hr.user_id = ?
 LEFT JOIN share s ON s.post_wrapper_id = p.post_id
 LEFT JOIN post original ON s.post_id = original.post_id
 LEFT JOIN user original_user ON original.user_id = original_user.user_id
-WHERE p.deleted = 0 AND sharer.deleted = 0
+WHERE p.deleted = 0 AND sharer.deleted_account = 0
 ";
 
 $params = [$current_user_id];
