@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT username, profile_picture_url
+$stmt = $conn->prepare("SELECT username, profile_picture_url, background_picture_url
     FROM user WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -19,7 +19,9 @@ if ($result && $row = $result->fetch_assoc()) {
     'success' => true,
     'username' => $row['username'],
     'profile_picture_url' => $row['profile_picture_url'] ??
-        '../assets/temporary_pfp.png'
+        '../assets/temporary_pfp.png',
+    'background_picture_url' => $row['background_picture_url'] ??
+        '../assets/cover_photo.png'
   ]);
 } else {
   echo json_encode(['success' => false, 'error' => 'User not found']);

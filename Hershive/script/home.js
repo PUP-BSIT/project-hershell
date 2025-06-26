@@ -37,6 +37,22 @@ function checkUserSession() {
           this.src = "../assets/temporary_pfp.png";
         };
 
+        const sideProfileImg = document.querySelector(".side-panel .profile-img");
+        if (sideProfileImg) {
+          sideProfileImg.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          sideProfileImg.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
+
+        const sideCoverImg = document.querySelector(".side-panel .cover-img");
+        if (sideCoverImg) {
+          sideCoverImg.src = data.background_picture_url || "../assets/cover_photo.png";
+          sideCoverImg.onerror = function () {
+            this.src = "../assets/cover_photo.png";
+          };
+        }
+
         const modalUsername = document.querySelector
             (".create-post-modal .username");
         if (modalUsername) {
@@ -52,7 +68,6 @@ function checkUserSession() {
       window.location.href = "../html/login.html";
     });
 }
-
 
 function loadPosts() {
   fetch('../php/get-posts.php?unlimited=true')
