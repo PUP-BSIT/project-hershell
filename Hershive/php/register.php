@@ -90,6 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Register</title>
   <link rel="stylesheet" href="../style/register.css"/>
+  <link rel="icon" href="../assets/logo.png"/>
 
 </head>
 <body>
@@ -159,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
           <p class="login-link">
             Already have an account?
-            <a href="./login.php">Log in here</a>
+            <a href="/project-hershell/Hershive/php/login.php">Log in here</a>
           </p>
         </form>
         <?php endif; ?>

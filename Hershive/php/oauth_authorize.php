@@ -63,7 +63,9 @@ if (!isset($_SESSION['user_id'])) {
     <head>
       <meta charset="UTF-8" />
       <title>Authorize Access</title>
-      <link rel="stylesheet" href="project-hershel/Hershive/style/oauth_login.css" />
+      <link rel="stylesheet" href="../style/oauth_login.css"/>
+      <link rel="icon" href="../assets/logo.png"/>
+  
     </head>
     <body>
       <div class="card-container">
@@ -102,7 +104,8 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Authorize Application</title>
-    <link rel="stylesheet" href="/project-hershel/Hershive/style/oauth_concent.css">
+    <link rel="stylesheet" href="../style/oauth_concent.css">
+    <link rel="icon" href="../assets/logo.png">
 </head>
 <body>
     <div class="container">

@@ -250,8 +250,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hershive Settings</title>
-    <link rel="stylesheet" href="../style/home.css" />
-    <link rel="stylesheet" href="../style/settings.css" />
+    <link rel="stylesheet" href="../style/home.css"/>
+    <link rel="stylesheet" href="../style/settings.css"/>
+    <link rel="icon" href="../assets/logo.png"/>
+
 </head>
 <body>
     <div class="top-bar">

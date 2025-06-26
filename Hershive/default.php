@@ -1,9 +1,7 @@
 <?php
 session_start();
 
-// Check if user is already logged in
 if (isset($_SESSION['username'])) {
-  // User is logged in, redirect to home page
   header("Location: project-hershell/Hershive/html/home.html");
   exit;
 }
@@ -17,6 +15,8 @@ if (isset($_SESSION['username'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hershive</title>
   <link rel="stylesheet" href="project-hershell/Hershive/style/homepage.css"/>
+  <link rel="icon" href="../assets/logo.png"/>
+
 </head>
 
 <body>
