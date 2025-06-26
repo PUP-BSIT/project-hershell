@@ -1,6 +1,166 @@
 document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
+
+  document.getElementById("media_input")?.addEventListener("change", function () {
+    handleCreatePostFileInput(this, false);
+  });
+  document.getElementById("media_input_video")?.addEventListener("change", function () {
+    handleCreatePostFileInput(this, true);
+  });
+
+  document.getElementById("privacy")?.addEventListener("change", syncPrivacyToModal);
+  document.getElementById("privacy_setting")?.addEventListener("change", syncPrivacyToMini);
+
+  window.addEventListener("click", function (e) {
+    const modal = document.getElementById("post_modal");
+    if (
+      modal &&
+      !modal.classList.contains("hidden") &&
+      !modal.querySelector(".create-post-modal").contains(e.target) &&
+      e.target !== document.getElementById("share_trigger")
+    ) {
+      closePostModal();
+    }
+  });
+
+  document.getElementById('media_input')?.addEventListener('change', function() {
+    handleFileInput(this, document.getElementById("profile_img_preview"));
+  });
+  document.getElementById('cover_media_input')?.addEventListener('change', function() {
+    handleFileInput(this, document.getElementById("cover_img_preview"));
+  });
+
+  fetch('../php/get_user_stats.php')
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+      document.getElementById('postCount').textContent = data.posts;
+      document.getElementById('followerCount').textContent = data.followers;
+      document.getElementById('followingCount').textContent = data.following;
+    })
+    .catch(error => {
+      console.error("Failed to load user stats:", error);
+    });
 });
+
+function openPostModal(event) {
+  event?.stopPropagation?.();
+  const modal = document.getElementById("post_modal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.getElementById("editor").innerHTML = "";
+    document.getElementById("preview_container").innerHTML = "";
+    document.getElementById("media_input").value = "";
+    document.getElementById("media_input_video").value = "";
+    syncPrivacyToModal();
+  }
+}
+
+function closePostModal() {
+  document.getElementById("post_modal")?.classList.add("hidden");
+}
+
+function formatText(command) {
+  document.execCommand(command, false, null);
+}
+
+function handleCreatePostFileInput(input, isVideo = false) {
+  const previewContainer = document.getElementById("preview_container");
+  previewContainer.innerHTML = "";
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    if (isVideo) {
+      const video = document.createElement("video");
+      video.src = e.target.result;
+      video.controls = true;
+      video.className = "preview-video";
+      previewContainer.appendChild(video);
+    } else {
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      img.className = "preview-image";
+      previewContainer.appendChild(img);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function updatePrivacyIcons(value) {
+  const iconMap = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png",
+  };
+  document.getElementById("mini_privacy_icon").src = iconMap[value] || iconMap.public;
+  document.getElementById("modal_privacy_icon").src = iconMap[value] || iconMap.public;
+}
+
+function syncPrivacyToModal() {
+  const mini = document.getElementById("privacy");
+  const modal = document.getElementById("privacy_setting");
+  if (mini && modal) {
+    modal.value = mini.value;
+    updatePrivacyIcons(mini.value);
+  }
+}
+function syncPrivacyToMini() {
+  const mini = document.getElementById("privacy");
+  const modal = document.getElementById("privacy_setting");
+  if (mini && modal) {
+    mini.value = modal.value;
+    updatePrivacyIcons(modal.value);
+  }
+}
+
+function submitPost() {
+  const editor = document.getElementById("editor");
+  const content = editor.innerHTML.trim();
+
+  const imageInput = document.getElementById("media_input");
+  const videoInput = document.getElementById("media_input_video");
+
+  const hasImage = imageInput.files.length > 0;
+  const hasVideo = videoInput.files.length > 0;
+
+  const textOnly = content.replace(/<[^>]*>/g, '').trim();
+  const hasText = textOnly !== "" && textOnly !== "&nbsp;";
+
+  if (!hasText && !hasImage && !hasVideo) {
+    alert("Please add text, image, or video to your post.");
+    return;
+  }
+
+  const formData = new FormData();
+  if (hasText) formData.append("content", content);
+  if (hasImage) formData.append("media", imageInput.files[0]);
+  if (hasVideo) formData.append("media", videoInput.files[0]);
+
+  const privacy = document.getElementById("privacy_setting")?.value ||
+    document.getElementById("privacy").value;
+  formData.append("visibility", privacy);
+
+  fetch("../php/create-post.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        closePostModal();
+        loadProfilePosts();
+      } else {
+        alert(data.error || "Failed to create post.");
+      }
+    })
+    .catch((err) => {
+      alert("An error occurred while creating the post.");
+    });
+}
 
 function loadProfilePosts() {
   const profileUserId = getProfileUserId();
@@ -108,14 +268,6 @@ function saveProfileUpdates() {
     });
 }
 
-document.getElementById('media_input').addEventListener('change', function() {
-  handleFileInput(this, document.getElementById("profile_img_preview"));
-});
-document.getElementById('cover_media_input')
-    .addEventListener('change', function() {handleFileInput(this, document
-    .getElementById("cover_img_preview"));
-});
-
 const currentUser = document.body.dataset.username || "";
 
 function createPostElement(post) {
@@ -208,33 +360,13 @@ function createPostElement(post) {
   return postDiv;
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    fetch('../php/get_user_stats.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                return;
-            }
-            document.getElementById('postCount').textContent = data.posts;
-            document.getElementById('followerCount').textContent = data.followers;
-            document.getElementById('followingCount').textContent = data.following;
-        })
-        .catch(error => {
-            console.error("Failed to load user stats:", error);
-        });
-});
-
 function displayPostsInContainer(posts) {
   const container = document.getElementById("post-container");
-
   if (!container) {
     console.error("No #post-container found.");
     return;
   }
-
   container.innerHTML = "";
-
   posts.forEach(post => {
     const postElement = createPostElement(post);
     container.appendChild(postElement);
@@ -247,22 +379,6 @@ function getProfileUserId() {
 
   const params = new URLSearchParams(window.location.search);
   return params.get("user_id") || "";
-}
-
-function displayPostsInContainer(posts) {
-  const container = document.getElementById("post-container");
-
-  if (!container) {
-    console.error("No #post-container element found.");
-    return;
-  }
-
-  container.innerHTML = "";
-
-  posts.forEach(post => {
-    const postElement = createPostElement(post);
-    container.appendChild(postElement);
-  });
 }
 
 function toggleLike(button, postId) {
@@ -403,9 +519,7 @@ function editPost(button) {
   contentDiv.insertBefore(editorDiv, paragraph);
   contentDiv.insertBefore(fileInput, paragraph);
   contentDiv.insertBefore(saveButton, paragraph);
-};
-
-window.editPost = editPost;
+}
 
 function deletePost(button) {
   const post = button.closest('.user-post');
@@ -502,3 +616,26 @@ function toggleLogout() {
   const logoutSection = document.getElementById("logout");
   if (logoutSection) logoutSection.hidden = false;
 }
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    closePostModal();
+  }
+});
+
+// --- Make functions available globally for inline onclick ---
+window.openPostModal = openPostModal;
+window.closePostModal = closePostModal;
+window.formatText = formatText;
+window.submitPost = submitPost;
+window.toggleDropdown = toggleDropdown;
+window.cancelDropdown = cancelDropdown;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveProfileUpdates = saveProfileUpdates;
+window.editPost = editPost;
+window.deletePost = deletePost;
+window.toggleShareModal = toggleShareModal;
+window.closeShareModal = closeShareModal;
+window.submitShare = submitShare;
+window.copyLink = copyLink;
