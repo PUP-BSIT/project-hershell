@@ -1292,9 +1292,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error(data.error);
                 return;
             }
-            document.getElementById('postCount').textContent = data.posts;
-            document.getElementById('followerCount').textContent = data.followers;
-            document.getElementById('followingCount').textContent = data.following;
+            document.getElementById('post_count').textContent = data.posts;
+            document.getElementById('follower_count').textContent = data.followers;
+            document.getElementById('following_count').textContent = data.following;
         })
         .catch(error => {
             console.error("Failed to load user stats:", error);
@@ -1377,7 +1377,7 @@ function renderTopUserResult(user) {
         <div class="top-user-stats">
           <div class="stat-item">
             <span class="icon-people"></span>
-            <span>0 following</span>
+            <span>${user.following_count || 0} following</span>
           </div>
           <div class="stat-item">
             <span class="icon-followers"></span>
@@ -1553,7 +1553,7 @@ function syncAllFollowButtons(username, isFollowing) {
 }
 
 function updateFollowingCount(count) {
-  const followingElement = document.getElementById('followingCount');
+  const followingElement = document.getElementById('following_count');
   if (followingElement) {
     followingElement.textContent = count;
   }
