@@ -99,7 +99,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <span id="profile_user_id" 
             style="display:none;"><?php echo $userId; ?></span>
         
-      <!-- CREATE POST BOX (copy from home.html, adjust src for profile pic if needed) -->
       <div class="create-post" id="share_trigger" onclick="openPostModal(event)">
         <div class="main-create-post">
           <img
@@ -229,7 +228,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           </div>
     </div>
     
-    <!-- CREATE POST MODAL (copy from home.html, place before </body>) -->
     <div class="modal-overlay hidden" id="post_modal">
       <div class="create-post-modal">
         <div class="modal-header">
