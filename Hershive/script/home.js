@@ -23,7 +23,7 @@ function checkUserSession() {
       if (data.success) {
         currentUser = data.username;
 
-        document.getElementById("display_name").textContent = data.username;
+        document.getElementById("display_name").textContent = data.display_name;
         document.getElementById("username").textContent = "@" + data.username;
 
         const mainCreatePostPic = document.querySelector
