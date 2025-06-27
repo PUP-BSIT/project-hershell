@@ -628,6 +628,104 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
+function toggleNotificationPanel() {
+  const panel = document.getElementById("notification_panel");
+  if (panel) {
+    const isActive = panel.classList.contains("active");
+    document.querySelectorAll('.notification-panel').forEach(p => p.classList.remove('active'));
+    if (!isActive) {
+      panel.classList.add("active");
+      loadNotifications();
+    }
+  }
+}
+
+let allNotifications = [];
+let notificationsShown = 0;
+const INITIAL_SHOW = 6;
+const PREVIEW_COUNT = 5;
+
+function loadNotifications() {
+  fetch('../php/get_notifications.php')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('notification_container');
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (!data.success || !data.notifications || data.notifications.length === 0) {
+        container.innerHTML = "<p>No notifications available.</p>";
+        return;
+      }
+
+      allNotifications = data.notifications;
+      notificationsShown = 0;
+      appendNotifications(INITIAL_SHOW);
+    });
+}
+
+function appendNotifications(count) {
+  const container = document.getElementById('notification_container');
+  const start = notificationsShown;
+  const end = Math.min(notificationsShown + count, allNotifications.length);
+
+  for (let i = start; i < end; i++) {
+    const notif = allNotifications[i];
+    const div = document.createElement('div');
+    div.className = "notification";
+    let html = `
+      <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
+      <div class="notif-content">
+        <div class="notif-middle-content">
+          <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
+          <p class="time">${formatTime(notif.created_at)}</p>
+        </div>
+        ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
+      </div>
+    `;
+    div.innerHTML = html;
+    container.appendChild(div);
+  }
+
+  notificationsShown = end;
+
+  const oldPreview = document.querySelector('.notification-preview');
+  if (oldPreview) oldPreview.remove();
+
+  if (notificationsShown < allNotifications.length) {
+    const previewDiv = document.createElement('div');
+    previewDiv.className = "notification-preview";
+    previewDiv.innerHTML = `<button id="showPreviewBtn" style="padding:6px 18px;border-radius:20px;background:#e0c48f;border:none;color:#222;cursor:pointer;">Show previous</button>`;
+    container.appendChild(previewDiv);
+
+    document.getElementById('showPreviewBtn').onclick = function(e) {
+      e.stopPropagation();
+      appendNotifications(PREVIEW_COUNT);
+    };
+  }
+}
+
+function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return date.toLocaleDateString();
+}
+
+document.addEventListener('click', function (e) {
+  const panel = document.getElementById("notification_panel");
+  if (!panel) return;
+  if (
+    !panel.contains(e.target) &&
+    !e.target.closest('button[onclick="toggleNotificationPanel()"]')
+  ) {
+    panel.classList.remove("active");
+  }
+});
+
 // --- Make functions available globally for inline onclick ---
 window.openPostModal = openPostModal;
 window.closePostModal = closePostModal;
