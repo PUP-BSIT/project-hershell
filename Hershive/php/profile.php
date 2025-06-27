@@ -35,7 +35,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=2"/>
+  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=3"/>
   <title>Profile Page</title>
   <link rel="icon" href="../assets/logo.png"/>
 </head>
@@ -48,10 +48,21 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           alt="search_icon"></button>
     </div>
     <div class="navigation-icons">
+      <button class="profile-tab-btn" onclick="scrollToProfile()">
+        <span class="profile-tab-circle"><?php echo $username; ?></span>
+      </button>
       <a href="../html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
-      <button><img src="../assets/notification_icon.png"
-          alt="notification"></button>
+      <button onclick="toggleNotificationPanel()">
+        <img src="../assets/notification_icon.png" alt="notification"/>
+      </button>
+    
+      <div class="notification-panel" id="notification_panel">
+        <div class="notification-header">
+          <h4>Notification</h4>
+        </div>
+        <div id="notification_container"></div>
+      </div>
       <button class="menu-button">☰</button>
     </div>
   </div>
@@ -280,6 +291,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </div>
     </div>
 
-  <script src="/project-hershell/Hershive/script/profile.js?v=2"></script>
+  <script src="/project-hershell/Hershive/script/profile.js?v=4"></script>
 </body>
 </html>
