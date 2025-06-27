@@ -723,7 +723,32 @@ function deletePost(button) {
 
 function formatText(command) {
   document.execCommand(command, false, null);
+  updateFormattingButtonStates();
 }
+
+function updateFormattingButtonStates() {
+  const commands = {
+    bold: "bold",
+    italic: "italic",
+    underline: "underline"
+  };
+
+  Object.entries(commands).forEach(([id, cmd]) => {
+    const button = [...document.querySelectorAll(".formatting-options button")]
+      .find(btn => btn.textContent.toLowerCase() === id[0]);
+    if (!button) return;
+
+    const isActive = document.queryCommandState(cmd);
+    button.classList.toggle("active", isActive);
+  });
+}
+
+document.addEventListener("selectionchange", () => {
+  const editor = document.getElementById("editor");
+  if (document.activeElement === editor) {
+    updateFormattingButtonStates();
+  }
+});
 
 const imageInput = document.getElementById("media_input");
 const videoInput = document.getElementById("media_input_video");
@@ -1018,67 +1043,193 @@ function formatTime(timestamp) {
 
 let currentPostIdForComments = null;
 
-function toggleCommentModal(button) {
-  const postElement = button.closest('.sample-post');
-  const modal = postElement.querySelector('.comment-modal');
-  const commentListContainer = modal.querySelector('.comment-list');
-  modal.classList.remove('hidden');
+function toggleCommentModal(postElement) {
+  console.log('toggleCommentModal called with:', postElement);
 
+
+  const overlay = document.getElementById('commentModalOverlay');
+  const modal = document.getElementById('commentModal');
+  const commentListContainer = document.getElementById('commentListContainer');
+ 
+  if (!postElement || !postElement.dataset || !postElement.dataset.postId) {
+      console.error('Invalid post element or missing post ID');
+      alert('Error: Cannot identify the post for commenting');
+      return;
+  }
+ 
   currentPostIdForComments = postElement.dataset.postId;
+  console.log('Set currentPostIdForComments to:', currentPostIdForComments);
+ 
+  if (!currentPostIdForComments || currentPostIdForComments === 'POST_ID_HERE') {
+      console.error('Invalid post ID:', currentPostIdForComments);
+      alert('Error: Invalid post ID for commenting');
+      return;
+  }
+ 
+  overlay.classList.add('active');
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
+ 
   loadComments(currentPostIdForComments, commentListContainer);
+
+  setTimeout(() => {
+      const commentInput = document.getElementById('commentInput');
+      if (commentInput) {
+          commentInput.focus();
+      }
+  }, 300);
 }
 
-function closeCommentModal(button) {
-  const modal = button.closest('.comment-modal');
-  modal.classList.add('hidden');
+function closeCommentModal() {
+    const overlay = document.getElementById('commentModalOverlay');
+    overlay.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+   
+    const commentInput = document.getElementById('commentInput');
+    if (commentInput) {
+        commentInput.value = '';
+    }
 }
 
 function loadComments(postId, commentListContainer) {
+  if (!postId) {
+      console.error('No post ID provided to loadComments');
+      commentListContainer.innerHTML = '<p class="error-message">No post selected for commenting.</p>';
+      return;
+  }
+ 
+  if (!commentListContainer) {
+      console.error('No comment container provided to loadComments');
+      return;
+  }
+ 
+  console.log('Loading comments for post ID:', postId);
+ 
+  commentListContainer.innerHTML = '<p class="loading-message">Loading comments...</p>';
+ 
   fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        displayComments(data.comments, commentListContainer);
-      } else {
-        console.error(data.error);
-      }
-    });
+      .then(res => res.json())
+      .then(data => {
+          if (data.success) {
+              displayComments(data.comments, commentListContainer);
+          } else {
+              console.error('Failed to load comments:', data.error);
+              commentListContainer.innerHTML = '<p class="error-message">Failed to load comments: ' + (data.error || 'Unknown error') + '</p>';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading comments:', error);
+          commentListContainer.innerHTML = '<p class="error-message">Error loading comments. Please try again.</p>';
+      });
 }
 
 function displayComments(comments, container) {
   container.innerHTML = '';
-
+  if (comments.length === 0) {
+      container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No comments yet.</p>';
+      return;
+  }
   comments.forEach(comment => {
-    const commentDiv = document.createElement('div');
-    commentDiv.className = 'comment';
-    commentDiv.setAttribute('data-id', comment.comment_id);
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment-entry';
+      commentDiv.setAttribute('data-id', comment.comment_id);
+      const timeAgo = formatTime(comment.timestamp);
 
-    const timeAgo = formatTime(comment.timestamp);
-
-    commentDiv.innerHTML = `
-      <div class="comment-content">
-        <button class="comment-options" onclick="showCommentOptionsMenu(event, ${comment.comment_id}, ${comment.user_id})">&#8942;</button>
-        <img src="${comment.avatar}" class="comment-avatar" />
-        <div class="comment-header">
-          <span class="comment-author">${comment.username}</span>
-        </div>
-        <p class="comment-text">${comment.comment_content}</p>
-        <span class="comment-time">${timeAgo}</span>
-      </div>
-    `;
-
-    container.appendChild(commentDiv);
+      const isOwner = (typeof currentUserId !== 'undefined' && currentUserId !== null && String(comment.user_id) === String(currentUserId));
+      let optionsBtn = '';
+      if (isOwner) {
+        optionsBtn = `<button class="comment-options" onclick="showCommentOptionsMenu(event, ${comment.comment_id}, ${comment.user_id})">⋯</button>`;
+      }
+      commentDiv.innerHTML = `
+          <img src="${comment.avatar || '../assets/temporary_pfp.png'}" alt="User Avatar" class="comment-avatar">
+          <div class="comment-content">
+              <div class="comment-bubble">
+                  ${optionsBtn}
+                  <div class="comment-username">${escapeHtml(comment.username)}</div>
+                  <p class="comment-text">${escapeHtml(comment.comment_content)}</p>
+              </div>
+              <div class="comment-timestamp">${timeAgo}</div>
+          </div>
+      `;
+      container.appendChild(commentDiv);
   });
+  container.scrollTop = container.scrollHeight;
+}
+
+function submitComment() {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId || currentUserId === -1) {
+        alert('You must be logged in to comment');
+        return;
+    }
+
+    const input = document.getElementById('commentInput');
+    const content = input.value.trim();
+   
+    if (!content) {
+        return;
+    }
+   
+    if (!currentPostIdForComments) {
+        alert('Error: No post selected for commenting');
+        return;
+    }
+   
+    const commentListContainer = document.getElementById('commentListContainer');
+   
+    fetch('../php/comment_crud.php?action=add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            post_id: currentPostIdForComments,
+            content: content
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadComments(currentPostIdForComments, commentListContainer);
+            updateCommentCount(currentPostIdForComments);
+            input.focus();
+        } else {
+            alert('Failed to add comment: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error adding comment:', error);
+        alert('Error adding comment');
+    });
 }
 
 function showCommentOptionsMenu(e, commentId, commentUserId) {
+  e.preventDefault();
   e.stopPropagation();
-
+ 
+  console.log('Comment options clicked for comment ID:', commentId);
+  console.log('Comment user ID:', commentUserId);
+  console.log('Current user ID:', getCurrentUserId());
+ 
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
-
-  const commentDiv = e.target.closest('.comment');
-  if (!commentDiv) return;
-
+ 
+  const commentDiv = e.target.closest('.comment-entry');
+  if (!commentDiv) {
+    console.error('Could not find parent comment-entry element');
+    return;
+  }
+ 
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId || currentUserId === -1) {
+    console.log('User not logged in');
+    return;
+  }
+ 
+  if (commentUserId != currentUserId) {
+    console.log('User does not own this comment');
+    return;
+  }
+ 
   const newMenu = document.createElement('div');
   newMenu.className = 'comment-context-menu';
   newMenu.innerHTML = `
@@ -1086,18 +1237,170 @@ function showCommentOptionsMenu(e, commentId, commentUserId) {
     <button onclick="deleteComment(${commentId})">Delete</button>
     <button onclick="cancelCommentMenu(this)">Cancel</button>
   `;
-
-  newMenu.style.position = 'absolute';
-  newMenu.style.top = '30px';
-  newMenu.style.right = '0';
-
+ 
+  commentDiv.style.position = 'relative';
   commentDiv.appendChild(newMenu);
-
+ 
+  newMenu.style.zIndex = '1000';
+  newMenu.style.display = 'flex';
+ 
   setTimeout(() => {
-    document.addEventListener('click', () => {
-      newMenu.remove();
-    }, { once: true });
+    function handleOutsideClick(event) {
+      if (!newMenu.contains(event.target) && !event.target.classList.contains('comment-options')) {
+        newMenu.remove();
+        document.removeEventListener('mousedown', handleOutsideClick);
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick);
   }, 0);
+}
+
+function editComment(commentId) {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId || currentUserId === -1) {
+        alert('You must be logged in to edit comments');
+        return;
+    }
+
+    const commentDiv = document.querySelector(`.comment-entry[data-id='${commentId}']`);
+    if (!commentDiv) return;
+   
+    const textElement = commentDiv.querySelector('.comment-text');
+    const originalContent = textElement.textContent;
+   
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-comment-input';
+    input.value = originalContent;
+   
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.className = 'edit-comment-save-btn';
+   
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'edit-comment-cancel-btn';
+   
+    saveBtn.onclick = function() {
+        const newContent = input.value.trim();
+        if (!newContent) return;
+       
+        fetch('../php/comment_crud.php?action=edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                comment_id: commentId,
+                content: newContent
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                textElement.textContent = newContent;
+                input.remove();
+                saveBtn.remove();
+                cancelBtn.remove();
+                textElement.style.display = '';
+            } else {
+                alert('Failed to update comment: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error updating comment:', error);
+            alert('Error updating comment');
+        });
+    };
+   
+    cancelBtn.onclick = function() {
+        input.remove();
+        saveBtn.remove();
+        cancelBtn.remove();
+        textElement.style.display = '';
+    };
+   
+    textElement.style.display = 'none';
+    textElement.parentNode.appendChild(input);
+    textElement.parentNode.appendChild(saveBtn);
+    textElement.parentNode.appendChild(cancelBtn);
+    input.focus();
+    input.select();
+}
+
+function deleteComment(commentId) {
+  console.log('deleteComment called with commentId:', commentId);
+ 
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId || currentUserId === -1) {
+      alert('You must be logged in to delete comments');
+      return;
+  }
+ 
+  const modalOverlay = document.getElementById('myNewConfirmationModalOverlay');
+  if (!modalOverlay) {
+      console.error('Confirmation modal not found');
+      alert('Error: Confirmation dialog not available');
+      return;
+  }
+ 
+  modalOverlay.classList.remove('hidden');
+  modalOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+ 
+  window.tempCommentId = commentId;
+ 
+  const confirmButton = document.querySelector('.custom-modal .submit-button');
+  if (confirmButton) {
+      confirmButton.onclick = null;
+      confirmButton.onclick = function() {
+          confirmDeleteComment();
+      };
+  }
+}
+
+function confirmDeleteComment() {
+  const commentId = window.tempCommentId;
+ 
+  if (!commentId) {
+      console.error('No comment ID available for deletion');
+      closeMyNewModal();
+      return;
+  }
+ 
+  fetch('../php/comment_crud.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ comment_id: commentId })
+  })
+  .then(res => res.json())
+  .then(data => {
+      if (data.success) {
+          loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+         
+          setTimeout(() => {
+              updateCommentCount(currentPostIdForComments);
+          }, 100);
+         
+          closeMyNewModal();
+      } else {
+          alert('Failed to delete comment: ' + (data.error || 'Unknown error'));
+          closeMyNewModal();
+      }
+  })
+  .catch(error => {
+      console.error('Error deleting comment:', error);
+      alert('Error deleting comment');
+      closeMyNewModal();
+  });
+}
+
+function closeMyNewModal() {
+  const modalOverlay = document.getElementById('myNewConfirmationModalOverlay');
+  if (modalOverlay) {
+      modalOverlay.classList.remove('active');
+      modalOverlay.classList.add('hidden');
+  }
+  document.body.style.overflow = '';
+  window.tempCommentId = null;
 }
 
 function cancelCommentMenu(button) {
@@ -1105,101 +1408,124 @@ function cancelCommentMenu(button) {
   if (menu) menu.remove();
 }
 
-function submitComment(btn) {
-  const input = btn.previousElementSibling;
-  const content = input.value.trim();
-  if (!content) return;
+function confirmMyAction() {
+  confirmDeleteComment();
+}
 
-  const modal = btn.closest('.comment-modal');
-  const commentListContainer = modal.querySelector('.comment-list');
+function openMyNewModal() {
+  const modalOverlay = document.getElementById('myNewConfirmationModalOverlay');
+  if (modalOverlay) {
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+  }
+}
 
-  fetch('../php/comment_crud.php?action=add', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ post_id: currentPostIdForComments, content: content })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      input.value = '';
-      loadComments(currentPostIdForComments, commentListContainer);
-    } else {
-      alert('Failed to add comment');
+document.addEventListener('DOMContentLoaded', function() {
+    const commentInput = document.getElementById('commentInput');
+    if (commentInput) {
+        commentInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitComment();
+            }
+        });
     }
-  });
+   
+    const overlay = document.getElementById('commentModalOverlay');
+    const modal = document.getElementById('commentModal');
+   
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeCommentModal();
+            }
+        });
+    }
+   
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+   
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const overlay = document.getElementById('commentModalOverlay');
+            if (overlay && overlay.classList.contains('active')) {
+                closeCommentModal();
+            }
+        }
+    });
+});
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function formatTime(timeStr) {
-  const time = new Date(timeStr);
-  const now = new Date();
-  const diff = Math.floor((now - time) / 1000);
-
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function editComment(commentId) {
-  const commentDiv = document.querySelector(`.comment[data-id='${commentId}']`);
-  if (!commentDiv) return;
-
-  const contentP = commentDiv.querySelector('p');
-  const originalContent = contentP.textContent;
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'edit-comment-input';
-  input.value = originalContent;
-
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = 'Save';
-  saveBtn.onclick = function () {
-    const newContent = input.value.trim();
-    if (!newContent) return;
-
-    fetch('../php/comment_crud.php?action=edit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        comment_id: commentId,
-        content: newContent
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        contentP.textContent = newContent;
-        input.remove();
-        saveBtn.remove();
-        contentP.style.display = '';
-      } else {
-        alert('Failed to update comment');
-      }
-    });
-  };
-
-  contentP.style.display = 'none';
-  commentDiv.appendChild(input);
-  commentDiv.appendChild(saveBtn);
-}
-
-function deleteComment(commentId) {
-  if (!confirm("Are you sure you want to delete this comment?")) return;
-
-  fetch('../php/comment_crud.php?action=delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ comment_id: commentId })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      loadComments(currentPostIdForComments);
-    } else {
-      alert('Failed to delete comment');
+    const time = new Date(timeStr);
+    const now = new Date();
+    
+    if (isNaN(time.getTime()) || isNaN(now.getTime())) {
+        return 'now';
     }
-  });
+    
+    const diff = Math.floor((now - time) / 1000);
+    
+    if (diff < 0) {
+        return 'now';
+    }
+    
+    if (diff < 60) return diff === 0 ? 'now' : `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function updateCommentCount(postId) {
+    console.log('Updating comment count for post:', postId);
+   
+    const post = document.querySelector(`[data-post-id="${postId}"]`);
+    if (!post) {
+        console.error('Post element not found for ID:', postId);
+        return;
+    }
+   
+    const commentCountSpan = post.querySelector('.comment-count');
+    if (!commentCountSpan) {
+        console.error('Comment count span not found for post:', postId);
+        return;
+    }
+   
+    fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const newCount = data.comments.length;
+                console.log('Updated comment count to:', newCount);
+                commentCountSpan.textContent = newCount;
+            } else {
+                console.error('Failed to fetch updated comment count:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating comment count:', error);
+        });
+}
+
+function getCurrentUserId() {
+  if (typeof currentUserId === 'undefined' || currentUserId === null || currentUserId === undefined) {
+    console.warn("Current user ID not set - user is not logged in");
+    return -1;
+  }
+  return currentUserId;
 }
 
 function toggleShareModal(postElement) {

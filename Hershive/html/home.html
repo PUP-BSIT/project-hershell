@@ -299,13 +299,40 @@
       </div>
     </div>
 
-    <div class="modal-overlay hidden" id="comment_modal">
-      <div class="comment-modal">
-        <div class="comment-modal-header">
-          <button class="close-button" onclick="closeCommentModal()">&times;</button>
+      <div class="comment-modal-overlay" id="commentModalOverlay">
+        <div class="comment-modal" id="commentModal">
+            <div class="comment-modal-header">
+                <h3>Comments</h3>
+                <button class="close-comment-modal" onclick="closeCommentModal()">×</button>
+            </div>
+            <div class="comment-list-container" id="commentListContainer">
+            </div>
+            <div class="comment-input-container">
+                <img src="../assets/temporary_pfp.png" alt="Your Avatar" class="comment-input-avatar">
+                <div class="comment-input-wrapper">
+                    <input type="text" class="comment-input" placeholder="Write a comment..." id="commentInput">
+                    <button class="send-comment-btn" onclick="submitComment()">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="comment-input-container">
-          <img src="../assets/temporary_pfp.png" class="comment-avatar"/>
+    </div>
+
+    <div class="custom-modal-overlay hidden" id="myNewConfirmationModalOverlay">
+      <div class="custom-modal">
+        <div class="custom-modal-header">
+          <h3>Delete Comment</h3>
+          <button class="custom-close-btn" onclick="closeMyNewModal()">×</button>
+        </div>
+        <div class="custom-content-area">
+          <p>Are you sure you want to permanently remove this comment?</p>
+          <div class="button-holder">
+            <button class="cancel-btn" onclick="closeMyNewModal()">Cancel</button>
+            <button class="submit-button" onclick="confirmMyAction()">Confirm</button>
+          </div>
         </div>
       </div>
     </div>
@@ -348,6 +375,6 @@
         </div>
       </div>
     </div>
-    <script src="../script/home.js?v=2.1"></script>
+    <script src="../script/home.js?v=2.3"></script>
   </body>
 </html>
