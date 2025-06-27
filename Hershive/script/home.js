@@ -1559,8 +1559,8 @@ function submitShare() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      post_id: postId,        // original post being shared
-      content: message        // now goes into the post table
+      post_id: postId,
+      content: message
     })
   })
     .then((res) => res.json())
@@ -1568,7 +1568,7 @@ function submitShare() {
       if (data.success) {
         alert("Post shared successfully!");
         closeShareModal();
-        loadPosts(); // Refresh global wall
+        loadPosts();
       } else {
         alert(data.error || "Error sharing post");
       }
