@@ -48,6 +48,9 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           alt="search_icon"></button>
     </div>
     <div class="navigation-icons">
+      <button class="profile-tab-btn" onclick="scrollToProfile()">
+        <span class="profile-tab-circle"><?php echo $username; ?></span>
+      </button>
       <a href="../html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
       <button><img src="../assets/notification_icon.png"
