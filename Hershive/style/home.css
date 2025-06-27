@@ -959,18 +959,21 @@ select {
   padding: 20px;
   border-radius: 12px;
   width: 60vw;
-  height: 90vh;
+  max-height: 70vh;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1vh;
 }
 
 .share-modal-header {
   display: flex;
   justify-content: center;
-  font-size: 18px;
   font-weight: bold;
+}
+
+.share-modal-header h3 {
+  font-size: 3vh;
 }
 
 .close-btn {
@@ -998,12 +1001,12 @@ select {
 
 .share-icons img {
   width: 36px;
-  height: 36px;
+  height: 5vh;
   cursor: pointer;
 }
 
 .share-link-section label {
-  font-size: 14px;
+  font-size: 1.5vh;
   margin-bottom: 4px;
   display: block;
 }
@@ -1019,10 +1022,11 @@ select {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 1.4vh;
 }
 
 .link-box button {
+  height: 4vh;
   background: #f2f2f2;
   border: 1px solid #ccc;
   padding: 8px 10px;
@@ -1037,11 +1041,11 @@ select {
 
 .share-textarea {
   width: 100%;
-  min-height: 80px;
+  min-height: 8vh;
   padding: 10px;
   margin: 10px 0;
-  font-size: 14px;
-  resize: vertical;
+  font-size: 1.4vh;
+  resize: none;
 }
 
 .shared-post-preview {
@@ -1049,13 +1053,14 @@ select {
   padding: 10px;
   background-color: #f9f9f9;
   margin-bottom: 15px;
-  height: 100px;
+  overflow-y: auto;
+  max-height: 48vh;
+  -webkit-overflow-scrolling: scroll;
+  scrollbar-width: thin;
 }
 
 #shared_post_preview img,
 #shared_post_preview video {
-  max-width: 100%;
-  max-height: 50%;
   width: auto;
   height: auto;
   border-radius: 8px;
@@ -1068,9 +1073,10 @@ select {
   color: white;
   padding: 10px 20px;
   border: none;
+  height: fit-content;
+  font-size: 2vh;
   font-weight: bold;
   cursor: pointer;
-  margin-bottom: 10px;
   border-radius: 5px;
 }
 
