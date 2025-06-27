@@ -67,6 +67,11 @@ function formatText(command) {
   document.execCommand(command, false, null);
 }
 
+function scrollToProfile() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.scrollToProfile = scrollToProfile;
+
 function handleCreatePostFileInput(input, isVideo = false) {
   const previewContainer = document.getElementById("preview_container");
   previewContainer.innerHTML = "";
