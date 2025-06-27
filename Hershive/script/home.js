@@ -1213,22 +1213,6 @@ function toggleShareModal(postElement) {
 
   preview.innerHTML = content;
   postIdInput.value = postId;
-  linkInput.value = `https://www.hershive.com/post/${postId}`;
-
-  modal.classList.remove("hidden");
-}
-
-function toggleShareModal(postElement) {
-  const modal = document.getElementById("share_modal");
-  const preview = document.getElementById("shared_post_preview");
-  const postIdInput = document.getElementById("shared_post_id");
-  const linkInput = document.getElementById("share_link");
-
-  const content = postElement.querySelector(".content")?.innerHTML || "No content";
-  const postId = postElement.dataset.postId;
-
-  preview.innerHTML = content;
-  postIdInput.value = postId;
   linkInput.value = `https://www.hershive.com/post/${postId}`; // adjust URL format as needed
 
   modal.classList.remove("hidden");
@@ -1249,8 +1233,8 @@ function submitShare() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      post_id: postId,        // original post being shared
-      content: message        // now goes into the post table
+      post_id: postId,
+      content: message
     })
   })
     .then((res) => res.json())
@@ -1258,7 +1242,7 @@ function submitShare() {
       if (data.success) {
         alert("Post shared successfully!");
         closeShareModal();
-        loadPosts(); // Refresh global wall
+        loadPosts();
       } else {
         alert(data.error || "Error sharing post");
       }
