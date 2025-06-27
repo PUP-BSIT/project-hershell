@@ -723,7 +723,32 @@ function deletePost(button) {
 
 function formatText(command) {
   document.execCommand(command, false, null);
+  updateFormattingButtonStates();
 }
+
+function updateFormattingButtonStates() {
+  const commands = {
+    bold: "bold",
+    italic: "italic",
+    underline: "underline"
+  };
+
+  Object.entries(commands).forEach(([id, cmd]) => {
+    const button = [...document.querySelectorAll(".formatting-options button")]
+      .find(btn => btn.textContent.toLowerCase() === id[0]);
+    if (!button) return;
+
+    const isActive = document.queryCommandState(cmd);
+    button.classList.toggle("active", isActive);
+  });
+}
+
+document.addEventListener("selectionchange", () => {
+  const editor = document.getElementById("editor");
+  if (document.activeElement === editor) {
+    updateFormattingButtonStates();
+  }
+});
 
 const imageInput = document.getElementById("media_input");
 const videoInput = document.getElementById("media_input_video");
