@@ -51,7 +51,6 @@ try {
     $users = [];
     if ($userMatches && $userMatches->num_rows > 0) {
         while ($user = $userMatches->fetch_assoc()) {
-            $user['posts_count'] = getCount($conn, "SELECT COUNT(*) FROM post WHERE user_id = {$user['user_id']} AND deleted = 0");
             $user['followers_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE following_id = {$user['user_id']}");
             $user['following_count'] = getCount($conn, "SELECT COUNT(*) FROM follow WHERE follower_id = {$user['user_id']}");
             $users[] = $user;
@@ -164,8 +163,12 @@ try {
 
 // === helper functions ===
 function getCount($conn, $sql) {
-    $res = $conn->query($sql);
-    return $res ? ((int)($res->fetch_assoc()['total'] ?? 0)) : 0;
+  $res = $conn->query($sql);
+  if ($res) {
+      $row = $res->fetch_row();
+      return (int)($row[0] ?? 0);
+  }
+  return 0;
 }
 
 function fetchPostsByUserId($target_user_id, $viewer_user_id, $conn) {
