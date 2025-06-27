@@ -1061,7 +1061,7 @@ select {
 
 #shared_post_preview img,
 #shared_post_preview video {
-  width: auto;
+  max-width: 100%;
   height: auto;
   border-radius: 8px;
   margin-top: 10px;
