@@ -495,6 +495,10 @@ body.modal-open {
   border: 1px solid rgba(255, 255, 255, 0.1);
   transform-origin: center top;
   z-index: 9999;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
 }
 
 @media (max-width: 768px) {
@@ -597,23 +601,31 @@ body.modal-open {
   background: rgba(255, 255, 255, 0.6);
 }
 
+.create-post-modal:hover {
+  scrollbar-color: #b98d5b rgba(0, 0, 0, 0.05);
+}
+
 .create-post-modal::-webkit-scrollbar {
   width: 8px;
 }
 
-.create-post-modal::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
 .create-post-modal::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #b98d5b, #a67c52);
+  background: transparent;
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
-.create-post-modal::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #a67c52, #8b6a47);
+.create-post-modal:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #b98d5b, #a67c52);
+}
+
+.create-post-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.create-post-modal:hover::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 
 .textarea {
