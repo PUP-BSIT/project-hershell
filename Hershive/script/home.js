@@ -1,41 +1,51 @@
 let currentUser = null;
+let currentUserId = null;
 let allSearchedUsers = [];
 let followStatusCache = {};
+let currentUserProfilePic = null;
 
-document.addEventListener("DOMContentLoaded", function() {
-  checkUserSession();
-  loadPosts();
-  loadSuggestedUsers();
-  initializeMediaUpload();
-  syncPrivacyToModal();
-  bindPrivacyEvents();
-  loadNotifications();
+document.addEventListener("DOMContentLoaded", function () {
+  checkUserSession(() => {
+    loadPosts();
+    loadSuggestedUsers();
+    initializeMediaUpload();
+    syncPrivacyToModal();
+    bindPrivacyEvents();
+    loadNotifications();
 
-  setTimeout(() => {
-    initializeFollowStatus();
-  }, 1000)
+    setTimeout(() => {
+      initializeFollowStatus();
+    }, 1000);
+  });
 });
 
-function checkUserSession() {
+function checkUserSession(callback) {
   fetch("../php/home.php")
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
         currentUser = data.username;
+        currentUserId = data.user_id;
+        currentUserProfilePic = data.profile_picture_url || '../assets/temporary_pfp.png';
+
+        const inputAvatar = document.querySelector('.comment-input-avatar');
+        if (inputAvatar) {
+          inputAvatar.src = currentUserProfilePic;
+          inputAvatar.onerror = function () {
+            this.src = '../assets/temporary_pfp.png';
+          };
+        }
 
         document.getElementById("display_name").textContent = data.display_name;
         document.getElementById("username").textContent = "@" + data.username;
 
-        const mainCreatePostPic = document.querySelector
-            (".main-create-post .profile-pic");
-            if (mainCreatePostPic) {
-              mainCreatePostPic.src = data.profile_picture_url ||
-                  "../assets/temporary_pfp.png";
-            }
-
-        mainCreatePostPic.onerror = function () {
-          this.src = "../assets/temporary_pfp.png";
-        };
+        const mainCreatePostPic = document.querySelector(".main-create-post .profile-pic");
+        if (mainCreatePostPic) {
+          mainCreatePostPic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          mainCreatePostPic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
 
         const sideProfileImg = document.querySelector(".side-panel .profile-img");
         if (sideProfileImg) {
@@ -53,13 +63,14 @@ function checkUserSession() {
           };
         }
 
-        const modalUsername = document.querySelector
-            (".create-post-modal .username");
+        const modalUsername = document.querySelector(".create-post-modal .username");
         if (modalUsername) {
           modalUsername.textContent = data.username;
         }
 
-        loadPosts();
+        if (typeof callback === "function") {
+          callback();
+        }
       } else {
         window.location.href = "../html/login.html";
       }
