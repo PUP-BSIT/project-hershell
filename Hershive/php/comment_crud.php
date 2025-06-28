@@ -14,7 +14,7 @@ if ($action === 'get') {
     }
    
     $stmt = $conn->prepare("
-        SELECT c.comment_id, c.comment_content, c.timestamp, c.user_id, u.username
+        SELECT c.comment_id, c.comment_content, c.timestamp, c.user_id, u.username, u.profile_picture_url
         FROM comment c
         JOIN user u ON c.user_id = u.user_id
         WHERE c.post_id = ? AND c.deleted = 0
