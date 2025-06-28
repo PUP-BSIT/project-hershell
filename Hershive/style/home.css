@@ -171,6 +171,33 @@ select {
   padding: 10px;
   border-radius: 20px;
   font-family: sans-serif;
+  overflow-y: auto;
+  position: sticky;
+  top: 80px;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  height: calc(100vh - 90px);
+}
+
+.side-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.side-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-panel::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.side-panel:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.side-panel:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* global wall style */
