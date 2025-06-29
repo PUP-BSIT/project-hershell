@@ -422,6 +422,9 @@ body.modal-open {
   margin: 10px 0;
   padding: 10px;
   font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: none;
 }
 
 .formatting-options {
@@ -628,14 +631,6 @@ body.modal-open {
   border-radius: 4px;
 }
 
-.textarea {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  height: 100px;
-  resize: none;
-}
-
 .submit-button {
   background: linear-gradient(135deg, #b98d5b, #a67c52);
   color: white;
@@ -774,6 +769,9 @@ body.modal-open {
   margin-top: 12px;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
 }
 
 .text-editor::before {
@@ -791,6 +789,8 @@ body.modal-open {
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .text-editor:focus::before {
@@ -808,6 +808,7 @@ body.modal-open {
   content: attr(placeholder);
   color: #9ca3af;
   font-style: italic;
+  pointer-events: none;
 }
 
 /* Hide helper class */

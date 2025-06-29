@@ -733,20 +733,22 @@ function deletePost(button) {
 }
 
 function formatText(command) {
+  const editor = document.getElementById("editor");
+  editor.focus();
   document.execCommand(command, false, null);
   updateFormattingButtonStates();
 }
 
 function updateFormattingButtonStates() {
   const commands = {
-    bold: "bold",
-    italic: "italic",
-    underline: "underline"
+    bold: "B",
+    italic: "I",
+    underline: "U"
   };
 
-  Object.entries(commands).forEach(([id, cmd]) => {
+  Object.entries(commands).forEach(([cmd, text]) => {
     const button = [...document.querySelectorAll(".formatting-options button")]
-      .find(btn => btn.textContent.toLowerCase() === id[0]);
+      .find(btn => btn.textContent.trim() === text);
     if (!button) return;
 
     const isActive = document.queryCommandState(cmd);
@@ -756,8 +758,24 @@ function updateFormattingButtonStates() {
 
 document.addEventListener("selectionchange", () => {
   const editor = document.getElementById("editor");
-  if (document.activeElement === editor) {
+  if (document.activeElement === editor || editor.contains(document.activeElement)) {
     updateFormattingButtonStates();
+  }
+});
+
+// Listen for keyboard shortcuts
+document.addEventListener("keydown", (e) => {
+  const editor = document.getElementById("editor");
+  if (document.activeElement === editor || editor.contains(document.activeElement)) {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'b' || e.key === 'B') {
+        setTimeout(updateFormattingButtonStates, 10);
+      } else if (e.key === 'i' || e.key === 'I') {
+        setTimeout(updateFormattingButtonStates, 10);
+      } else if (e.key === 'u' || e.key === 'U') {
+        setTimeout(updateFormattingButtonStates, 10);
+      }
+    }
   }
 });
 
