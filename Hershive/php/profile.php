@@ -25,7 +25,7 @@ $coverPhoto = !empty($user['background_picture_url'])
     ? $user['background_picture_url'] : '../assets/cover_photo.png';
 
 $fullName = htmlspecialchars((
-    $user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+    $user['first_name'] ?? '') . ' ' . ($user['middle_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
 $username = htmlspecialchars($user['username'] ?? '');
 $bio = htmlspecialchars($user['bio'] ?? '');
 ?>
@@ -88,7 +88,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </div>
       
       <div class="profile-info">
-        <h3><?php echo $username; ?></h3>
+        <h3><?php echo $fullName; ?></h3>
         <p>@<?php echo $username; ?></p>
         
         <div class="bio-section">
