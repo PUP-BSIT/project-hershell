@@ -295,8 +295,8 @@ function createPostElement(post) {
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" class="profile-pic" alt="User" />
-        <div class="post-info">
+      <img src="${post.sharer_profile_pic || '../assets/temporary_pfp.png'}" class="profile-pic" alt="User" />
+      <div class="post-info">
           <span class="username">${post.sharer_username}</span>
           <span class="timestamp">${post.formatted_time}</span>
         </div>
