@@ -75,7 +75,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               alt="more" onclick="toggleDropdown(this)">
           <div class="dropdown-menu">
             <button onclick="openEditModal()">Edit Profile</button>
-            <button>Settings</button>
             <button onclick="cancelDropdown(this)">Cancel</button>
           </div>
         </div>
