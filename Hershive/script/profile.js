@@ -193,6 +193,7 @@ function toggleDropdown(icon) {
 }
 
 function cancelDropdown(button) {
+  if (!button) return;
   const parent = button.closest(".more-option");
   parent.classList.remove("active");
 }
@@ -200,13 +201,21 @@ function cancelDropdown(button) {
 function openEditModal(button) {
   const modal = document.getElementById("edit_modal");
   modal.classList.remove("hidden");
-  cancelDropdown(button);   
+  if (button) cancelDropdown(button);
 }
 
 function closeEditModal() {
   const modal = document.getElementById("edit_modal");
   modal.classList.add("hidden");
 }
+
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.more-option.active').forEach(function(dropdown) {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
+});
 
 function handleFileInput(input, previewElement) {
   const file = input.files[0];
@@ -286,8 +295,8 @@ function createPostElement(post) {
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-        <img src="../assets/temporary_pfp.png" class="profile-pic" alt="User" />
-        <div class="post-info">
+      <img src="${post.sharer_profile_pic || '../assets/temporary_pfp.png'}" class="profile-pic" alt="User" />
+      <div class="post-info">
           <span class="username">${post.sharer_username}</span>
           <span class="timestamp">${post.formatted_time}</span>
         </div>
