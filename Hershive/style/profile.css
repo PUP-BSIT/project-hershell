@@ -832,6 +832,19 @@ body {
   margin-bottom: 10px;
 }
 
+.profile-icon-button {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  background: none;
+  cursor: pointer;
+}
+
+.profile-icon-button img {
+  width: 30px;
+  height: 30px;
+}
+
 .icon-button {
   display: flex;
   align-items: center;
@@ -842,8 +855,8 @@ body {
 }
 
 .icon-button img {
-  width: 30px;
-  height: 30px;
+  width: 16px;
+  height: 16px;
 }
 
 .privacy-select {
