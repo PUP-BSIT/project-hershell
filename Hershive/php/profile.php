@@ -161,7 +161,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               <img id="profile_img_preview"
                   src="<?php echo $profilePic; ?>"
                   alt="Image Preview" class="profile-img-preview">
-              <label class="icon-button">
+              <label class="profile-icon-button">
                 <img src="../assets/camera_icon.png" alt="Image Icon">
                 <input type="file" id="media_input" accept="image/*" hidden>
               </label>
@@ -174,7 +174,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               <img id="cover_img_preview"
                   src="<?php echo $coverPhoto; ?>"
                   alt="Cover Preview" class="cover-img-preview">
-              <label class="icon-button">
+              <label class="profile-icon-button">
                 <img src="../assets/camera_icon.png" alt="Image Icon">
                 <input type="file" 
                     id="cover_media_input" accept="image/*" hidden>
