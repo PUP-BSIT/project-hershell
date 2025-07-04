@@ -60,7 +60,7 @@ function fetchUsers($conn, $whereClause, $excludedList, &$collected, $limitLeft)
   $users = [];
   $sql = "SELECT user_id, first_name, middle_name, last_name, username, profile_picture_url
             FROM user
-            WHERE $whereClause AND user_id NOT IN ($excludedList)
+            WHERE $whereClause AND deleted_account = 0 AND user_id NOT IN ($excludedList)
             LIMIT $limitLeft";
   $res = $conn->query($sql);
 
