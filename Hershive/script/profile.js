@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
+  initializeTabs();
+  loadInitialData();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+
+  if (tabParam) {
+    switchTab(tabParam);
+
+    setTimeout(() => {
+      const tabsSection = document.querySelector('.post-section-toggle');
+      if (tabsSection) {
+        tabsSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
+  }
 
   document.getElementById("media_input")?.addEventListener("change", function () {
     handleCreatePostFileInput(this, false);
@@ -753,11 +772,6 @@ window.submitShare = submitShare;
 window.copyLink = copyLink;
 
 // Tab functionality
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTabs();
-  loadInitialData();
-});
-
 let currentUserId = null;
 let targetUserId = null;
 let followersLoaded = false;

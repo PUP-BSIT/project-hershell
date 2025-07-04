@@ -96,20 +96,30 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         </div>
 
         <div class="profile-stats">
-          <div><strong id="postCount">0</strong><p>Posts</p></div>
-          <div><strong id="followerCount">0</strong><p>Followers</p></div>
-          <div><strong id="followingCount">0</strong><p>Following</p></div>
+          <div onclick="window.location.href='../php/profile.php?tab=post#tabs'">
+            <strong id="postCount">0</strong>
+            <p>Posts</p>
+          </div>
+          <div onclick="window.location.href='../php/profile.php?tab=followers#tabs'">
+            <strong id="followerCount">0</strong>
+            <p>Followers</p>
+          </div>
+          <div onclick="window.location.href='../php/profile.php?tab=following#tabs'">
+            <strong id="followingCount">0</strong>
+            <p>Following</p>
+          </div>
         </div>
       </div>
 
       <div class="post-divider"></div>
 
       <div class="container">
-        <div class="post-section-toggle">
+        <div class="post-section-toggle" id="tabs">
           <div class="tab active" data-tab="post">Post</div>
           <div class="tab" data-tab="followers">Followers</div>
           <div class="tab" data-tab="following">Following</div>
         </div>
+      </div>
 
         <!-- Post Tab Content -->
         <div class="tab-content active" id="post-tab">
