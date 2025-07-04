@@ -1189,6 +1189,7 @@ function loadComments(postId, commentListContainer) {
     .then(data => {
       if (data.success) {
         displayComments(data.comments, commentListContainer);
+        updateCommentCount(postId);
       } else {
         console.error(data.error);
       }
@@ -1206,8 +1207,6 @@ function displayComments(comments, container) {
   }
 
   comments.forEach(c => {
-      console.log('Rendering comment by:', c.user_id, 'vs current user:', currentUserId);
-
     const entry = document.createElement('div');
     entry.className = 'comment-entry';
     entry.dataset.id = c.comment_id;
@@ -1225,7 +1224,7 @@ function displayComments(comments, container) {
 
     const name = document.createElement('span');
     name.className = 'comment-username';
-    name.textContent = c.username;
+    name.innerHTML = `<a href="../php/profile.php?user_id=${c.user_id}" class="comment-username-link">${c.username}</a>`;
 
     const ts = document.createElement('span');
     ts.className = 'comment-timestamp';
@@ -1252,7 +1251,7 @@ function displayComments(comments, container) {
         e.stopPropagation();
         showCommentOptionsMenu(e, c.comment_id, c.user_id);
       };
-      entry.appendChild(opts);
+      bubble.appendChild(opts);
     }
 
     container.appendChild(entry);
@@ -1262,40 +1261,52 @@ function displayComments(comments, container) {
   container.scrollTop = container.scrollHeight;
 }
 
+function cancelCommentMenu(button) {
+  const menu = button.closest('.comment-context-menu');
+  if (menu) menu.remove();
+}
+
 function showCommentOptionsMenu(e, commentId, commentUserId) {
   e.stopPropagation();
 
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
 
-  const commentDiv = e.target.closest('.comment-entry');
-  if (!commentDiv) return;
+  const button = e.currentTarget;
+  const rect = button.getBoundingClientRect();
 
   const menu = document.createElement('div');
   menu.className = 'comment-context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+  menu.style.left = `${rect.left + window.scrollX}px`;
+  menu.style.zIndex = '9999';
 
   menu.innerHTML = `
     <button onclick="editComment(${commentId})">Edit</button>
     <button onclick="deleteComment(${commentId})">Delete</button>
-    <button onclick="cancelCommentMenu(this)">Cancel</button>
+    <button onclick="this.closest('.comment-context-menu')?.remove()">Cancel</button>
   `;
 
-  commentDiv.appendChild(menu);
+  document.body.appendChild(menu);
+
+  document.removeEventListener('mousedown', window._commentOutsideClickHandler);
+
+  window._commentOutsideClickHandler = function(event) {
+    const isClickInsideMenu = menu.contains(event.target);
+    const isClickOnButton = button.contains(event.target);
+    const isClickOnCommentInput = event.target.closest('.comment-input-container');
+
+    if (!isClickInsideMenu && !isClickOnButton && !isClickOnCommentInput) {
+      menu.remove();
+      document.removeEventListener('mousedown', window._commentOutsideClickHandler);
+    }
+  };
 
   setTimeout(() => {
-    const closeMenu = (event) => {
-      if (!menu.contains(event.target)) {
-        menu.remove();
-        document.removeEventListener('click', closeMenu);
-      }
-    };
-    document.addEventListener('click', closeMenu);
+    document.addEventListener('mousedown', window._commentOutsideClickHandler);
   }, 0);
 }
 
-function cancelCommentMenu(button) {
-  const menu = button.closest('.comment-context-menu');
-  if (menu) menu.remove();
-}
 
 function submitComment() {
   const inp = document.getElementById('commentInput');
@@ -1319,6 +1330,7 @@ function submitComment() {
     inp.value = '';
 
     loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+    updateCommentCount(currentPostIdForComments);
 
     setTimeout(() => {
       inp.focus();
@@ -1327,22 +1339,32 @@ function submitComment() {
   .catch(err => console.error('Comment error:', err));
 }
 
+document.getElementById("commentInput").addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    submitComment();
+  }
+});
+
 function initializeCommentTimeUpdates() {
   updateCommentTimes();
-  setInterval(updateCommentTimes, 60000); // refresh every minute
+  setInterval(updateCommentTimes, 60000);
 }
 
 function updateCommentCount(postId) {
-  const post = document.querySelector(`.sample-post[data-post-id='${postId}']`);
-  if (!post) return;
+  fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const post = document.querySelector(`.sample-post[data-post-id='${postId}']`);
+        if (!post) return;
 
-  const countElem = post.querySelector('.comment-count');
-  const container = document.getElementById('commentListContainer');
-
-  if (countElem && container) {
-    const newCount = container.querySelectorAll('.comment-entry').length;
-    countElem.textContent = newCount;
-  }
+        const countElem = post.querySelector('.comment-count');
+        if (countElem) {
+          countElem.textContent = data.comments.length;
+        }
+      }
+    });
 }
 
 function escapeHtml(text) {
@@ -1415,14 +1437,20 @@ function updateCommentTimes() {
   });
 }
 
-let commentToDeleteId = null;
-
 function editComment(commentId) {
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
+
   const commentDiv = document.querySelector(`.comment-entry[data-id='${commentId}']`);
   if (!commentDiv) return;
 
-  const textEl = commentDiv.querySelector('.comment-text');
+  const bubble = commentDiv.querySelector('.comment-bubble');
+  const textEl = bubble.querySelector('.comment-text');
   const originalText = textEl.textContent;
+
+  textEl.style.display = 'none';
+
+  const formWrapper = document.createElement('div');
+  formWrapper.className = 'edit-comment-wrapper';
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -1436,6 +1464,11 @@ function editComment(commentId) {
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
   cancelBtn.className = 'edit-comment-cancel-btn';
+
+  formWrapper.appendChild(input);
+  formWrapper.appendChild(saveBtn);
+  formWrapper.appendChild(cancelBtn);
+  bubble.appendChild(formWrapper);
 
   saveBtn.onclick = () => {
     const newContent = input.value.trim();
@@ -1454,9 +1487,7 @@ function editComment(commentId) {
       if (data.success) {
         textEl.textContent = newContent;
         textEl.style.display = '';
-        input.remove();
-        saveBtn.remove();
-        cancelBtn.remove();
+        formWrapper.remove();
       } else {
         alert('Failed to update comment');
       }
@@ -1465,61 +1496,104 @@ function editComment(commentId) {
 
   cancelBtn.onclick = () => {
     textEl.style.display = '';
-    input.remove();
-    saveBtn.remove();
-    cancelBtn.remove();
+    formWrapper.remove();
   };
-
-  textEl.style.display = 'none';
-  commentDiv.appendChild(input);
-  commentDiv.appendChild(saveBtn);
-  commentDiv.appendChild(cancelBtn);
 }
 
+let commentToDeleteId = null;
+
 function deleteComment(commentId) {
-  const modal = document.getElementById('myNewConfirmationModalOverlay');
-  const confirmBtn = modal?.querySelector('.submit-button');
-  const cancelBtn = modal?.querySelector('.cancel-btn');
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
 
-  if (!modal || !confirmBtn || !cancelBtn) return;
+  commentToDeleteId = commentId;
 
-  modal.classList.add('active');
+  const modal = document.getElementById('delete_comment_modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
 
-  const newConfirmHandler = () => {
-    fetch('../php/comment_crud.php?action=delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ comment_id: commentId })
-    })
+    const confirmBtn = modal.querySelector('.submit-button');
+    const cancelBtn = modal.querySelector('.cancel-btn');
+
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+      fetch('../php/comment_crud.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ comment_id: commentToDeleteId })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+            updateCommentCount(currentPostIdForComments);
+          } else {
+            alert(data.error || 'Failed to delete comment');
+          }
+        })
+        .catch(() => alert('Error deleting comment'))
+        .finally(() => {
+          closeMyNewModal();
+          commentToDeleteId = null;
+        });
+    });
+
+    cancelBtn.onclick = () => {
+      closeMyNewModal();
+    };
+  }
+}
+
+function closeMyNewModal() {
+  const modal = document.getElementById('delete_comment_modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.classList.add('hidden');
+  }
+}
+
+function confirmMyAction() {
+  if (!commentToDeleteId) return;
+
+  fetch('../php/comment_crud.php?action=delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ comment_id: commentToDeleteId })
+  })
     .then(res => res.json())
     .then(data => {
       if (data.success) {
         loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
         updateCommentCount(currentPostIdForComments);
       } else {
-        alert('Failed to delete comment');
+        alert(data.error || 'Failed to delete comment');
       }
     })
+    .catch(() => alert('Error deleting comment'))
     .finally(() => {
-      modal.classList.remove('active');
-      confirmBtn.removeEventListener('click', newConfirmHandler);
+      closeMyNewModal();
+      commentToDeleteId = null;
     });
-  };
-
-  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
-  const newConfirmBtn = modal.querySelector('.submit-button');
-  newConfirmBtn.addEventListener('click', newConfirmHandler);
-
-  cancelBtn.onclick = () => {
-    modal.classList.remove('active');
-    newConfirmBtn.removeEventListener('click', newConfirmHandler);
-  };
 }
 
-function closeMyNewModal() {
-  const modal = document.getElementById('myNewConfirmationModalOverlay');
-  if (modal) modal.classList.remove('active');
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const deleteOverlay = document.getElementById('delete_comment_modal');
+  const deleteModal = deleteOverlay?.querySelector('.custom-modal');
+
+  if (deleteOverlay && deleteModal) {
+    deleteOverlay.addEventListener('click', (e) => {
+      if (e.target === deleteOverlay) {
+        closeMyNewModal();
+      }
+    });
+
+    deleteModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+});
 
 function getCurrentUserId() {
   if (typeof currentUserId === 'undefined' || currentUserId === null) {
