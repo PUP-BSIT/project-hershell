@@ -215,20 +215,20 @@
           <div class="profile-info">
             <h3 id="display_name">Loading...</h3>
             <p id="username">@loading</p>
-                <div class="profile-stats">
-                  <div>
-                    <strong id="post_count">0</strong>
-                    <p>Posts</p>
-                  </div>
-                  <div>
-                    <strong id="follower_count">0</strong>
-                    <p>Followers</p>
-                  </div>
-                  <div>
-                    <strong id="following_count">0</strong>
-                    <p>Following</p>
-                  </div>
+              <div class="profile-stats">
+                <div onclick="window.location.href='../php/profile.php?tab=post#tabs'">
+                  <strong id="post_count">0</strong>
+                  <p>Posts</p>
                 </div>
+                <div onclick="window.location.href='../php/profile.php?tab=followers#tabs'">
+                  <strong id="follower_count">0</strong>
+                  <p>Followers</p>
+                </div>
+                <div onclick="window.location.href='../php/profile.php?tab=following#tabs'">
+                  <strong id="following_count">0</strong>
+                  <p>Following</p>
+                </div>
+              </div>
             <a href="../php/profile.php" class="profile-button">Profile</a>
           </div>
         </div>

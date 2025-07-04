@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
+  initializeTabs();
+  loadInitialData();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+
+  if (tabParam) {
+    switchTab(tabParam);
+
+    setTimeout(() => {
+      const tabsSection = document.querySelector('.post-section-toggle');
+      if (tabsSection) {
+        tabsSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
+  }
 
   document.getElementById("media_input")?.addEventListener("change", function () {
     handleCreatePostFileInput(this, false);
@@ -323,7 +342,7 @@ function createPostElement(post) {
             <p class="shared-post-username">Originally posted by
                 <strong>${post.original_post.username}</strong></p>
             <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ? 
+            ${post.original_post.media_url ?
               (post.original_post.media_type === 'video'
                 ? `<video controls class="post-media"><source src="
                     ${post.original_post.media_url}" type="video/mp4"></video>`
@@ -331,7 +350,7 @@ function createPostElement(post) {
                     class="post-media" alt="Shared Image">`): ""}
           </div>
         ` : `
-          ${post.media_url ? 
+          ${post.media_url ?
             (post.media_type === 'video'
               ? `<video controls class="post-media"><source
                   src="${post.media_url}" type="video/mp4"></video>`
@@ -425,7 +444,7 @@ function toggleLike(button, postId) {
       if (isLiked) {
         outlineIcon.classList.remove("hidden");
         filledIcon.classList.add("hidden");
-        likeCountSpan.textContent = 
+        likeCountSpan.textContent =
             Math.max(0, parseInt(likeCountSpan.textContent) - 1);
       } else {
         outlineIcon.classList.add("hidden");
@@ -751,3 +770,262 @@ window.toggleShareModal = toggleShareModal;
 window.closeShareModal = closeShareModal;
 window.submitShare = submitShare;
 window.copyLink = copyLink;
+
+// Tab functionality
+let currentUserId = null;
+let targetUserId = null;
+let followersLoaded = false;
+let followingLoaded = false;
+
+function loadInitialData() {
+  targetUserId = getProfileUserId();
+  currentUserId = document.body.dataset.userId || document.body.dataset.username;
+}
+
+function initializeTabs() {
+  const tabs = document.querySelectorAll('.tab');
+
+  tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+          const tabType = this.getAttribute('data-tab');
+          switchTab(tabType);
+      });
+  });
+}
+
+function switchTab(tabType) {
+  document.querySelectorAll('.tab').forEach(tab => {
+      tab.classList.remove('active');
+  });
+
+  document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
+
+  document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+  });
+
+  document.getElementById(`${tabType}-tab`).classList.add('active');
+
+  if (tabType === 'followers' && !followersLoaded) {
+      loadFollowers();
+  } else if (tabType === 'following' && !followingLoaded) {
+      loadFollowing();
+  }
+}
+
+function loadFollowers() {
+  if (!targetUserId) return;
+
+  const loadingElement = document.getElementById('followers-loading');
+  const listElement = document.getElementById('followers-list');
+
+  loadingElement.style.display = 'block';
+
+  fetch(`../php/get_followers.php?user_id=${targetUserId}`)
+      .then(response => response.json())
+      .then(data => {
+          loadingElement.style.display = 'none';
+          followersLoaded = true;
+
+          if (data.success && data.followers.length > 0) {
+              listElement.innerHTML = data.followers.map(user => createUserItem(user)).join('');
+          } else {
+              listElement.innerHTML = '<div class="empty-state">No followers yet</div>';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading followers:', error);
+          loadingElement.style.display = 'none';
+          listElement.innerHTML = '<div class="error-message">Error loading followers</div>';
+      });
+}
+
+function loadFollowing() {
+  if (!targetUserId) return;
+
+  const loadingElement = document.getElementById('following-loading');
+  const listElement = document.getElementById('following-list');
+
+  loadingElement.style.display = 'block';
+
+  fetch(`../php/get_following.php?user_id=${targetUserId}`)
+      .then(response => response.json())
+      .then(data => {
+          loadingElement.style.display = 'none';
+          followingLoaded = true;
+
+          if (data.success && data.following.length > 0) {
+              listElement.innerHTML = data.following.map(user => createUserItem(user)).join('');
+          } else {
+              listElement.innerHTML = '<div class="empty-state">Not following anyone yet</div>';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading following:', error);
+          loadingElement.style.display = 'none';
+          listElement.innerHTML = '<div class="error-message">Error loading following</div>';
+      });
+}
+
+function createUserItem(user) {
+  const isCurrentUser = currentUserId === user.user_id;
+  const followButton = isCurrentUser ? '' : `
+      <button class="follow-button ${user.is_following ? 'following' : ''}"
+              onclick="toggleFollow(${user.user_id}, this)">
+          ${user.is_following ? 'Following' : 'Follow'}
+      </button>
+  `;
+
+  return `
+      <div class="user-item">
+          <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
+               alt="${user.username}" class="user-avatar"
+               onerror="this.src='../assets/temporary_pfp.png'">
+          <div class="user-info">
+              <div class="user-name">${user.display_name || user.username}</div>
+              <div class="user-username">@${user.username}</div>
+          </div>
+          ${followButton}
+      </div>
+  `;
+}
+
+function toggleFollow(userId, button) {
+  const isFollowing = button.classList.contains('following');
+  const action = isFollowing ? 'unfollow' : 'follow';
+  const userItem = button.closest('.user-item');
+  const username = userItem.querySelector('.user-username').textContent.replace('@', '');
+
+  fetch(`../php/follow.php`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          action: action,
+          username: username
+      })
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          if (isFollowing) {
+              button.classList.remove('following');
+              button.textContent = 'Follow';
+          } else {
+              button.classList.add('following');
+              button.textContent = 'Following';
+          }
+
+          updateFollowStatsDirectly(action, username);
+
+          updateFollowCounts();
+      } else {
+          alert('Error: ' + (data.error || 'Could not update follow status'));
+      }
+  })
+  .catch(error => {
+      console.error('Error toggling follow:', error);
+      alert('Error updating follow status');
+  });
+}
+
+function updateFollowStatsDirectly(action, targetUsername) {
+  const followerCountElement = document.getElementById('followerCount');
+  const followingCountElement = document.getElementById('followingCount');
+
+  const profileUserId = getProfileUserId();
+  const currentUserFromBody = document.body.dataset.userId || document.body.dataset.username;
+
+  const profileUsernameElement = document.querySelector('.username');
+  const profileUsername = profileUsernameElement ? profileUsernameElement.textContent.trim() : '';
+
+  if (action === 'follow') {
+      if (profileUsername === targetUsername && followerCountElement) {
+          const currentCount = parseInt(followerCountElement.textContent) || 0;
+          followerCountElement.textContent = currentCount + 1;
+      }
+
+      if (profileUsername === currentUserFromBody && followingCountElement) {
+          const currentCount = parseInt(followingCountElement.textContent) || 0;
+          followingCountElement.textContent = currentCount + 1;
+      }
+
+  } else if (action === 'unfollow') {
+      if (profileUsername === targetUsername && followerCountElement) {
+          const currentCount = parseInt(followerCountElement.textContent) || 0;
+          followerCountElement.textContent = Math.max(0, currentCount - 1);
+      }
+
+      if (profileUsername === currentUserFromBody && followingCountElement) {
+          const currentCount = parseInt(followingCountElement.textContent) || 0;
+          followingCountElement.textContent = Math.max(0, currentCount - 1);
+      }
+  }
+
+  updateTabCountsDirectly(action, targetUsername);
+}
+
+function updateTabCountsDirectly(action, targetUsername) {
+  const followersTab = document.querySelector('[data-tab="followers"]');
+  const followingTab = document.querySelector('[data-tab="following"]');
+
+  const profileUsernameElement = document.querySelector('.username');
+  const profileUsername = profileUsernameElement ? profileUsernameElement.textContent.trim() : '';
+  const currentUserFromBody = document.body.dataset.userId || document.body.dataset.username;
+
+  if (action === 'follow') {
+      if (profileUsername === targetUsername && followersTab) {
+          const tabText = followersTab.textContent;
+          const match = tabText.match(/(\d+)/);
+          if (match) {
+              const currentCount = parseInt(match[1]) || 0;
+              const newText = tabText.replace(/\d+/, currentCount + 1);
+              followersTab.innerHTML = newText;
+          }
+      }
+
+      if (profileUsername === currentUserFromBody && followingTab) {
+          const tabText = followingTab.textContent;
+          const match = tabText.match(/(\d+)/);
+          if (match) {
+              const currentCount = parseInt(match[1]) || 0;
+              const newText = tabText.replace(/\d+/, currentCount + 1);
+              followingTab.innerHTML = newText;
+          }
+      }
+
+  } else if (action === 'unfollow') {
+      if (profileUsername === targetUsername && followersTab) {
+          const tabText = followersTab.textContent;
+          const match = tabText.match(/(\d+)/);
+          if (match) {
+              const currentCount = parseInt(match[1]) || 0;
+              const newText = tabText.replace(/\d+/, Math.max(0, currentCount - 1));
+              followersTab.innerHTML = newText;
+          }
+      }
+      if (profileUsername === currentUserFromBody && followingTab) {
+          const tabText = followingTab.textContent;
+          const match = tabText.match(/(\d+)/);
+          if (match) {
+              const currentCount = parseInt(match[1]) || 0;
+              const newText = tabText.replace(/\d+/, Math.max(0, currentCount - 1));
+              followingTab.innerHTML = newText;
+          }
+      }
+  }
+}
+
+function updateFollowCounts() {
+  // Reset loaded flags to refresh data
+  followersLoaded = false;
+  followingLoaded = false;
+
+  const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+  if (activeTab === 'followers') {
+      loadFollowers();
+  } else if (activeTab === 'following') {
+      loadFollowing();
+  }
+}
