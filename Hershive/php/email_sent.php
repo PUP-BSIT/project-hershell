@@ -9,7 +9,6 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
   <title>Email Sent</title>
   <link rel="stylesheet" href="../style/email_sent.css"/>
   <link rel="icon" href="../assets/logo.png"/>
-
 </head>
 <body>
   <div class="overlay">
@@ -23,11 +22,8 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
         <p class="message">
           We have sent you an email at <strong><?= $email ?></strong>.
         </p>
-        <p class="message">
-          Check your inbox and follow the instructions to reset your account password.
-        </p>
 
-        <p class="link-text">Did not receive the email? 
+        <p class="link-text">Did not receive the email?
           <a href="forgot_password.php">Resend Email</a>
         </p>
 
@@ -37,7 +33,6 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
       </div>
     </div>
   </div>
-
   <script src="../script/email_sent.js"></script>
 </body>
 </html>
