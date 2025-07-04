@@ -949,6 +949,7 @@ body.modal-open {
   justify-content: center;
   gap: 20px;
   position: relative;
+  cursor: pointer;
 }
 
 .profile-button {
@@ -2826,4 +2827,67 @@ body.modal-open {
 
 .confirm-button:hover {
   background-color: #c0392b;
+}
+
+
+.clickable-stat {
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.clickable-stat:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.clickable-stat:active {
+  transform: translateY(0);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: #f8f5ea;
+  border-radius: 10px;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.user-info {
+  flex-grow: 1;
+}
+
+.user-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.user-username {
+  color: #666;
+  font-size: 14px;
+}
+
+.follow-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background: #000;
+  color: white;
+  cursor: pointer;
+}
+
+.follow-button.following {
+  background: white;
+  color: #000;
+  border: 1px solid #000;
 }
