@@ -1348,6 +1348,7 @@ body.modal-open {
   padding: 16px 24px 20px;
   border-top: 1px solid #e0d4c4;
   background-color: #f4ead5;
+  background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
 }
 
 .comment-input-avatar {
@@ -2465,6 +2466,7 @@ body.modal-open {
   justify-content: space-between;
   align-items: center;
   background-color: #f4ead5;
+  background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
 }
 
 .comment-modal-scrollable {
@@ -2474,8 +2476,8 @@ body.modal-open {
 }
 
 .comment-post-preview {
-  background-color: #f4ead5;
   padding: 10px;
+  background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
 }
 
 .comment-list-container {
@@ -2589,7 +2591,7 @@ body.modal-open {
 
 .comment-list-container,
 .comment-modal-scrollable {
-  background-color: #f4ead5 !important;
+  background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
 }
 
 .comment-preview-avatar {
@@ -2623,7 +2625,6 @@ body.modal-open {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
-  
 }
 
 .comment-input-container {
