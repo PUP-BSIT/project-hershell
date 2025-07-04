@@ -3,6 +3,7 @@ let currentUserId = null;
 let allSearchedUsers = [];
 let followStatusCache = {};
 let currentUserProfilePic = null;
+let clickedUserId = null;
 
 document.addEventListener("DOMContentLoaded", function () {
   checkUserSession(() => {
@@ -621,7 +622,6 @@ function syncPrivacyToMini() {
   }
 }
 
-// Initial event bindings
  function bindPrivacyEvents() {
     const miniSelect = document.getElementById("privacy");
     const modalSelect = document.getElementById("privacy_setting");
@@ -662,8 +662,11 @@ function closePostModal() {
 
 window.addEventListener("click", function (e) {
   const postModal = document.getElementById("post_modal");
+  const shareModal = document.getElementById("share_modal");
   if (e.target === postModal) {
     closePostModal();
+  } else if (e.target === shareModal) {
+    closeShareModal();
   }
 });
 
@@ -914,6 +917,12 @@ function loadSuggestedUsers(limit = 4, page = 1) {
       users.forEach((user) => {
         const div = document.createElement("div");
         div.className = "suggested-user";
+        div.setAttribute("data-user-id", user.user_id);
+        div.addEventListener("click", (e) => {
+          const userId = e.currentTarget.dataset.userId;
+          redirectToSuggestedPage(userId);
+        });
+
         const fullName = `${user.first_name ?? ""} ${user.middle_name ?? ""} ${user.last_name ?? ""}`.trim();
         const profileImg = user.profile_picture_url ? user.profile_picture_url : "../assets/temporary_pfp.png";
 
@@ -923,8 +932,11 @@ function loadSuggestedUsers(limit = 4, page = 1) {
             <p><strong>${fullName}</strong></p>
             <p>@${user.username}</p>
           </div>
-          <button onclick="toggleFollow(this)" data-user-id="${user.user_id}">Follow</button>
+          <button class="follow-btn" onclick="toggleFollow(this)" data-user-id="${user.user_id}">Follow</button>
         `;
+
+        const button = div.querySelector(".follow-btn");
+        button.addEventListener("click", handleFollowClick);
 
         container.appendChild(div);
       });
@@ -936,6 +948,16 @@ function loadSuggestedUsers(limit = 4, page = 1) {
     .catch((error) => {
       console.error("Error loading suggested users:", error);
     });
+}
+
+function redirectToSuggestedPage(userId) {
+  console.log("Redirecting to suggested page for user ID:", userId);
+  window.location.href = `../html/suggestion.html?userId=${userId}`;
+}
+
+function handleFollowClick(event) {
+  event.stopPropagation();
+  toggleFollow(event.target);
 }
 
 function toggleFollow(button) {
@@ -993,7 +1015,6 @@ function toggleFollow(button) {
     button.disabled = false;
   });
 }
-
 
 function menuToggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
@@ -1480,7 +1501,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initialize comment time updates
   initializeCommentTimeUpdates();
   setInterval(updateCommentTimes, 60000);
 });
@@ -1496,9 +1516,10 @@ function toggleShareModal(postElement) {
 
   preview.innerHTML = content;
   postIdInput.value = postId;
-  linkInput.value = `https://www.hershive.com/post/${postId}`; // adjust URL format as needed
+  linkInput.value = `https://www.hershive.com/post/${postId}`;
 
   modal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
 }
 
 function closeShareModal() {
@@ -1506,6 +1527,7 @@ function closeShareModal() {
   if (shareModal) {
     shareModal.classList.add("hidden");
   }
+  document.body.classList.remove("modal-open");
 }
 
 function submitShare() {
