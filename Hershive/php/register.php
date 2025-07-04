@@ -124,10 +124,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             onsubmit="return validateForm()"
             method="post" action="">
           <input
-              type="email" id="email" placeholder="Email"
+              type="email" id="email" name="email" placeholder="Email"
               value="<?php echo isset($email)
                   ? htmlspecialchars($email) : ''; ?>" required />
-          <input type="text" id="username" placeholder="Username"
+          <input type="text" id="username" name="username" placeholder="Username"
               value="<?php echo isset($username)
                   ? htmlspecialchars($username) : ''; ?>" required />
 
@@ -135,6 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input
                 type="password"
                 id="password"
+                name="password"
                 placeholder="Password"
                 pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                 title="Must contain at least 8 characters, one uppercase,
@@ -149,6 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input
                 type="password"
                 id="confirm_password"
+                name="confirm_password"
                 placeholder="Confirm Password"
                 required/>
             <button type="button" class="toggle-password" 
@@ -160,7 +162,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
           <p class="login-link">
             Already have an account?
-            <a href="/project-hershell/Hershive/php/login.php">Log in here</a>
+            <a href="/project-hershell/Hershive/html/login.html">Log in here</a>
           </p>
         </form>
         <?php endif; ?>
