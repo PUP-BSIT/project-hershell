@@ -1189,16 +1189,6 @@ body.modal-open {
   transform: scale(1);
 }
 
-.comment-modal-header {
-  position: relative;
-  padding: 16px 24px;
-  border-bottom: 1px solid #ccc;
-  background-color: #f4ead5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 .comment-modal-header h3 {
   font-size: 18px;
   font-weight: 600;
@@ -1240,14 +1230,6 @@ body.modal-open {
   padding: 16px 24px;
 }
 
-.comment-entry {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-  position: relative;
-}
-
 .comment-entry:last-child {
   margin-bottom: 0;
 }
@@ -1282,9 +1264,6 @@ body.modal-open {
 }
 
 .comment-timestamp {
-  font-size: 12px;
-  color: #888;
-  margin-top: 4px;
   padding-left: 4px;
 }
 
@@ -1346,7 +1325,6 @@ body.modal-open {
 .comment-input-container {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 16px 24px 20px;
   border-top: 1px solid #e0d4c4;
   background-color: #f4ead5;
@@ -1567,18 +1545,8 @@ body.modal-open {
 }
 
 .custom-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(5px);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
@@ -1911,14 +1879,13 @@ body.modal-open {
 .button-holder {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 30px;
   gap: 10px;
 }
 
-.cancel-btn,
 .logout-btn {
   text-align: center;
-  width: 50%;
+  width: 30%;
   margin-bottom: 10px;
   padding: 10px;
   background: black;
@@ -1926,11 +1893,6 @@ body.modal-open {
   border: 2px solid black;
   border-radius: 25px;
   cursor: pointer;
-}
-
-.cancel-btn {
-  background: white;
-  color: black;
 }
 
 #logout {
@@ -2284,7 +2246,6 @@ body.modal-open {
 }
 
 .comment-header {
-  display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
@@ -2362,10 +2323,6 @@ body.modal-open {
   background: #f0f0f0;
 }
 
-.comment-entry {
-  position: relative;
-}
-
 .comment-options {
   position: absolute;
   top: 8px;
@@ -2440,10 +2397,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-.comment-entry {
-  position: relative;
-}
-
 .comment-modal-overlay {
   display: none;
   position: fixed;
@@ -2452,23 +2405,14 @@ body.modal-open {
   z-index: 999;
 }
 
-.comment-modal {
-  background-color: white;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
 .comment-modal-header {
   padding: 25px;
   border-bottom: 1px solid #ccc;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f4ead5;
   background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
+  position: relative
 }
 
 .comment-modal-scrollable {
@@ -2484,7 +2428,6 @@ body.modal-open {
 
 .comment-list-container {
   overflow: visible;
-  background-color: #f4ead5;
 }
 
 .comment-input-container {
@@ -2579,9 +2522,6 @@ body.modal-open {
 
 .comment-modal {
   width: 700px;
-  max-width: 90vw;
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .comment-post-preview .content {
@@ -2616,13 +2556,6 @@ body.modal-open {
   align-items: center;
 }
 
-.comment-modal {
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .comment-modal-scrollable {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -2634,9 +2567,7 @@ body.modal-open {
 }
 
 .comment-modal {
-  width: 100%;
   max-width: 700px;
-  height: auto;
 }
 
 .comment-modal-overlay.active {
@@ -2686,6 +2617,218 @@ body.modal-open {
 .comment-modal-scrollable::-webkit-scrollbar-track {
   background: transparent;
 }
+
+.comment-bubble {
+  position: relative;
+  background: #f0f2f5;
+  padding: 8px 32px 8px 12px;
+  border-radius: 16px;
+  display: inline-block;
+  max-width: 85%;
+}
+
+.comment-options {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.comment-entry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+  margin-bottom: 10px
+}
+
+.comment-username-link {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.comment-username-link:hover {
+  text-decoration: underline;
+}
+
+.edit-comment-wrapper {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.edit-comment-input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.edit-comment-save-btn,
+.edit-comment-cancel-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-comment-save-btn {
+  background-color: #333;
+  color: white;
+}
+
+.edit-comment-cancel-btn {
+  background-color: #e0d4c4;
+  color: black;
+}
+
+.comment-context-menu {
+  position: absolute;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 8px 0;
+  z-index: 100;
+  width: 120px;
+}
+
+.comment-context-menu {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 6px 0;
+  min-width: 120px;
+  position: absolute;
+  z-index: 9999;
+}
+
+.comment-context-menu button {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.comment-context-menu button:hover {
+  background-color: #f0f0f0;
+}
+
+.comment-bubble {
+  position: relative;
+  padding: 8px 36px 8px 12px;
+  border-radius: 16px;
+}
+
+.comment-options {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.custom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.custom-modal {
+  background-color: #f4ead5;
+  color: #f5f5f5;
+  border-radius: 12px;
+  width: 360px;
+  max-width: 90vw;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.custom-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+  margin: 0;
+}
+
+.custom-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: black;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.custom-close-btn:hover {
+  color: #fff;
+}
+
+.custom-content-area p {
+  font-size: 14px;
+  color: black;
+  margin-bottom: 20px;
+}
+
+.button-holder {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.cancel-btn,
+.confirm-button {
+  padding: 8px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #fff;
+  color: #000000;
+  border: 2px solid #000000;
+}
+
+.cancel-btn:hover {
+  background-color: #555;
+}
+
+.confirm-button {
+  background-color: black;
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #c0392b;
+}
+
 
 .clickable-stat {
   cursor: pointer;
