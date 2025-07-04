@@ -1075,23 +1075,80 @@ let currentPostIdForComments = null;
 function toggleCommentModal(button) {
   const postElement = button.closest('.sample-post');
   if (!postElement || !postElement.dataset.postId) {
-    return alert('Cannot identify which post to comment on.');
+    console.warn('Post element or post ID missing.');
+    alert('Cannot identify which post to comment on.');
+    return;
   }
-  currentPostIdForComments = postElement.dataset.postId;
 
-  document.getElementById('commentModalOverlay').classList.add('active');
+  const overlayEl = document.getElementById('commentModalOverlay');
+  const previewEl = document.getElementById('commentPostPreview');
+  const inputEl = document.getElementById('commentInput');
+  const commentListEl = document.getElementById('commentListContainer');
+
+  if (!overlayEl || !previewEl || !inputEl || !commentListEl) {
+    console.warn('Modal elements missing:', {
+      overlay: overlayEl,
+      preview: previewEl,
+      commentInput: inputEl,
+      commentListContainer: commentListEl
+    });
+    return;
+  }
+
+  currentPostIdForComments = postElement.dataset.postId;
+  previewEl.innerHTML = '';
+
+  const profilePic = postElement.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
+  const username = postElement.querySelector('.post-info .username')?.textContent || 'User';
+  const timestamp = postElement.querySelector('.timestamp')?.textContent || '';
+  const contentEl = postElement.querySelector('.post-content');
+
+  const clonedContent = contentEl?.cloneNode(true);
+  clonedContent?.querySelector('.post-actions')?.remove();
+
+  previewEl.insertAdjacentHTML(
+    'beforeend',
+    `
+    <div class="comment-post-header">
+      <img
+        src="${profilePic}"
+        alt="${username}"
+        class="comment-preview-avatar"
+        onerror="this.src='../assets/temporary_pfp.png'"
+      >
+      <div class="comment-preview-user-meta">
+        <span class="comment-preview-username">${username}</span>
+        <span class="comment-preview-timestamp">${timestamp}</span>
+      </div>
+    </div>
+    `
+  );
+
+  if (clonedContent) {
+    previewEl.appendChild(clonedContent);
+    previewEl.querySelectorAll('img').forEach(img => {
+    img.classList.add('preview-image');
+    });
+    previewEl.querySelectorAll('video').forEach(video => {
+      video.classList.add('preview-video');
+    });
+
+  }
+
+  // Reset scroll positions
+  previewEl.scrollTop = 0;
+  const scrollable = document.getElementById('commentModalScrollable');
+  if (scrollable) scrollable.scrollTop = 0;
+
+  // Show modal
+  overlayEl.classList.add('active');
   document.body.classList.add('modal-open');
   document.body.style.overflow = 'hidden';
 
-  loadComments(
-    currentPostIdForComments,
-    document.getElementById('commentListContainer')
-  );
-
-  setTimeout(() => {
-    document.getElementById('commentInput')?.focus();
-  }, 300);
+  loadComments(currentPostIdForComments, commentListEl);
+  setTimeout(() => inputEl.focus(), 300);
 }
+
 
 function closeCommentModal() {
     const overlay = document.getElementById('commentModalOverlay');
@@ -1122,21 +1179,21 @@ function loadComments(postId, commentListContainer) {
 function displayComments(comments, container) {
   container.innerHTML = '';
 
-  if (!comments.length) {
-    container.innerHTML = `<p>
-      No comments yet.
-    </p>`;
+  if (!comments || comments.length === 0) {
+    container.innerHTML = `<p class="no-comments-text">No comments yet.</p>`;
     return;
   }
 
   comments.forEach(c => {
+      console.log('Rendering comment by:', c.user_id, 'vs current user:', currentUserId);
+
     const entry = document.createElement('div');
     entry.className = 'comment-entry';
     entry.dataset.id = c.comment_id;
 
     const avatar = document.createElement('img');
     avatar.className = 'comment-avatar';
-    avatar.src = currentUserProfilePic;
+    avatar.src = c.profile_picture_url || currentUserProfilePic || '../assets/temporary_pfp.png';
     avatar.alt = 'Avatar';
 
     const bubble = document.createElement('div');
@@ -1204,11 +1261,13 @@ function showCommentOptionsMenu(e, commentId, commentUserId) {
   commentDiv.appendChild(menu);
 
   setTimeout(() => {
-    document.addEventListener('click', (event) => {
+    const closeMenu = (event) => {
       if (!menu.contains(event.target)) {
         menu.remove();
+        document.removeEventListener('click', closeMenu);
       }
-    }, { once: true });
+    };
+    document.addEventListener('click', closeMenu);
   }, 0);
 }
 
@@ -1238,56 +1297,11 @@ function submitComment() {
 
     inp.value = '';
 
-    const timestamp = data.timestamp || new Date().toISOString();
-    const commentContainer = document.getElementById('commentListContainer');
+    loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
 
-    const entry = document.createElement('div');
-    entry.className = 'comment-entry';
-
-    const avatar = document.createElement('img');
-    avatar.src = currentUserProfilePic || '../assets/temporary_pfp.png';
-    avatar.className = 'comment-avatar';
-    avatar.alt = 'Avatar';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'comment-bubble';
-
-    const header = document.createElement('div');
-    header.className = 'comment-header';
-
-    const name = document.createElement('span');
-    name.className = 'comment-username';
-    name.textContent = currentUser || 'You';
-
-    const ts = document.createElement('span');
-    ts.className = 'comment-timestamp';
-    ts.dataset.timestamp = timestamp;
-    ts.textContent = formatTime(timestamp);
-
-    header.appendChild(name);
-    header.appendChild(ts);
-
-    const text = document.createElement('div');
-    text.className = 'comment-text';
-    text.textContent = content;
-
-    bubble.appendChild(header);
-    bubble.appendChild(text);
-    entry.appendChild(avatar);
-    entry.appendChild(bubble);
-
-    if (String(currentUserId)) {
-      const opts = document.createElement('button');
-      opts.className = 'comment-options';
-      opts.innerHTML = '&#8942;';
-      opts.onclick = e => showCommentOptionsMenu(e, -1, currentUserId);
-      entry.appendChild(opts);
-    }
-
-    commentContainer.appendChild(entry);
-    updateCommentTimes();
-    updateCommentCount(currentPostIdForComments);
-    inp.focus();
+    setTimeout(() => {
+      inp.focus();
+    }, 300);
   })
   .catch(err => console.error('Comment error:', err));
 }
@@ -1380,21 +1394,29 @@ function updateCommentTimes() {
   });
 }
 
+let commentToDeleteId = null;
+
 function editComment(commentId) {
-  const commentDiv = document.querySelector(`.comment[data-id='${commentId}']`);
+  const commentDiv = document.querySelector(`.comment-entry[data-id='${commentId}']`);
   if (!commentDiv) return;
 
-  const contentEl = commentDiv.querySelector('.comment-text');
-  const originalContent = contentEl.textContent;
+  const textEl = commentDiv.querySelector('.comment-text');
+  const originalText = textEl.textContent;
 
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'edit-comment-input';
-  input.value = originalContent;
+  input.value = originalText;
 
   const saveBtn = document.createElement('button');
   saveBtn.textContent = 'Save';
-  saveBtn.onclick = function () {
+  saveBtn.className = 'edit-comment-save-btn';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'edit-comment-cancel-btn';
+
+  saveBtn.onclick = () => {
     const newContent = input.value.trim();
     if (!newContent) return;
 
@@ -1409,41 +1431,73 @@ function editComment(commentId) {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        contentEl.textContent = newContent;
+        textEl.textContent = newContent;
+        textEl.style.display = '';
         input.remove();
         saveBtn.remove();
-        contentEl.style.display = '';
+        cancelBtn.remove();
       } else {
         alert('Failed to update comment');
       }
     });
   };
 
-  contentEl.style.display = 'none';
+  cancelBtn.onclick = () => {
+    textEl.style.display = '';
+    input.remove();
+    saveBtn.remove();
+    cancelBtn.remove();
+  };
+
+  textEl.style.display = 'none';
   commentDiv.appendChild(input);
   commentDiv.appendChild(saveBtn);
+  commentDiv.appendChild(cancelBtn);
 }
 
 function deleteComment(commentId) {
-  if (!confirm("Are you sure you want to delete this comment?")) return;
+  const modal = document.getElementById('myNewConfirmationModalOverlay');
+  const confirmBtn = modal?.querySelector('.submit-button');
+  const cancelBtn = modal?.querySelector('.cancel-btn');
 
-  fetch('../php/comment_crud.php?action=delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ comment_id: commentId })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      loadComments(
-        currentPostIdForComments,
-        document.getElementById('commentListContainer')
-      );
-      updateCommentCount(currentPostIdForComments);
-    } else {
-      alert('Failed to delete comment');
-    }
-  });
+  if (!modal || !confirmBtn || !cancelBtn) return;
+
+  modal.classList.add('active');
+
+  const newConfirmHandler = () => {
+    fetch('../php/comment_crud.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ comment_id: commentId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+        updateCommentCount(currentPostIdForComments);
+      } else {
+        alert('Failed to delete comment');
+      }
+    })
+    .finally(() => {
+      modal.classList.remove('active');
+      confirmBtn.removeEventListener('click', newConfirmHandler);
+    });
+  };
+
+  confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+  const newConfirmBtn = modal.querySelector('.submit-button');
+  newConfirmBtn.addEventListener('click', newConfirmHandler);
+
+  cancelBtn.onclick = () => {
+    modal.classList.remove('active');
+    newConfirmBtn.removeEventListener('click', newConfirmHandler);
+  };
+}
+
+function closeMyNewModal() {
+  const modal = document.getElementById('myNewConfirmationModalOverlay');
+  if (modal) modal.classList.remove('active');
 }
 
 function getCurrentUserId() {
