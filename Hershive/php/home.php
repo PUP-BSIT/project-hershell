@@ -32,6 +32,7 @@ if ($result && $row = $result->fetch_assoc()) {
 
   echo json_encode([
     'success' => true,
+    'user_id' => $user_id,
     'username' => $row['username'],
     'display_name' => $display_name,
     'profile_picture_url' => $row['profile_picture_url'] ??
