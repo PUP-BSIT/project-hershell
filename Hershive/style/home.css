@@ -1006,6 +1006,7 @@ body.modal-open {
 
 .suggested-user .user-info {
   flex-grow: 1;
+  cursor: default;
 }
 
 .suggested-user .user-info p {
@@ -1769,7 +1770,7 @@ body.modal-open {
 
 .share-modal {
   position: relative;
-  background: white;
+  background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
   padding: 20px;
   border-radius: 12px;
   width: 60vw;
