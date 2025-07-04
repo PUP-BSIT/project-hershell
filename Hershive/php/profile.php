@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 session_start();
 require_once 'db_connection.php';
 
-$userId = $_SESSION['user_id'] ?? 1;
+$userId = $_GET['user_id'] ?? $_SESSION['user_id'] ?? 1;
 
 $sql = "SELECT * FROM user WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
