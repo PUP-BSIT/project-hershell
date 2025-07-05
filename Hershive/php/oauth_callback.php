@@ -181,6 +181,7 @@ $_SESSION['first_name'] = $user['first_name'];
 $_SESSION['middle_name'] = $user['middle_name'];
 $_SESSION['last_name'] = $user['last_name'];
 $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
+$_SESSION['isAllowed'] = 'allowed_to_share';
 
 header('Location: /project-hershell/Hershive/html/home.html');
 exit;
