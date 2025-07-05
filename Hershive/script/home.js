@@ -618,12 +618,12 @@ let postToDelete = null;
 function deletePost(button) {
   console.log('Delete button clicked');
   postToDelete = button.closest('.sample-post');
-  const modal = document.getElementById('deletePostModal');
+  const modal = document.getElementById('delete_post_modal');
   if (modal) modal.classList.remove('hidden');
 }
 
 function closeDeletePostModal() {
-  const modal = document.getElementById('deletePostModal');
+  const modal = document.getElementById('delete_post_modal');
   if (modal) modal.classList.add('hidden');
   postToDelete = null;
 }
@@ -655,7 +655,7 @@ function confirmDeletePost() {
 }
 
 function closeDeletePostModal() {
-  const modal = document.getElementById('deletePostModal');
+  const modal = document.getElementById('delete_post_modal');
   if (modal) modal.classList.add('hidden');
   postToDelete = null;
 }
