@@ -160,7 +160,6 @@ if (!empty($clients) && $share_post_id) {
             ];
         }
     }
-}
 
 // ========== Final Response ========== //
 if (ob_get_length()) ob_clean();
