@@ -356,16 +356,20 @@
         <div class="shared-post-preview" id="shared_post_preview">
         </div>
 
-        <input type="hidden" id="shared_post_id">
-
         <button class="submit-share-btn" onclick="submitShare()">Share</button>
 
-        <div class="share-icons">
-          <a href="#" title="DevhiveSpace"
-            ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/></a>
-          <a href="#" title="Heybleepi"
-            ><img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/></a>
-        </div>
+        <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+          <input type="hidden" name="shared_post_id" id="shared_post_id">
+          <div class="share-icons">
+            <button type="submit" name="share_to" value="DevhiveSpace" id="share_to"
+              ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/>
+            </button>
+            <button type="submit" name="share_to" value="heybleepi" id="share_to"
+              ><img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+            </button>
+          </div>
+        </form>
+
 
         <div class="share-link-section">
           <label>Page link</label>
