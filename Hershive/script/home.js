@@ -369,175 +369,321 @@ function submitPost() {
 function editPost(button) {
   const post = button.closest('.sample-post');
   const postId = post.dataset.postId;
-
   const contentDiv = post.querySelector('.content');
-
-  // For shared posts, only edit the sharer's content (the <p> tag before the shared-card)
   const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
   const sharedCard = contentDiv.querySelector('.shared-card');
-  const image = contentDiv.querySelector('img:not(.shared-card img)');
-  const video = contentDiv.querySelector('video:not(.shared-card video)');
+  const existingImage = contentDiv.querySelector('img:not(.shared-card img)');
+  const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
+  const postActions = post.querySelector('.post-actions');
+  const visibilityIcon = post.querySelector('.visibility-icon');
 
   if (contentDiv.querySelector('.edit-editor')) return;
 
-  const editorDiv = document.createElement('div');
-  editorDiv.className = 'edit-editor';
-  editorDiv.contentEditable = true;
+  const editor = createEditor(paragraph?.innerHTML || '');
+  const formatting = createFormatting(editor);
+  const { uploadControls, fileInputImage, fileInputVideo, visibilitySelect } = createUploadControls();
+  const saveBtn = createSaveButton();
+  const cancelBtn = createCancelButton(() => {
+    [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
+    if (paragraph) paragraph.classList.remove('hidden');
+    if (postActions) postActions.classList.remove('hidden');
+  });
 
-  // Only populate with the sharer's content, not the shared content
-  if (paragraph && !sharedCard) {
-    // Regular post - edit the paragraph content
-    editorDiv.innerHTML = paragraph.innerHTML;
-  } else if (paragraph && sharedCard) {
-    // Shared post - only edit the sharer's added text (before shared-card)
-    editorDiv.innerHTML = paragraph.innerHTML;
-  } else {
-    // No content to edit
-    editorDiv.innerHTML = '';
-    editorDiv.placeholder = 'Add some text...';
-  }
+  const buttonWrapper = document.createElement('div');
+  buttonWrapper.className = 'edit-button-wrapper';
+  buttonWrapper.append(cancelBtn, saveBtn);
 
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*,video/*';
-  fileInput.className = 'edit-media-input';
+  if (paragraph) paragraph.classList.add('hidden');
+  if (postActions) postActions.classList.add('hidden');
 
-  const saveButton = document.createElement('button');
-  saveButton.innerText = 'Save';
-  saveButton.className = 'save-edit-button';
+  saveBtn.onclick = () => {
+    const content = editor.innerHTML.trim();
+    const hasText = content.replace(/<[^>]*>/g, '').trim() !== '';
+    const hasNewImage = fileInputImage.files.length > 0;
+    const hasNewVideo = fileInputVideo.files.length > 0;
+    const hasExistingMedia = existingImage || existingVideo;
+    const hasShared = !!sharedCard;
 
-  saveButton.onclick = () => {
-    const updatedContent = editorDiv.innerHTML.trim();
+    if (!hasText && !hasNewImage && !hasNewVideo && !hasExistingMedia && !hasShared) {
+      alert('Post must contain text or media.');
+      return;
+    }
 
-    const textOnly = updatedContent.replace(/<[^>]*>/g, '').trim();
-    const hasContent = textOnly !== "" && textOnly !== "&nbsp;";
-
-    // For shared posts, we still need media/content validation but don't count shared content
-    const hasExistingMedia = image || video;
-    const hasNewMedia = fileInput.files.length > 0;
-    const hasSharedContent = !!sharedCard;
-
-    // If it's a shared post, it's valid even without new content since it has shared content
-    if (!hasContent && !hasExistingMedia && !hasNewMedia && !hasSharedContent) {
-      alert('Post must contain either text or media');
+    if (hasNewImage && hasNewVideo) {
+      alert('You can only upload one media type.');
       return;
     }
 
     const formData = new FormData();
     formData.append('post_id', postId);
+    formData.append('content', hasText ? content : '');
+    formData.append('visibility', visibilitySelect.value);
 
-    if (hasContent) {
-      formData.append('content', updatedContent);
-    } else {
-      formData.append('content', '');
+    if (hasNewImage) {
+      formData.append('media', fileInputImage.files[0]);
+      formData.append('media_type', 'image');
+    } else if (hasNewVideo) {
+      formData.append('media', fileInputVideo.files[0]);
+      formData.append('media_type', 'video');
     }
 
-    if (fileInput.files.length > 0) {
-      formData.append('media', fileInput.files[0]);
-    }
-
-    fetch('../php/edit_post.php', {
-      method: 'POST',
-      body: formData
-    })
+    fetch('../php/edit_post.php', { method: 'POST', body: formData })
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          // Update only the sharer's content, preserve shared content
-          if (paragraph && !sharedCard) {
-            // Regular post
-            if (hasContent) {
-              paragraph.innerHTML = updatedContent;
-              paragraph.classList.remove('hidden');
-            } else {
-              paragraph.remove();
-            }
-          } else if (paragraph && sharedCard) {
-            // Shared post - update only the sharer's text
-            if (hasContent) {
-              paragraph.innerHTML = updatedContent;
-              paragraph.classList.remove('hidden');
-            } else {
-              paragraph.remove();
-            }
-          } else if (hasContent && sharedCard) {
-            // Shared post with no previous sharer content - add new paragraph before shared card
-            const newParagraph = document.createElement('p');
-            newParagraph.innerHTML = updatedContent;
-            contentDiv.insertBefore(newParagraph, sharedCard);
-          } else if (hasContent) {
-            // Regular post with no previous content
-            const newParagraph = document.createElement('p');
-            newParagraph.innerHTML = updatedContent;
-            contentDiv.insertBefore(newParagraph, contentDiv.firstChild);
-          }
-
-          // Handle new media upload
-          if (fileInput.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const mediaType = fileInput.files[0].type;
-
-              if (mediaType.startsWith('video')) {
-                if (video) {
-                  video.src = e.target.result;
-                } else {
-                  if (image) image.remove();
-                  const newVideo = document.createElement('video');
-                  newVideo.controls = true;
-                  newVideo.src = e.target.result;
-                  newVideo.className = 'preview-video';
-
-                  // Insert before shared card if it exists, otherwise append
-                  if (sharedCard) {
-                    contentDiv.insertBefore(newVideo, sharedCard);
-                  } else {
-                    contentDiv.appendChild(newVideo);
-                  }
-                }
-              } else if (mediaType.startsWith('image')) {
-                if (image) {
-                  image.src = e.target.result;
-                } else {
-                  if (video) video.remove();
-                  const newImg = document.createElement('img');
-                  newImg.src = e.target.result;
-                  newImg.alt = 'Post media';
-                  newImg.className = 'preview-image';
-
-                  // Insert before shared card if it exists, otherwise append
-                  if (sharedCard) {
-                    contentDiv.insertBefore(newImg, sharedCard);
-                  } else {
-                    contentDiv.appendChild(newImg);
-                  }
-                }
-              }
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-          }
-
-          editorDiv.remove();
-          fileInput.remove();
-          saveButton.remove();
-        } else {
+        console.log('Edit response:', data);
+        if (!data.success) {
           alert(data.error || 'Failed to update post');
+          return;
+        }
+
+        updatePostContent(contentDiv, content, sharedCard, paragraph, fileInputImage, fileInputVideo, existingImage, existingVideo);
+        [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
+        if (postActions) postActions.classList.remove('hidden');
+
+        const iconMap = {
+          public: '../assets/public_icon.png',
+          followers: '../assets/followers_icon.png',
+          private: '../assets/private_icon.png'
+        };
+        if (visibilityIcon) {
+          visibilityIcon.src = iconMap[visibilitySelect.value] || iconMap.public;
+          visibilityIcon.alt = visibilitySelect.value;
         }
       })
-      .catch(error => {
-        console.error('Error updating post:', error);
+      .catch(err => {
+        console.error('Edit error:', err);
         alert('Error updating post');
       });
   };
 
-  // Hide only the sharer's paragraph, not the shared content
-  if (paragraph) {
-    paragraph.classList.add('hidden');
+  [editor, formatting, uploadControls, buttonWrapper].reverse().forEach(el => {
+    contentDiv.insertBefore(el, contentDiv.firstChild);
+  });
+}
+
+function createEditor(initialHTML) {
+  const div = document.createElement('div');
+  div.className = 'edit-editor';
+  div.contentEditable = true;
+  div.innerHTML = initialHTML;
+  return div;
+}
+
+function createFormatting(editor) {
+  const container = document.createElement('div');
+  container.className = 'formatting-options';
+  ['bold', 'italic', 'underline'].forEach(cmd => {
+    const btn = document.createElement('button');
+    btn.textContent = cmd[0].toUpperCase();
+    btn.onclick = () => {
+      editor.focus();
+      document.execCommand(cmd, false, null);
+    };
+    container.appendChild(btn);
+  });
+  return container;
+}
+
+function createUploadControls() {
+  const container = document.createElement('div');
+  container.className = 'upload-controls';
+
+  // Image input
+  const fileInputImage = document.createElement('input');
+  fileInputImage.type = 'file';
+  fileInputImage.accept = 'image/*';
+  fileInputImage.hidden = true;
+
+  const imageLabel = document.createElement('label');
+  imageLabel.className = 'icon-button';
+  imageLabel.innerHTML = `
+    <img src="../assets/camera_icon.png" alt="Image Icon" />
+    <span>Image</span>
+  `;
+  imageLabel.appendChild(fileInputImage);
+
+  // Video input
+  const fileInputVideo = document.createElement('input');
+  fileInputVideo.type = 'file';
+  fileInputVideo.accept = 'video/*';
+  fileInputVideo.hidden = true;
+
+  const videoLabel = document.createElement('label');
+  videoLabel.className = 'icon-button';
+  videoLabel.innerHTML = `
+    <img src="../assets/video_icon.png" alt="Video Icon" />
+    <span>Video</span>
+  `;
+  videoLabel.appendChild(fileInputVideo);
+
+  // Privacy selector
+  const visibility = document.createElement('div');
+  visibility.className = 'privacy-select';
+  visibility.innerHTML = `
+    <img class="edit-privacy-icon" src="../assets/public_icon.png" alt="Privacy Icon" />
+    <select class="edit-privacy-select">
+      <option value="public">Public</option>
+      <option value="followers">Followers</option>
+      <option value="private">Private</option>
+    </select>
+  `;
+
+  const visibilitySelect = visibility.querySelector('select');
+  const visibilityIcon = visibility.querySelector('img');
+
+  // Sync icon on change
+  visibilitySelect.addEventListener('change', () => {
+    const value = visibilitySelect.value;
+    const iconMap = {
+      public: '../assets/public_icon.png',
+      followers: '../assets/followers_icon.png',
+      private: '../assets/private_icon.png'
+    };
+    visibilityIcon.src = iconMap[value] || iconMap.public;
+  });
+
+  const miniPrivacy = document.getElementById('privacy');
+  if (miniPrivacy) {
+    visibilitySelect.value = miniPrivacy.value;
+    const iconMap = {
+      public: '../assets/public_icon.png',
+      followers: '../assets/followers_icon.png',
+      private: '../assets/private_icon.png'
+    };
+    visibilityIcon.src = iconMap[miniPrivacy.value] || iconMap.public;
   }
 
-  contentDiv.insertBefore(saveButton, contentDiv.firstChild);
-  contentDiv.insertBefore(fileInput, contentDiv.firstChild);
-  contentDiv.insertBefore(editorDiv, contentDiv.firstChild);
+  container.append(imageLabel, videoLabel, visibility);
+  return {
+    uploadControls: container,
+    fileInputImage,
+    fileInputVideo,
+    visibilitySelect
+  };
+}
+
+function createSaveButton() {
+  const btn = document.createElement('button');
+  btn.className = 'save-edit-button';
+  btn.textContent = 'Save';
+  return btn;
+}
+
+function createCancelButton(onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'cancel-edit-button';
+  btn.textContent = 'Cancel';
+  btn.onclick = onClick;
+  return btn;
+}
+
+function updatePostContent(container, newContent, sharedCard, paragraph, fileInputImage, fileInputVideo, oldImg, oldVid) {
+  const hasText = newContent.replace(/<[^>]*>/g, '').trim() !== '';
+  if (paragraph && hasText) {
+    paragraph.innerHTML = newContent;
+    paragraph.classList.remove('hidden');
+  } else if (paragraph && !hasText) {
+    paragraph.remove();
+  } else if (!paragraph && hasText) {
+    const p = document.createElement('p');
+    p.innerHTML = newContent;
+    sharedCard
+      ? container.insertBefore(p, sharedCard)
+      : container.insertBefore(p, container.firstChild);
+  }
+
+  const file = fileInputImage.files[0] || fileInputVideo.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const isVideo = file.type.startsWith('video');
+    const media = document.createElement(isVideo ? 'video' : 'img');
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+    media.className = isVideo ? 'preview-video' : 'preview-image';
+
+    if (oldImg) oldImg.remove();
+    if (oldVid) oldVid.remove();
+
+    sharedCard
+      ? container.insertBefore(media, sharedCard)
+      : container.appendChild(media);
+  };
+  reader.readAsDataURL(file);
+}
+
+let postToDelete = null;
+
+function deletePost(button) {
+  console.log('Delete button clicked');
+  postToDelete = button.closest('.sample-post');
+  const modal = document.getElementById('delete_post_modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeDeletePostModal() {
+  const modal = document.getElementById('delete_post_modal');
+  if (modal) modal.classList.add('hidden');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+
+  const postId = postToDelete.dataset.postId;
+
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        postToDelete.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    })
+    .finally(() => {
+      closeDeletePostModal();
+    });
+}
+
+function closeDeletePostModal() {
+  const modal = document.getElementById('delete_post_modal');
+  if (modal) modal.classList.add('hidden');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+
+  const postId = postToDelete.dataset.postId;
+
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        postToDelete.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    })
+    .finally(() => {
+      closeDeletePostModal();
+    });
 }
 
 // Updated toggleLike function to work with database
@@ -674,23 +820,24 @@ function cancelDropdown(button) {
   const parent = button.closest(".more-option");
   parent.classList.remove("active");
 
-  // Clean up any existing edit interface
   const post = button.closest('.sample-post');
   const contentDiv = post.querySelector('.content');
 
-  const editorDiv = contentDiv.querySelector('.edit-editor');
-  const fileInput = contentDiv.querySelector('.edit-media-input');
-  const saveButton = contentDiv.querySelector('.save-edit-button');
-  const paragraph = contentDiv.querySelector('p');
+  const elementsToRemove = [
+    '.edit-editor',
+    '.formatting-options',
+    '.upload-controls',
+    '.save-edit-button',
+    '.cancel-edit-button'
+  ];
 
-  if (editorDiv) editorDiv.remove();
-  if (fileInput) fileInput.remove();
-  if (saveButton) saveButton.remove();
+  elementsToRemove.forEach(selector => {
+    const el = contentDiv.querySelector(selector);
+    if (el) el.remove();
+  });
 
-  // Show original content
-  if (paragraph) {
-    paragraph.classList.remove('hidden');
-  }
+  const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
+  if (paragraph) paragraph.classList.remove('hidden');
 }
 
 function toggleDropdown(icon) {
@@ -699,6 +846,23 @@ function toggleDropdown(icon) {
   document.querySelectorAll('.more-option.active').forEach(dropdown => {
     if (dropdown !== parent) {
       dropdown.classList.remove('active');
+      const post = dropdown.closest('.sample-post');
+      const contentDiv = post?.querySelector('.content');
+
+      if (contentDiv) {
+        const editorDiv = contentDiv.querySelector('.edit-editor');
+        const formatting = contentDiv.querySelector('.formatting-options');
+        const uploadControls = contentDiv.querySelector('.upload-controls');
+        const saveBtn = contentDiv.querySelector('.save-edit-button');
+        const cancelBtn = contentDiv.querySelector('.cancel-edit-button');
+        const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
+
+        [editorDiv, formatting, uploadControls, saveBtn, cancelBtn].forEach(el => {
+          if (el) el.remove();
+        });
+
+        if (paragraph) paragraph.classList.remove('hidden');
+      }
     }
   });
 
@@ -708,30 +872,6 @@ function toggleDropdown(icon) {
     document.body.onclick = handleOutsideClick;
   } else {
     document.body.onclick = null;
-  }
-}
-
-function deletePost(button) {
-  const post = button.closest('.sample-post');
-  const postId = post.dataset.postId;
-
-  if (confirm('Are you sure you want to delete this post?')) {
-    fetch('../php/delete_post.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        post.remove();
-      } else {
-        alert(data.error || 'Failed to delete post');
-      }
-    })
-    .catch(error => {
-      console.error('Error deleting post:', error);
-    });
   }
 }
 

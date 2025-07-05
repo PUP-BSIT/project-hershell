@@ -254,12 +254,7 @@ select {
 }
 
 .post-content div {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   border-radius: 20px;
-  padding: 10px;
-  overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
   margin-top: 0;
@@ -454,6 +449,7 @@ body.modal-open {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgb(185, 141, 91), rgb(166, 124, 82));
 }
 
 .formatting-options button::before {
@@ -2890,4 +2886,189 @@ body.modal-open {
   background: white;
   color: #000;
   border: 1px solid #000;
+}
+
+.edit-editor {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #fff;
+  min-height: 80px;
+  margin-bottom: 10px;
+  outline: none;
+}
+
+.save-edit-button,
+.cancel-edit-button {
+  padding: 8px 16px;
+  margin: 6px 4px 10px 0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.save-edit-button {
+  background-color: #000;
+  color: white;
+  border: none;
+}
+
+.cancel-edit-button {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.icon-button img {
+  width: 16px;
+  height: 16px;
+}
+
+.privacy-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.privacy-select select {
+  padding: 2px 4px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+}
+
+.edit-button-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  flex-direction: row;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.delete-post-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-post-modal-overlay:not(.hidden) {
+  display: flex;
+}
+
+.delete-post-modal {
+  background-color: #f4ead5;
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.delete-post-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e0d4c4;
+}
+
+.delete-post-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.delete-post-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.delete-post-close-btn:hover {
+  background-color: #e0d4c4;
+  color: #333;
+}
+
+.delete-post-modal-content {
+  padding: 16px 24px;
+}
+
+.delete-post-modal-content p {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.delete-post-button-holder {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.delete-post-cancel-btn,
+.delete-post-confirm-btn {
+  padding: 8px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-post-cancel-btn {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.delete-post-cancel-btn:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.delete-post-confirm-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+}
+
+.delete-post-confirm-btn:hover {
+  background-color: #c0392b;
 }
