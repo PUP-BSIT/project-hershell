@@ -13,6 +13,14 @@ $user_id = $_SESSION['user_id'];
 $post_id = $_POST['post_id'] ?? null;
 $content = $_POST['content'] ?? '';
 
+// Extract visibility from POST and validate it
+$visibility = $_POST['visibility'] ?? 'public';
+$allowedVisibilities = ['public', 'followers', 'private'];
+if (!in_array($visibility, $allowedVisibilities)) {
+    echo json_encode(['success' => false, 'error' => 'Invalid visibility value']);
+    exit;
+}
+
 if (!$post_id) {
     echo json_encode(['success' => false, 'error' => 'Post ID required']);
     exit;
@@ -39,14 +47,14 @@ $stmt->close();
 
 // Sanitize content and handle whitespace-only input
 function sanitize_input($input, $allow_html = false) {
-  if ($allow_html) {
-      $sanitized = strip_tags($input, '<b><i><u><strong><em><br><p>');
-      $sanitized = preg_replace('/(<\w+\s*)style="[^"]*"/i', '$1', $sanitized);
-      $text_only = strip_tags($sanitized);
-      $trimmed = trim($text_only);
-      return empty($trimmed) ? '' : $sanitized;
-  }
-  return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+    if ($allow_html) {
+        $sanitized = strip_tags($input, '<b><i><u><strong><em><br><p>');
+        $sanitized = preg_replace('/(<\w+\s*)style="[^"]*"/i', '$1', $sanitized);
+        $text_only = strip_tags($sanitized);
+        $trimmed = trim($text_only);
+        return empty($trimmed) ? '' : $sanitized;
+    }
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
 $content = sanitize_input($content, true);
@@ -102,14 +110,13 @@ if (!$has_content && !$has_media) {
     exit;
 }
 
-// If content is empty (whitespace-only), set it to null for database
 if (!$has_content) {
     $content = null;
 }
 
-// Update post
-$stmt = $conn->prepare("UPDATE post SET content = ?, media_url = ?, updated_at = CURRENT_TIMESTAMP WHERE post_id = ?");
-$stmt->bind_param("ssi", $content, $media_url, $post_id);
+// Update post with visibility included
+$stmt = $conn->prepare("UPDATE post SET content = ?, media_url = ?, visibility = ?, updated_at = CURRENT_TIMESTAMP WHERE post_id = ?");
+$stmt->bind_param("sssi", $content, $media_url, $visibility, $post_id);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true]);
