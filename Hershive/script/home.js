@@ -613,6 +613,79 @@ function updatePostContent(container, newContent, sharedCard, paragraph, fileInp
   reader.readAsDataURL(file);
 }
 
+let postToDelete = null;
+
+function deletePost(button) {
+  console.log('Delete button clicked');
+  postToDelete = button.closest('.sample-post');
+  const modal = document.getElementById('deletePostModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeDeletePostModal() {
+  const modal = document.getElementById('deletePostModal');
+  if (modal) modal.classList.add('hidden');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+
+  const postId = postToDelete.dataset.postId;
+
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        postToDelete.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    })
+    .finally(() => {
+      closeDeletePostModal();
+    });
+}
+
+function closeDeletePostModal() {
+  const modal = document.getElementById('deletePostModal');
+  if (modal) modal.classList.add('hidden');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+
+  const postId = postToDelete.dataset.postId;
+
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        postToDelete.remove();
+      } else {
+        alert(data.error || 'Failed to delete post');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting post:', error);
+    })
+    .finally(() => {
+      closeDeletePostModal();
+    });
+}
+
 // Updated toggleLike function to work with database
 function toggleLike(button, postId) {
   const outlineIcon = button.querySelector(".heart-icon.outline");
@@ -799,30 +872,6 @@ function toggleDropdown(icon) {
     document.body.onclick = handleOutsideClick;
   } else {
     document.body.onclick = null;
-  }
-}
-
-function deletePost(button) {
-  const post = button.closest('.sample-post');
-  const postId = post.dataset.postId;
-
-  if (confirm('Are you sure you want to delete this post?')) {
-    fetch('../php/delete_post.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        post.remove();
-      } else {
-        alert(data.error || 'Failed to delete post');
-      }
-    })
-    .catch(error => {
-      console.error('Error deleting post:', error);
-    });
   }
 }
 
