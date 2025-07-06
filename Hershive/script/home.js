@@ -1308,6 +1308,12 @@ function toggleCommentModal(button) {
 
   loadComments(currentPostIdForComments, commentListEl);
   setTimeout(() => inputEl.focus(), 300);
+  
+  if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
+    window.commentPollingInterval = setInterval(() => {
+      loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+    }, 5000);
+
 }
 
 
@@ -1320,6 +1326,11 @@ function closeCommentModal() {
     const commentInput = document.getElementById('commentInput');
     if (commentInput) {
         commentInput.value = '';
+    }
+    
+    if (window.commentPollingInterval) {
+      clearInterval(window.commentPollingInterval);
+      window.commentPollingInterval = null;
     }
 }
 
@@ -1355,6 +1366,9 @@ function displayComments(comments, container) {
     avatar.className = 'comment-avatar';
     avatar.src = c.profile_picture_url || currentUserProfilePic || '../assets/temporary_pfp.png';
     avatar.alt = 'Avatar';
+    avatar.onclick = () => {
+      window.location.href = `../php/profile.php?user_id=${c.user_id}`;
+    };
 
     const bubble = document.createElement('div');
     bubble.className = 'comment-bubble';
@@ -1501,7 +1515,7 @@ function updateCommentCount(postId) {
 
         const countElem = post.querySelector('.comment-count');
         if (countElem) {
-          countElem.textContent = data.comments.length;
+          countElem.textContent = data.count;
         }
       }
     });
