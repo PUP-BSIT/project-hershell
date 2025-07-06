@@ -132,18 +132,50 @@
             </div>
 
             <div class="profile-stats">
-              <div><strong id="postCount">0</strong><p>Posts</p></div>
-              <div><strong id="followerCount">0</strong><p>Followers</p></div>
-              <div><strong id="followingCount">0</strong><p>Following</p></div>
+              <div onclick="switchTab('post')">
+                <strong id="postCount">0</strong><p>Posts</p>
+              </div>
+              <div onclick="switchTab('followers')">
+                <strong id="followerCount">0</strong><p>Followers</p>
+              </div>
+              <div onclick="switchTab('following')">
+                <strong id="followingCount">0</strong><p>Following</p>
+              </div>
             </div>
           </div>
           
           <div class="post-divider"></div>
           
-          <div class="post-section-toggle">Post</div>
-            
-          <div id="post-container" class="post-container"></div>
-          
+          <div class="container">
+            <div class="post-section-toggle" id="tabs">
+              <div class="tab active" data-tab="post">Post</div>
+              <div class="tab" data-tab="followers">Followers</div>
+              <div class="tab" data-tab="following">Following</div>
+            </div>
+          </div>
+
+          <!-- Post Tab Content -->
+          <div class="tab-content active" id="post-tab">
+            <div id="post-container" class="post-container"></div>
+          </div>
+
+          <!-- Following Tab Content -->
+          <div class="tab-content" id="following-tab">
+            <div class="loading" id="following-loading">
+              Loading following...
+            </div>
+            <div id="following-list" class="user-list"></div>
+          </div>
+
+          <!-- Followers Tab Content -->
+          <div class="tab-content" id="followers-tab">
+            <div class="loading" id="followers-loading">
+              Loading followers...
+            </div>
+            <div id="followers-list" class="user-list"></div>
+          </div>
+
+          <!-- Share Modal -->
           <div class="modal-overlay hidden" id="share_modal">
             <div class="share-modal">
               <div class="share-modal-header">
