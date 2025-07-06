@@ -15,7 +15,7 @@ $limit = intval($_GET['limit'] ?? 10);
 $page = intval($_GET['page'] ?? 1);
 $offset = ($page - 1) * $limit;
 
-// 1. Get current user's city and country
+// Get current user's city and country
 $sql = "SELECT city, country FROM user WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $currentUserId);
@@ -24,8 +24,8 @@ $stmt->bind_result($city, $country);
 $stmt->fetch();
 $stmt->close();
 
-if (!$city) $city = null;
-if (!$country) $country = null;
+$city = $city ?: null;
+$country = $country ?: null;
 
 // 2. Get users the current user is already following
 $alreadyFollowed = [];
@@ -39,9 +39,9 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// 3. Get users followed by people I (current user) follow
+// Get users followed by people that current user follows
 $followedByMyFollows = [];
-if (count($alreadyFollowed) > 0) {
+if (!empty($alreadyFollowed)) {
   $placeholders = str_repeat('?,', count($alreadyFollowed) - 1) . '?';
   $sql = "SELECT following_id FROM follow WHERE follower_id IN ($placeholders)";
   $stmt = $conn->prepare($sql);
@@ -54,92 +54,97 @@ if (count($alreadyFollowed) > 0) {
   $stmt->close();
 }
 
-// 4. Build initial exclusion list (already followed + self)
+// Exclusion list (current user + already followed)
 $excluded = array_merge([$currentUserId], $alreadyFollowed);
-$collectedUserIds = []; // Track users we've already added to results
-$result = [];
+$excludedPlaceholders = str_repeat('?,', count($excluded) - 1) . '?';
 
-// Helper function to get users with proper duplicate prevention
-function fetchUsers($conn, $whereClause, $params, $excludedList, &$collectedUserIds, $limitLeft)
-{
-  if ($limitLeft <= 0) return [];
+// Dynamic CASE conditions
+$whenConditions = [];
+$params = [];
+$types = '';
 
-  $users = [];
-  $excludedPlaceholders = str_repeat('?,', count($excludedList) - 1) . '?';
-  
-  $sql = "SELECT user_id, first_name, middle_name, last_name, username, profile_picture_url
-            FROM user
-            WHERE $whereClause AND deleted_account = 0 AND user_id NOT IN ($excludedPlaceholders)
-            LIMIT ?";
-  
-  $stmt = $conn->prepare($sql);
-  if (!$stmt) {
-    error_log("Database error: " . $conn->error);
-    return [];
-  }
-  
-  // Combine parameters: whereClause params + excluded list + limit
-  $allParams = array_merge($params, $excludedList, [$limitLeft * 2]);
-  $types = str_repeat('s', count($params)) . str_repeat('i', count($excludedList)) . 'i';
-  
-  $stmt->bind_param($types, ...$allParams);
-  $stmt->execute();
-  $res = $stmt->get_result();
-  
-  if (!$res) {
-    error_log("Query failed: " . $conn->error);
-    $stmt->close();
-    return [];
-  }
-
-  while (($row = $res->fetch_assoc()) && count($users) < $limitLeft) {
-    if (!in_array($row['user_id'], $collectedUserIds)) {
-      $collectedUserIds[] = $row['user_id'];
-      $users[] = $row;
-    }
-  }
-  
-  $stmt->close();
-  return $users;
+// Priority for followedByMyFollows if any
+if (!empty($followedByMyFollows)) {
+  $placeholders = str_repeat('?,', count($followedByMyFollows) - 1) . '?';
+  $whenConditions[] = "WHEN user_id IN ($placeholders) THEN 1";
+  $params = array_merge($params, $followedByMyFollows);
+  $types .= str_repeat('i', count($followedByMyFollows));
 }
 
-// Update excluded list dynamically
-function updateExcluded($excluded, $collectedUserIds) {
-  return array_merge($excluded, $collectedUserIds);
+// Optional city priority
+if ($city) {
+  $whenConditions[] = "WHEN city = ? THEN 2";
+  $params[] = $city;
+  $types .= 's';
 }
 
-// Tier 1: Followed by my follows
-if (count($followedByMyFollows) > 0) {
-  $uniqueFollowedByMyFollows = array_diff($followedByMyFollows, $excluded);
-  if (!empty($uniqueFollowedByMyFollows)) {
-    $placeholders = str_repeat('?,', count($uniqueFollowedByMyFollows) - 1) . '?';
-    $whereClause = "user_id IN ($placeholders)";
-    $newUsers = fetchUsers($conn, $whereClause, $uniqueFollowedByMyFollows, updateExcluded($excluded, $collectedUserIds), $collectedUserIds, $limit - count($result));
-    $result = array_merge($result, $newUsers);
-  }
+// Optional country priority
+if ($country) {
+  $whenConditions[] = "WHEN country = ? THEN 3";
+  $params[] = $country;
+  $types .= 's';
 }
 
-// Tier 2: Same city
-if ($city !== null && count($result) < $limit) {
-  $whereClause = "city = ?";
-  $newUsers = fetchUsers($conn, $whereClause, [$city], updateExcluded($excluded, $collectedUserIds), $collectedUserIds, $limit - count($result));
-  $result = array_merge($result, $newUsers);
+// Priority selection
+if (!empty($whenConditions)) {
+  $selectPriority = "CASE " . implode(" ", $whenConditions) . " ELSE 4 END as priority";
+} else {
+  $selectPriority = "4 as priority";
 }
 
-// Tier 3: Same country
-if ($country !== null && count($result) < $limit) {
-  $whereClause = "country = ?";
-  $newUsers = fetchUsers($conn, $whereClause, [$country], updateExcluded($excluded, $collectedUserIds), $collectedUserIds, $limit - count($result));
-  $result = array_merge($result, $newUsers);
+// Final SQL query
+$sql = "SELECT user_id, first_name, middle_name, last_name, username, profile_picture_url,
+        $selectPriority
+        FROM user
+        WHERE deleted_account = 0
+        AND user_id NOT IN ($excludedPlaceholders)
+        ORDER BY priority ASC
+        LIMIT ? OFFSET ?";
+
+// Add exclusion params
+$params = array_merge($params, $excluded);
+$types .= str_repeat('i', count($excluded));
+
+// Add limit and offset
+$params[] = $limit;
+$params[] = $offset;
+$types .= 'ii';
+
+// Prepare and execute
+$stmt = $conn->prepare($sql);
+if (!$stmt) {
+  echo json_encode(['success' => false, 'error' => 'Database error: ' . $conn->error]);
+  exit;
 }
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Tier 4: Everyone else
-if (count($result) < $limit) {
-  $whereClause = "1 = ?";
-  $newUsers = fetchUsers($conn, $whereClause, [1], updateExcluded($excluded, $collectedUserIds), $collectedUserIds, $limit - count($result));
-  $result = array_merge($result, $newUsers);
+$users = [];
+while ($row = $result->fetch_assoc()) {
+  unset($row['priority']);
+  $users[] = $row;
 }
+$stmt->close();
 
-$result = array_slice($result, 0, $limit);
+// Get total count for pagination
+$countSql = "SELECT COUNT(*) as total FROM user 
+             WHERE deleted_account = 0 
+             AND user_id NOT IN ($excludedPlaceholders)";
+$countStmt = $conn->prepare($countSql);
+$countStmt->bind_param(str_repeat('i', count($excluded)), ...$excluded);
+$countStmt->execute();
+$countResult = $countStmt->get_result();
+$totalCount = $countResult->fetch_assoc()['total'];
+$countStmt->close();
 
-echo json_encode($result);
+echo json_encode([
+  'users' => $users,
+  'pagination' => [
+    'current_page' => $page,
+    'per_page' => $limit,
+    'total' => $totalCount,
+    'has_more' => ($offset + $limit) < $totalCount,
+    'next_page' => ($offset + $limit) < $totalCount ? $page + 1 : null
+  ]
+]);
