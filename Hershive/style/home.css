@@ -351,13 +351,14 @@ body.modal-open {
   left: 0;
   width: 100%;
   height: 100%;
-  backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
+  /* backdrop-filter: blur(8px); */
+  /* background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)); */
+  background-color: rgba(0, 0, 0, 0.6);
   z-index: 99999;
   justify-content: center;
   align-items: flex-start;
   padding-top: 60px;
-  animation: overlayFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  /* animation: overlayFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; */
   overflow: hidden;
 }
 
@@ -365,7 +366,7 @@ body.modal-open {
   display: flex;
 }
 
-@keyframes overlayFadeIn {
+/* @keyframes overlayFadeIn {
   0% {
     opacity: 0;
     backdrop-filter: blur(0px);
@@ -375,7 +376,7 @@ body.modal-open {
     opacity: 1;
     backdrop-filter: blur(8px);
   }
-}
+} */
 
 .close-button {
   background: rgba(255, 255, 255, 0.1);
@@ -1059,6 +1060,19 @@ body.modal-open {
 
 .menu-dropdown-item:hover {
   background-color: #d2be94;
+}
+
+.logout-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 /* notification style */
@@ -1875,13 +1889,14 @@ body.modal-open {
 .button-holder {
   display: flex;
   justify-content: space-between;
-  margin-top: 30px;
+  margin-top: 20px;
   gap: 10px;
 }
 
+.cancel-btn,
 .logout-btn {
   text-align: center;
-  width: 30%;
+  width: 50%;
   margin-bottom: 10px;
   padding: 10px;
   background: black;
@@ -2793,19 +2808,19 @@ body.modal-open {
   margin-bottom: 20px;
 }
 
-.button-holder {
+/* .button-holder {
   display: flex;
   justify-content: center;
   gap: 30px;
-}
+} */
 
 .cancel-btn,
 .confirm-button {
-  padding: 8px 30px;
-  border-radius: 6px;
+  /* padding: 8px 30px; */
+  /* border-radius: 6px; */
   font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
+  /* font-weight: 500; */
+  /* cursor: pointer; */
 }
 
 .cancel-btn {
