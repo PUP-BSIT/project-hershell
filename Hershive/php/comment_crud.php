@@ -30,7 +30,11 @@ if ($action === 'get') {
         $comments[] = $row;
     }
 
-    echo json_encode(['success' => true, 'comments' => $comments]);
+    echo json_encode([
+        'success' => true,
+        'comments' => $comments,
+        'count' => count($comments)
+    ]);
     exit;
 }
 
