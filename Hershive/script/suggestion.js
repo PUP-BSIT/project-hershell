@@ -1,25 +1,39 @@
 let currentUser = null;
 let clickedUserId = null;
 let currentUserId = null;
+let currentPage = 1;
+const limitPerPage = 15;
+let isLoading = false;
+let noMoreData = false;
 
 loadSuggestedUsers();
 initializeTabs();
 
-function loadSuggestedUsers(limit = 100, page = 1) {
-  fetch(`../php/get_suggestion.php?limit=${limit}&page=${page}`)
+function loadSuggestedUsers() {
+  if (isLoading || noMoreData) return;
+  isLoading = true;
+
+  fetch(`../php/get_suggestion.php?limit=${limitPerPage}&page=${currentPage}`)
     .then((response) => {
       if (!response.ok) {
         throw new Error("HTTP error " + response.status);
       }
       return response.json();
     })
-    .then((users) => {
+    .then((data) => {
       const container = document.getElementById("suggested_users_container");
-      container.innerHTML = "";
+      if (currentPage === 1) container.innerHTML = "";
+
+      const users = data.users || [];
 
       if (users.length === 0) {
-        container.innerHTML = "<p>No suggestions available.</p>";
+        if (currentPage === 1) {
+          container.innerHTML = "<p>No suggestions available.</p>";
+        }
+        noMoreData = true;
         return;
+      } else if (users.length < limitPerPage) {
+        noMoreData = true;
       }
 
       users.forEach((user) => {
@@ -48,12 +62,26 @@ function loadSuggestedUsers(limit = 100, page = 1) {
         container.appendChild(div);
       });
 
+      currentPage++;
+      console.log("see if added:", currentPage);
       checkUrlParams();
     })
     .catch((error) => {
       console.error("Error loading suggested users:", error);
+    })
+    .finally(() => {
+      isLoading = false;
     });
 }
+
+const suggestionContainer = document.querySelector(".left-contents");
+suggestionContainer.addEventListener("scroll", () => {
+  const { scrollTop, scrollHeight, clientHeight } = suggestionContainer;
+
+  if (scrollTop + clientHeight >= scrollHeight - 300) {
+    loadSuggestedUsers(limitPerPage, currentPage);
+  }
+});
 
 function checkUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
