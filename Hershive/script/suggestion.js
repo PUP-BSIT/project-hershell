@@ -63,7 +63,6 @@ function loadSuggestedUsers() {
       });
 
       currentPage++;
-      console.log("see if added:", currentPage);
       checkUrlParams();
     })
     .catch((error) => {
