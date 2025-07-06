@@ -1048,9 +1048,10 @@ function loadSuggestedUsers(limit = 4, page = 1) {
       }
       return response.json();
     })
-    .then((users) => {
+    .then((data) => {
       const container = document.getElementById("suggested_users_container");
       container.innerHTML = "";
+      users = data.users;
 
       if (users.length === 0) {
         container.innerHTML = "<p>No suggestions available.</p>";
@@ -1075,7 +1076,7 @@ function loadSuggestedUsers(limit = 4, page = 1) {
             <p><strong>${fullName}</strong></p>
             <p>@${user.username}</p>
           </div>
-          <button class="follow-btn" onclick="toggleFollow(this)" data-user-id="${user.user_id}">Follow</button>
+          <button class="follow-btn" data-user-id="${user.user_id}">Follow</button>
         `;
 
         const button = div.querySelector(".follow-btn");
@@ -1131,12 +1132,12 @@ function toggleFollow(button) {
       if (data.action === 'followed') {
         button.textContent = "Following";
         button.classList.add("following");
-        followStatusCache[username] = true;
+        // followStatusCache[username] = true;
         sendNotification('follow', userId, 'Started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
-        followStatusCache[username] = false;
+        // followStatusCache[username] = false;
       }
 
       updateFollowingCount(data.current_user_following);
