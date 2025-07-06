@@ -812,10 +812,13 @@ function closePostModal() {
 window.addEventListener("click", function (e) {
   const postModal = document.getElementById("post_modal");
   const shareModal = document.getElementById("share_modal");
+  const logoutModal = document.getElementById("logout_modal");
   if (e.target === postModal) {
     closePostModal();
   } else if (e.target === shareModal) {
     closeShareModal();
+  } else if (e.target === logoutModal) {
+    hideLogout();
   }
 });
 
@@ -1162,7 +1165,22 @@ function toggleFollow(button) {
 
 function menuToggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
-  if (dropdown) dropdown.classList.toggle("hidden");
+  if (!dropdown) return;
+
+  dropdown.classList.toggle("hidden");
+
+  if (!dropdown.classList.contains("hidden")) {
+    const handleClose = () => {
+      dropdown.classList.add("hidden");
+      document.removeEventListener("click", handleClose);
+      window.removeEventListener("scroll", handleClose);
+    };
+
+    setTimeout(() => {
+      document.addEventListener("click", handleClose);
+      window.addEventListener("scroll", handleClose);
+    }, 0);
+  }
 }
 
 function toggleNotificationPanel() {
@@ -1855,13 +1873,13 @@ function copyLink(button) {
 }
 
 function hideLogout() {
-  const logoutSection = document.getElementById("logout");
-  if (logoutSection) logoutSection.hidden = true;
+  document.getElementById("logout_modal").classList.add("hidden");
+  document.body.classList.remove("modal-open");
 }
 
 function toggleLogout() {
-  const logoutSection = document.getElementById("logout");
-  if (logoutSection) logoutSection.hidden = false;
+  document.getElementById("logout_modal").classList.remove("hidden");
+  document.body.classList.add("modal-open");
 }
 
 document.addEventListener('DOMContentLoaded', function() {
