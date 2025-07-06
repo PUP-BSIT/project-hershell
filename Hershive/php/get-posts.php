@@ -25,7 +25,7 @@ SELECT
     p.visibility,
     p.is_shared,
     (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
-    (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id) as comments_count,
+    (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id AND deleted = 0) as comments_count,
     (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,
     CASE WHEN hr.user_id IS NOT NULL THEN 1 ELSE 0 END as user_liked,
 
