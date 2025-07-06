@@ -1,7 +1,9 @@
 let currentUser = null;
 let clickedUserId = null;
+let currentUserId = null;
 
 loadSuggestedUsers();
+initializeTabs();
 
 function loadSuggestedUsers(limit = 100, page = 1) {
   fetch(`../php/get_suggestion.php?limit=${limit}&page=${page}`)
@@ -24,7 +26,7 @@ function loadSuggestedUsers(limit = 100, page = 1) {
         const div = document.createElement("div");
         div.className = "suggested-user";
         div.setAttribute("data-user-id", user.user_id);
-        div.addEventListener("click", handleUserClick); // ✅ function name only
+        div.addEventListener("click", handleUserClick);
 
         const fullName = `${user.first_name ?? ""} ${user.middle_name ?? ""} ${user.last_name ?? ""}`.trim();
         const profileImg = user.profile_picture_url 
@@ -41,7 +43,7 @@ function loadSuggestedUsers(limit = 100, page = 1) {
         `;
 
         const button = div.querySelector(".follow-btn");
-        button.addEventListener("click", handleFollowClick); // ✅ function name only
+        button.addEventListener("click", handleFollowClick);
 
         container.appendChild(div);
       });
@@ -101,18 +103,45 @@ function handleUserClick(event) {
     document.querySelector(".profile-username").textContent = "@" + data.username;
     document.querySelector(".profile-bio").textContent = data.bio;
 
+    getClickedUserStats();
+
     currentUser = data.current_session_username;
+    currentUserId = data.current_session_user_id;
 
     document.querySelector(".profile-card").classList.remove("hidden");
     document.querySelector(".right-contents h2").classList.add("hidden");
 
-    document.querySelector("#post-container").innerHTML = "";
-
+    clearTabContent();
     loadProfilePosts();
+    loadFollowers();
+    loadFollowing();
   })
   .catch(error => {
     console.error("Fetch error:", error);
   });
+}
+
+function clearTabContent() {
+  document.querySelector("#post-container").innerHTML = "";
+  document.querySelector("#followers-list").innerHTML = "";
+  document.querySelector("#following-list").innerHTML = "";
+}
+
+function getClickedUserStats() {
+  fetch(`../php/get_user_stats.php?user_id=${clickedUserId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+      document.getElementById('postCount').textContent = data.posts;
+      document.getElementById('followerCount').textContent = data.followers;
+      document.getElementById('followingCount').textContent = data.following;
+    })
+    .catch(error => {
+      console.error("Failed to load user stats:", error);
+    });
 }
 
 function closeUserProfile() {
@@ -292,8 +321,9 @@ function toggleLike(button, postId) {
 }
 
 function toggleFollow(button, userId) {
-  const userCard = button.closest('.suggested-user');
-  const username = userCard.querySelector('.user-info p:last-child').textContent.replace('@', '');
+  const userCard = button.closest('.suggested-user, .user-item');
+  const lastChild = userCard.querySelector('.user-info > *:last-child');
+  const username = lastChild?.textContent?.replace('@', '');
 
   const isFollowing = button.classList.contains("following");
   const action = isFollowing ? 'unfollow' : 'follow';
@@ -392,4 +422,116 @@ function toggleLogout() {
 
 function logout() {
   window.location.href = "../php/logout.php";
+}
+
+// Tab functionality
+let followersLoaded = false;
+let followingLoaded = false;
+
+function initializeTabs() {
+  const tabs = document.querySelectorAll('.tab');
+
+  tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+          const tabType = this.getAttribute('data-tab');
+          switchTab(tabType);
+      });
+  });
+}
+
+function switchTab(tabType) {
+  document.querySelectorAll('.tab').forEach(tab => {
+      tab.classList.remove('active');
+  });
+
+  document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
+
+  document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+  });
+
+  document.getElementById(`${tabType}-tab`).classList.add('active');
+
+  if (tabType === 'followers' && !followersLoaded) {
+      loadFollowers();
+  } else if (tabType === 'following' && !followingLoaded) {
+      loadFollowing();
+  }
+}
+
+function loadFollowers() {
+  if (!clickedUserId) return;
+
+  const loadingElement = document.getElementById('followers-loading');
+  const listElement = document.getElementById('followers-list');
+
+  loadingElement.style.display = 'block';
+
+  fetch(`../php/get_followers.php?user_id=${clickedUserId}`)
+      .then(response => response.json())
+      .then(data => {
+          loadingElement.style.display = 'none';
+          followersLoaded = true;
+
+          if (data.success && data.followers.length > 0) {
+              listElement.innerHTML = data.followers.map(user => createUserItem(user)).join('');
+          } else {
+              listElement.innerHTML = '<div class="empty-state">No followers yet</div>';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading followers:', error);
+          loadingElement.style.display = 'none';
+          listElement.innerHTML = '<div class="error-message">Error loading followers</div>';
+      });
+}
+
+function loadFollowing() {
+  if (!clickedUserId) return;
+
+  const loadingElement = document.getElementById('following-loading');
+  const listElement = document.getElementById('following-list');
+
+  loadingElement.style.display = 'block';
+
+  fetch(`../php/get_following.php?user_id=${clickedUserId}`)
+      .then(response => response.json())
+      .then(data => {
+          loadingElement.style.display = 'none';
+          followingLoaded = true;
+
+          if (data.success && data.following.length > 0) {
+              listElement.innerHTML = data.following.map(user => createUserItem(user)).join('');
+          } else {
+              listElement.innerHTML = '<div class="empty-state">Not following anyone yet</div>';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading following:', error);
+          loadingElement.style.display = 'none';
+          listElement.innerHTML = '<div class="error-message">Error loading following</div>';
+      });
+}
+
+function createUserItem(user) {
+  const isCurrentUser = currentUserId === user.user_id;
+  const followButton = isCurrentUser ? '' : `
+      <button class="follow-button ${user.is_following ? 'following' : ''}"
+              onclick="toggleFollow(this, ${user.user_id})">
+          ${user.is_following ? 'Following' : 'Follow'}
+      </button>
+  `;
+
+  return `
+      <div class="user-item">
+          <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
+               alt="${user.username}" class="user-avatar"
+               onerror="this.src='../assets/temporary_pfp.png'">
+          <div class="user-info">
+              <div class="user-name">${user.display_name || user.username}</div>
+              <div class="user-username">@${user.username}</div>
+          </div>
+          ${followButton}
+      </div>
+  `;
 }
