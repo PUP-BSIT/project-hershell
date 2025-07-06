@@ -10,6 +10,10 @@ body {
   color: black;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 .top-bar {
   margin-bottom: 0px;
 }
@@ -626,4 +630,17 @@ body {
   border-radius: 8px;
   margin: 20px;
   text-align: center;
+}
+
+.logout-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
