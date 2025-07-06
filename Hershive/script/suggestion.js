@@ -435,21 +435,16 @@ function menuToggleDropdown() {
   dropdown.classList.toggle("hidden");
 
   if (!dropdown.classList.contains("hidden")) {
-    const handleScrollClose = () => {
+    const handleClose = () => {
       dropdown.classList.add("hidden");
+      document.removeEventListener("click", handleClose);
+      scrollableContainer.removeEventListener("scroll", handleClose);
     };
 
-    const handleClickOutside = (event) => {
-      const isClickInside = dropdown.contains(event.target);
-      const isToggleButton = event.target.closest('[onclick*="menuToggleDropdown"]');
-
-      if (!isClickInside && !isToggleButton) {
-        dropdown.classList.add("hidden");
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    scrollableContainer.addEventListener("scroll", handleScrollClose);
+    setTimeout(() => {
+      document.addEventListener("click", handleClose);
+      scrollableContainer.addEventListener("scroll", handleClose);
+    }, 0);
   }
 }
 
@@ -458,14 +453,21 @@ function toggleNotificationPanel() {
   if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
 }
 
+window.addEventListener("click", function (e) {
+  const logoutModal = document.getElementById("logout_modal");
+  if (e.target === logoutModal) {
+    hideLogout();
+  }
+});
+
 function hideLogout() {
-  const logoutSection = document.getElementById("logout");
-  if (logoutSection) logoutSection.hidden = true;
+  document.getElementById("logout_modal").classList.add("hidden");
+   document.body.classList.remove("modal-open");
 }
 
 function toggleLogout() {
-  const logoutSection = document.getElementById("logout");
-  if (logoutSection) logoutSection.hidden = false;
+  document.getElementById("logout_modal").classList.remove("hidden");
+  document.body.classList.add("modal-open");
 }
 
 function logout() {
