@@ -26,6 +26,7 @@ if (!isset($data['user_id'])) {
 
 $userId = intval($data['user_id']);
 
+// Get profile data of the requested user
 $sql = "SELECT * FROM user WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $userId);
@@ -39,13 +40,14 @@ if (!$user) {
     exit;
 }
 
+// Retrieve current session user ID and username if available
+$currentSessionUserId = $_SESSION['user_id'] ?? null;
 $currentSessionUsername = null;
-if (isset($_SESSION['username'])) {
-    $currentSessionUsername = $_SESSION['username'];
-} elseif (isset($_SESSION['user_id'])) {
+
+if ($currentSessionUserId) {
     $sessionSql = "SELECT username FROM user WHERE user_id = ?";
     $sessionStmt = $conn->prepare($sessionSql);
-    $sessionStmt->bind_param("i", $_SESSION['user_id']);
+    $sessionStmt->bind_param("i", $currentSessionUserId);
     $sessionStmt->execute();
     $sessionResult = $sessionStmt->get_result();
     $sessionUser = $sessionResult->fetch_assoc();
@@ -54,6 +56,7 @@ if (isset($_SESSION['username'])) {
     }
 }
 
+// Use fallback images if none are set
 $profilePic = !empty($user['profile_picture_url']) 
     ? $user['profile_picture_url'] 
     : '../assets/temporary_pfp.png';
@@ -78,6 +81,7 @@ echo json_encode([
     'bio' => $bio,
     'profile_picture_url' => $profilePic,
     'background_picture_url' => $coverPhoto,
+    'current_session_user_id' => $currentSessionUserId,
     'current_session_username' => $currentSessionUsername
 ]);
 ?>
