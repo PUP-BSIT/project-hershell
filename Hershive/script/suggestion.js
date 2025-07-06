@@ -429,7 +429,28 @@ function updateFollowingCount(count) {
 
 function menuToggleDropdown() {
   const dropdown = document.getElementById("menu_dropdown");
-  if (dropdown) dropdown.classList.toggle("hidden");
+  const scrollableContainer = document.querySelector('.right-contents');
+  if (!dropdown || !scrollableContainer) return;
+
+  dropdown.classList.toggle("hidden");
+
+  if (!dropdown.classList.contains("hidden")) {
+    const handleScrollClose = () => {
+      dropdown.classList.add("hidden");
+    };
+
+    const handleClickOutside = (event) => {
+      const isClickInside = dropdown.contains(event.target);
+      const isToggleButton = event.target.closest('[onclick*="menuToggleDropdown"]');
+
+      if (!isClickInside && !isToggleButton) {
+        dropdown.classList.add("hidden");
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    scrollableContainer.addEventListener("scroll", handleScrollClose);
+  }
 }
 
 function toggleNotificationPanel() {
