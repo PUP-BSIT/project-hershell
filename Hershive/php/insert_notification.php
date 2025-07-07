@@ -54,11 +54,25 @@ switch ($type) {
     break;
 
   case 'comment':
-    // fetch comment
+    $stmt = $conn->prepare("SELECT comment_id FROM comment WHERE post_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $postId, $actorId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+      $commentId = $row['comment_id'];
+    }
+    $stmt->close();
     break;
 
   case 'share':
-    // fetch share
+    $stmt = $conn->prepare("SELECT share_id FROM share WHERE post_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $postId, $actorId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+      $shareId = $row['share_id'];
+    }
+    $stmt->close();
     break;
 
   case 'follow':
