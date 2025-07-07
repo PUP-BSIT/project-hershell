@@ -267,30 +267,23 @@ function saveProfileUpdates() {
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
-
         const bioDisplay = document.querySelector(".bio-section p");
         if (bioDisplay) bioDisplay.innerText = bioText;
 
-        if (profileInput) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const src = e.target.result;
-            const profileImgs =
-                document.querySelectorAll(".profile-img, .profile-img-preview");
-            profileImgs.forEach(img => img.src = src);
-          };
-          reader.readAsDataURL(profileInput);
+        // If backend returned a new profile picture URL, use it
+        if (data.profile_picture_url) {
+          const profileImgs = document.querySelectorAll(".profile-img, .profile-img-preview");
+          profileImgs.forEach(img => {
+            img.src = data.profile_picture_url + "?v=" + Date.now();
+          });
         }
 
-        if (coverInput) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const src = e.target.result;
-            const coverImgs =
-                document.querySelectorAll(".cover-img, .cover-img-preview");
-            coverImgs.forEach(img => img.src = src);
-          };
-          reader.readAsDataURL(coverInput);
+        // If backend returned a new cover photo URL, use it
+        if (data.cover_photo_url) {
+          const coverImgs = document.querySelectorAll(".cover-img, .cover-img-preview");
+          coverImgs.forEach(img => {
+            img.src = data.cover_photo_url + "?v=" + Date.now();
+          });
         }
 
         closeEditModal();
