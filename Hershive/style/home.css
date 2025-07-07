@@ -272,6 +272,7 @@ select {
   margin-left: 10px;
   overflow-wrap: break-word;
   word-break: break-word;
+  margin-bottom: 10px;
 }
 
 .content img {
@@ -294,6 +295,14 @@ select {
 .more-option img {
   width: 20px;
   height: 20px;
+}
+
+.shared-card {
+  border: 1px solid #8b6A47;
+  background-color: #f0e8dd;
+  border-left: 4px solid #8b6A47;
+  padding: 10px;
+  border-radius: 10px;
 }
 
 .dropdown-menu {
@@ -1752,7 +1761,7 @@ body.modal-open {
   background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
   padding: 20px;
   border-radius: 12px;
-  width: 60vw;
+  width: 30vw;
   max-height: 70vh;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -1794,15 +1803,22 @@ body.modal-open {
 }
 
 .share-icons img {
-  width: 36px;
+  width: 5vh;
   height: 5vh;
   cursor: pointer;
+  border-radius: 50%;
+  display: block;
 }
 
-.share-link-section label {
-  font-size: 1.5vh;
-  margin-bottom: 4px;
-  display: block;
+#share_to {
+  border: none;
+  background: transparent;
+}
+
+.share-link-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .link-box {
@@ -1815,17 +1831,25 @@ body.modal-open {
   flex: 1;
   padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1.4vh;
+  border-radius: 10px;
+  font-size: 1.7vh;
+  background-color: #f8f5ea;
 }
 
 .link-box button {
-  height: 4vh;
-  background: #f2f2f2;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   border: 1px solid #ccc;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.link-box button:hover {
+  background: linear-gradient(135deg, #a67c52, #8b6a47);
+  box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
 }
 
 .link-box button img {
@@ -1837,25 +1861,50 @@ body.modal-open {
   width: 100%;
   min-height: 8vh;
   padding: 10px;
-  margin: 10px 0;
   font-size: 1.4vh;
   resize: none;
+  border: none;
+  border-radius: 10px;
 }
 
 .shared-post-preview {
+  display: flex;
+  flex-direction: column;
   border: 1px solid #ccc;
   padding: 10px;
-  background-color: #f9f9f9;
-  margin-bottom: 15px;
+  background-color: #f8f5ea;
   overflow-y: auto;
   max-height: 48vh;
-  -webkit-overflow-scrolling: scroll;
-  scrollbar-width: thin;
+  border-radius: 10px;
+  gap: 10px;
 }
+
+.shared-post-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shared-post-preview::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.shared-post-preview:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #b98d5b, #a67c52);
+}
+
+.shared-post-preview::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shared-post-preview:hover::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
 
 #shared_post_preview img,
 #shared_post_preview video {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   border-radius: 8px;
   margin-top: 10px;
@@ -1863,15 +1912,20 @@ body.modal-open {
 }
 
 .submit-share-btn {
-  background-color: #1877f2;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
-  padding: 10px 20px;
+  padding: 8px 20px;
   border: none;
-  height: fit-content;
-  font-size: 2vh;
+  height: 4vh;
+  font-size: 1.8vh;
   font-weight: bold;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 10px;
+}
+
+.submit-share-btn:hover {
+  background: linear-gradient(135deg, #a67c52, #8b6a47);
+  box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
 }
 
 .like-btn {
