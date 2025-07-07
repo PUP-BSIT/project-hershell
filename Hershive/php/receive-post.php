@@ -9,7 +9,7 @@ $incoming_token = $input['token'] ?? null;
 $provider = $input['provider'];// devhive or heybleepi
 $shared_post_id = $input['posts'][0]['shared_post_id'] ?? null;
 $shared_content = $input['posts'][0]['content'] ?? '';
-$media_url = $input['posts'][0]['file_path'] ?? null;
+$media_url = $input['posts'][0]['file_path'] ?? null;s
 
 if (!$incoming_token) {
     http_response_code(400);
@@ -50,7 +50,6 @@ case 'heybleepi':
     $stmt->bind_param("is", $local_user_id, $shared_content);
     $stmt->execute();
     $new_post_id = $stmt->insert_id;
-    $stmt->close();
 
     if (!empty($media_url)) {
         $video_exts = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
@@ -68,12 +67,11 @@ case 'heybleepi':
         }
 
         // Save to uploads/
-        $uploadDir = 'https://hershive.com/project-hershell/Hershive/uploads/';
+        $uploadDir = __DIR__ . '/../uploads/';
         $filename = uniqid('media_', true) . '.' . $extension;
         $local_path = $uploadDir . $filename;
 
         $file_contents = @file_get_contents($media_url);
-        error_log($file_contents);
         if ($file_contents === false) {
             echo json_encode(['error' => 'Failed to download media.']);
             exit;
@@ -82,8 +80,9 @@ case 'heybleepi':
         file_put_contents($local_path, $file_contents);
 
         // Save local file path
-        $media_stmt = $conn->prepare("INSERT INTO post (post_id, media_url) VALUES (?, ?)");
-        $media_stmt->bind_param("is", $new_post_id, $local_path);
+        $media_url_to_store = 'https://hershive.com/project-hershell/Hershive/uploads/' . $filename;
+        $media_stmt = $conn->prepare("UPDATE post SET media_url = ? WHERE post_id = ?");
+        $media_stmt->bind_param("si", $media_url_to_store, $new_post_id);
         $media_stmt->execute();
         $media_stmt->close();
     }
