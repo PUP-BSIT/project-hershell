@@ -1227,6 +1227,10 @@ function menuToggleDropdown() {
   }
 }
 
+setInterval(() => {
+  loadNotifications();
+}, 3000);
+
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
   const badge = document.getElementById("notification_count");
