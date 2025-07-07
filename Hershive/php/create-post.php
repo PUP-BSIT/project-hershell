@@ -27,7 +27,6 @@ function sanitize_input($input, $allow_html = false) {
 
 $content = isset($_POST['content']) ? sanitize_input($_POST['content'], true) : '';
 $media_type = $_POST['media_type'] ?? null;
-// ✅ Get and validate visibility
 $visibility = in_array($_POST['visibility'], ['public', 'private', 'followers'])
     ? $_POST['visibility']
     : 'public';
@@ -104,6 +103,7 @@ if (!empty($clients) && $share_post_id) {
     $endpoints = [
         'heybleepi' => "https://heybleepi.site/PROJECT-CLUB-404/heybleepi/codes/php/receive-post.php",
         'devhive'   => "https://devhivespace.com/api/posts/receive-post.php",
+        'hershive'  => "https://hershive.com/project-hershell/Hershive/php/receive-post.php"
     ];
 
     foreach ($clients as $client) {
@@ -117,8 +117,6 @@ if (!empty($clients) && $share_post_id) {
 
         if ($isAllowed !== 'allowed_to_share') {
             $result[$client] = ['status' => 'error', 'message' => "Not allowed to share to $client"];
-            continue;
-        }
             continue;
         }
 
@@ -160,13 +158,21 @@ if (!empty($clients) && $share_post_id) {
             ];
         }
     }
+}
 
 // ========== Final Response ========== //
 if (ob_get_length()) ob_clean();
 $response = ['success' => true, 'post_id' => $post_id];
 if (!empty($result)) $response['shared_to'] = $result;
 
-echo json_encode($response);
+$is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
+
+if ($is_ajax) {
+  echo json_encode($response);
+} else {
+  header("Location: /project-hershell/Hershive/html/home.html");
+}
 
 $conn->close();
+exit;
 ?>
