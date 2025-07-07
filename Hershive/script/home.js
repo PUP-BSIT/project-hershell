@@ -343,6 +343,9 @@ function submitPost() {
   fetch("../php/create-post.php", {
     method: "POST",
     body: formData,
+    headers: {
+    "X-Requested-With": "XMLHttpRequest"
+    }
   })
     .then((res) => res.json())
     .then((data) => {
