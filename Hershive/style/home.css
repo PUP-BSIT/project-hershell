@@ -2219,11 +2219,27 @@ body.modal-open {
 }
 
 .icon-people::before {
-  content: "👥";
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background-image: url('../assets/following_icon.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  image-rendering: auto;
 }
 
 .icon-followers::before {
-  content: "👁️";
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-image: url('../assets/followers_icon.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  image-rendering: auto;
 }
 
 .timestamp-container {
