@@ -12,13 +12,16 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       const tabsSection = document.querySelector('.post-section-toggle');
       if (tabsSection) {
-        tabsSection.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
+        const offsetTop = tabsSection.getBoundingClientRect().top + window.pageYOffset;
+
+        window.scrollTo({
+          top: offsetTop - 20,
+          behavior: 'smooth'
         });
       }
     }, 100);
   }
+
 
   document.getElementById("media_input")?.addEventListener("change", function () {
     handleCreatePostFileInput(this, false);
