@@ -381,26 +381,28 @@
         <button class="submit-share-btn" onclick="submitShare()">Share</button>
 
         <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+          <p><strong>Share To:</strong></p>
           <input type="hidden" name="shared_post_id" id="shared_post_id">
           <div class="share-icons">
-            <button type="submit" name="share_to" value="DevhiveSpace" id="share_to"
-              ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/>
+            <button type="submit" name="share_to" value="DevhiveSpace" 
+                    id="share_to" title="Share to DevhiveSpace">
+              <img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/>
             </button>
-            <button type="submit" name="share_to" value="heybleepi" id="share_to"
-              ><img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+            <button type="submit" name="share_to" value="heybleepi"
+                    id="share_to" title="Share to heybleepi">
+              <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
             </button>
           </div>
         </form>
 
-
         <div class="share-link-section">
-          <label>Page link</label>
+          <p><strong>Page link</strong></p>
           <div class="link-box">
             <input
               type="text"
               id="share_link"
               readonly>
-            <button id="copy_link" onclick="copyLink(this)">
+            <button id="copy_link" onclick="copyLink(this)" title="Copy link">
               <img src="../assets/copy_icon.png" alt="Copy"/>
             </button>
           </div>
