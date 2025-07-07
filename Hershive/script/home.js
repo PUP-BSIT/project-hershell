@@ -69,6 +69,14 @@ function checkUserSession(callback) {
           modalUsername.textContent = data.username;
         }
 
+        const modalProfilePic = document.querySelector(".create-post-modal .modal-profile-pic");
+        if (modalProfilePic) {
+          modalProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          modalProfilePic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
+
         if (typeof callback === "function") {
           callback();
         }
@@ -790,7 +798,6 @@ function syncPrivacyToMini() {
 
 // Rest of your existing functions
 function openPostModal(event) {
-  // Prevent modal from opening when clicking the mini privacy <select>
   if (event && event.target.closest("#privacy")) {
     return;
   }
@@ -799,14 +806,17 @@ function openPostModal(event) {
   postModal.classList.remove("hidden");
   postModal.classList.add("flex-center");
 
-  syncPrivacyToModal(); // sync outside to modal privacy
-}
+  document.body.classList.add("no-scroll");
 
+  syncPrivacyToModal();
+}
 
 function closePostModal() {
   const postModal = document.getElementById("post_modal");
   postModal.classList.add("hidden");
   postModal.classList.remove("flex-center");
+
+  document.body.classList.remove("no-scroll");
 }
 
 window.addEventListener("click", function (e) {
@@ -821,6 +831,7 @@ window.addEventListener("click", function (e) {
     hideLogout();
   }
 });
+
 
 function cancelDropdown(button) {
   const parent = button.closest(".more-option");
@@ -1330,7 +1341,7 @@ function toggleCommentModal(button) {
 
   loadComments(currentPostIdForComments, commentListEl);
   setTimeout(() => inputEl.focus(), 300);
-  
+
   if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
     window.commentPollingInterval = setInterval(() => {
       loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
@@ -1349,7 +1360,7 @@ function closeCommentModal() {
     if (commentInput) {
         commentInput.value = '';
     }
-    
+
     if (window.commentPollingInterval) {
       clearInterval(window.commentPollingInterval);
       window.commentPollingInterval = null;

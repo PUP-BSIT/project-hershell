@@ -604,20 +604,37 @@ body.modal-open {
   font-weight: 600;
 }
 
+.modal-user-info {
+  margin-bottom: 16px;
+}
+
+.user-info-box {
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  border-left: 3px solid #b98d5b;
+  transition: all 0.3s ease;
+  width: 30%;
+}
+
+.user-info-box:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.modal-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
 .create-post-modal .username {
   font-weight: 600;
   font-size: 14px;
   color: rgb(110, 108, 108);
-  margin: 0 0 16px 0;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 8px;
-  border-left: 3px solid #b98d5b;
-  transition: all 0.3s ease;
-}
-
-.create-post-modal .username:hover {
-  background: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  padding: 0;
 }
 
 .create-post-modal:hover {
@@ -895,7 +912,7 @@ body.modal-open {
 
 .preview-image,
 .preview-video {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   margin-top: 10px;
   border-radius: 12px;
@@ -3100,4 +3117,8 @@ body.modal-open {
 
 .delete-post-confirm-btn:hover {
   background-color: #c0392b;
+}
+
+.no-scroll {
+  overflow: hidden;
 }
