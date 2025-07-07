@@ -24,6 +24,7 @@ body {
   justify-content: space-between;
   margin-bottom: 10px;
   z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .logo {
@@ -121,6 +122,7 @@ body {
   align-items: center;
   background-color: #dfdbcd;
   width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .main-create-post {
@@ -192,6 +194,7 @@ select {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   height: calc(100vh - 90px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .side-panel::-webkit-scrollbar {
@@ -231,6 +234,7 @@ select {
   background-color: #dfdbcd;
   border-radius: 20px;
   width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .post-header {
