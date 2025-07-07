@@ -293,7 +293,6 @@ function togglePostFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -1158,7 +1157,6 @@ function toggleFollow(button) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -2085,7 +2083,6 @@ function toggleTopUserFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -2136,7 +2133,6 @@ function toggleMorePeopleFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
