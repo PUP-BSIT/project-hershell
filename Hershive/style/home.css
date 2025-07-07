@@ -3126,3 +3126,13 @@ body.modal-open {
 .no-scroll {
   overflow: hidden;
 }
+
+#editor {
+  white-space: pre-wrap;
+}
+
+.post-text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  /* or 'monospace' if you're showing code-style posts */
+}
