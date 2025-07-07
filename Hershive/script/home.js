@@ -69,6 +69,14 @@ function checkUserSession(callback) {
           modalUsername.textContent = data.username;
         }
 
+        const modalProfilePic = document.querySelector(".create-post-modal .modal-profile-pic");
+        if (modalProfilePic) {
+          modalProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          modalProfilePic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
+
         if (typeof callback === "function") {
           callback();
         }
@@ -168,14 +176,14 @@ function createPostElement(post) {
 
     <div class="post-content">
       <div class="content">
-        ${post.content ? `<p>${post.content}</p>` : ""}
+        ${post.content ? `<div class="post-text">${post.content}</div>` : ""}
 
         ${isShared ? `
           <div class="shared-card">
             <p class="shared-username">Originally posted by
               <strong>${post.original_post.username}</strong>
             </p>
-            <p>${post.original_post.content}</p>
+            <div class="shared-content">${post.original_post.content}</div>
             ${post.original_post.media_url ? (
               post.original_post.media_type === "video"
                 ? `<video controls class="preview-video">
@@ -250,6 +258,38 @@ function createPostElement(post) {
   return postDiv;
 }
 
+function handlePaste(editor) {
+  editor.addEventListener('paste', function(e) {
+    e.preventDefault();
+
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
+
+    // Create a <pre> styled span to hold the formatted content
+    const span = document.createElement("span");
+    span.textContent = pastedText; // This preserves all formatting as plain text
+    span.style.whiteSpace = "pre-wrap"; // Ensures tabs and line breaks are shown
+
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(span);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+
+
+// Initialize the editor with paste handling
+document.addEventListener('DOMContentLoaded', function() {
+  const editor = document.getElementById("editor");
+  if (editor) {
+    handlePaste(editor);
+  }
+});
+
 function togglePostFollow(button, username) {
   const isFollowing = button.classList.contains("following");
   const action = isFollowing ? 'unfollow' : 'follow';
@@ -285,7 +325,6 @@ function togglePostFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -303,7 +342,7 @@ function togglePostFollow(button, username) {
 
 function submitPost() {
   const editor = document.getElementById("editor");
-  const content = editor.innerHTML.trim();
+  let content = editor.innerHTML.trim();
 
   const imageInput = document.getElementById("media_input");
   const videoInput = document.getElementById("media_input_video");
@@ -321,7 +360,10 @@ function submitPost() {
 
   const formData = new FormData();
 
-  if (hasText) formData.append("content", content);
+  if (hasText) {
+    formData.append("content", content);
+  }
+
   if (hasImage && hasVideo) {
     alert("You can only upload one media at a time.");
     return;
@@ -790,7 +832,6 @@ function syncPrivacyToMini() {
 
 // Rest of your existing functions
 function openPostModal(event) {
-  // Prevent modal from opening when clicking the mini privacy <select>
   if (event && event.target.closest("#privacy")) {
     return;
   }
@@ -799,14 +840,17 @@ function openPostModal(event) {
   postModal.classList.remove("hidden");
   postModal.classList.add("flex-center");
 
-  syncPrivacyToModal(); // sync outside to modal privacy
-}
+  document.body.classList.add("no-scroll");
 
+  syncPrivacyToModal();
+}
 
 function closePostModal() {
   const postModal = document.getElementById("post_modal");
   postModal.classList.add("hidden");
   postModal.classList.remove("flex-center");
+
+  document.body.classList.remove("no-scroll");
 }
 
 window.addEventListener("click", function (e) {
@@ -821,6 +865,7 @@ window.addEventListener("click", function (e) {
     hideLogout();
   }
 });
+
 
 function cancelDropdown(button) {
   const parent = button.closest(".more-option");
@@ -1147,7 +1192,6 @@ function toggleFollow(button) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -1330,7 +1374,7 @@ function toggleCommentModal(button) {
 
   loadComments(currentPostIdForComments, commentListEl);
   setTimeout(() => inputEl.focus(), 300);
-  
+
   if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
     window.commentPollingInterval = setInterval(() => {
       loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
@@ -1349,7 +1393,7 @@ function closeCommentModal() {
     if (commentInput) {
         commentInput.value = '';
     }
-    
+
     if (window.commentPollingInterval) {
       clearInterval(window.commentPollingInterval);
       window.commentPollingInterval = null;
@@ -2074,7 +2118,6 @@ function toggleTopUserFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -2125,7 +2168,6 @@ function toggleMorePeopleFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
