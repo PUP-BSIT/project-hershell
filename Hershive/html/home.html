@@ -24,16 +24,20 @@
           <img src="../assets/home_icon.png" alt="home" />
         </button>
 
-        <button onclick="toggleNotificationPanel()">
-          <img src="../assets/notification_icon.png" alt="notification"/>
+        <button onclick="toggleNotificationPanel()" 
+                class="notification-wrapper">
+          <div class="notification-icon-container">
+            <img src="../assets/notification_icon.png" alt="notification"/>
+            <span id="notification_count" 
+                  class="notification-count hidden">0
+            </span>
+          </div>
         </button>
 
-        <div class="notification-panel" id="notification_panel">
+        <div class="notification-panel hidden" id="notification_panel">
           <div class="notification-header">
             <h4>Notification</h4>
-            <button onclick="toggleNotificationPage()">See all</button>
           </div>
-
           <div id="notification_container"></div>
         </div>
 
