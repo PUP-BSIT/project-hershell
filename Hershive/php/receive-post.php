@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 $input = json_decode(file_get_contents("php://input"), true);
 
 $incoming_token = $input['token'] ?? null;
-$provider = $input['client']; // devhive or heybleepi
+$provider = $input['provider'];// devhive or heybleepi
 $shared_post_id = $input['posts'][0]['shared_post_id'] ?? null;
 $shared_content = $input['posts'][0]['content'] ?? '';
 $media_url = $input['posts'][0]['file_path'] ?? null;
@@ -17,42 +17,80 @@ if (!$incoming_token) {
     exit;
 }
 
-// Verify token
-$stmt = $conn->prepare("SELECT user_id FROM oauth_tokens WHERE token = ?");
-$stmt->bind_param("s", $incoming_token);
-$stmt->execute();
-$stmt->bind_result($local_user_id);
-$stmt->fetch();
-$stmt->close();
+switch (strtolower($provider)) {
+case 'devhive':
+    break;
+    
+case 'heybleepi':
+    $media_url = $input['posts'][0]['file_path'] ?? null;
+    $shared_content = $input['posts'][0]['content'] ?? '';
+    
+    // Verify token
+    $stmt = $conn->prepare("SELECT user_id FROM oauth_tokens WHERE token = ?");
+    $stmt->bind_param("s", $incoming_token);
+    $stmt->execute();
+    $stmt->bind_result($local_user_id);
+    $stmt->fetch();
+    $stmt->close();
+    
+    if (!$local_user_id) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Invalid or unauthorized token.']);
+        exit;
+    }
+    
+    if (empty(trim($shared_content)) && empty($media_url)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Post must contain shared content or media.']);
+        exit;
+    }
+    
+    // Save post
+    $stmt = $conn->prepare("INSERT INTO post (user_id, content) VALUES (?, ?)");
+    $stmt->bind_param("is", $local_user_id, $shared_content);
+    $stmt->execute();
+    $new_post_id = $stmt->insert_id;
+    $stmt->close();
 
-if (!$local_user_id) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Invalid or unauthorized token.']);
-    exit;
+    if (!empty($media_url)) {
+        $video_exts = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
+        $image_exts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+
+        $extension = strtolower(pathinfo($media_url, PATHINFO_EXTENSION));
+
+        if (in_array($extension, $video_exts)) {
+            $media_type = 'video';
+        } elseif (in_array($extension, $image_exts)) {
+            $media_type = 'image';
+        } else {
+            echo json_encode(['error' => 'Unsupported media type.']);
+            exit;
+        }
+
+        // Save to uploads/
+        $uploadDir = 'https://hershive.com/project-hershell/Hershive/uploads/';
+        $filename = uniqid('media_', true) . '.' . $extension;
+        $local_path = $uploadDir . $filename;
+
+        $file_contents = @file_get_contents($media_url);
+        error_log($file_contents);
+        if ($file_contents === false) {
+            echo json_encode(['error' => 'Failed to download media.']);
+            exit;
+        }
+
+        file_put_contents($local_path, $file_contents);
+
+        // Save local file path
+        $media_stmt = $conn->prepare("INSERT INTO post (post_id, media_url) VALUES (?, ?)");
+        $media_stmt->bind_param("is", $new_post_id, $local_path);
+        $media_stmt->execute();
+        $media_stmt->close();
+    }
+    $stmt->close();
+    $conn->close();
+    break;
 }
-
-// Require at least shared content or media
-if (empty(trim($shared_content)) && empty($media_url)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Post must contain shared content or media.']);
-    exit;
-}
-
-// Insert post
-$stmt = $conn->prepare("INSERT INTO post (user_id, content, media_url) VALUES (?, ?, ?)");
-$stmt->bind_param("iss", $local_user_id, $final_content, $media_url);
-
-if ($stmt->execute()) {
-    echo json_encode([
-        'success' => true,
-        'post_id' => $stmt->insert_id,
-        'message' => 'Shared post successfully saved.'
-    ]);
-} else {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to save post.']);
-}
-
-$stmt->close();
-$conn->close();
+http_response_code(200);
+echo json_encode(['message' => 'Post received and saved successfully.']);
 ?>
