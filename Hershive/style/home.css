@@ -75,6 +75,7 @@ body {
   box-sizing: border-box;
   font-size: 16px;
   color: #333;
+  outline: none;
 }
 
 .navigation-icons {
@@ -487,7 +488,7 @@ body.modal-open {
 }
 
 .formatting-options button.active {
-  background: linear-gradient(135deg, #b98d5b, #a67c52);
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border-color: #8b6a47;
   transform: translateY(-1px);
@@ -593,15 +594,12 @@ body.modal-open {
 }
 
 .create-post-modal:focus-within .modal-header::after {
-  width: 60%;
+  width: 100%;
 }
 
 .modal-header h2 {
   font-size: 22px;
   margin: 0;
-  background: linear-gradient(135deg, #8b6a47, #a67c52);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 600;
 }
@@ -609,7 +607,7 @@ body.modal-open {
 .create-post-modal .username {
   font-weight: 600;
   font-size: 14px;
-  color: #8b6a47;
+  color: rgb(110, 108, 108);
   margin: 0 0 16px 0;
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.4);
@@ -650,7 +648,7 @@ body.modal-open {
 }
 
 .submit-button {
-  background: linear-gradient(135deg, #ecb06e, #ad7943)  ;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border: none;
   border-radius: 12px;
