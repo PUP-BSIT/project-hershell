@@ -94,6 +94,11 @@ if (!isset($recipientId)) {
   exit;
 }
 
+if ($recipientId == $actorId) {
+  echo json_encode(['success' => false, 'error' => 'Actor and recipient are the same']);
+  exit;
+}
+
 $stmt = $conn->prepare("INSERT INTO notification (
   recipient_user_id, actor_user_id, follow_id, post_id,
   comment_id, heart_react_id, share_id, message
