@@ -315,6 +315,8 @@ function togglePostFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -1181,7 +1183,7 @@ function toggleFollow(button) {
         button.textContent = "Following";
         button.classList.add("following");
         // followStatusCache[username] = true;
-        sendNotification('follow', userId, 'Started following you.');
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -1260,6 +1262,21 @@ function toggleNotificationPanel() {
     loadNotifications();
   }
 }
+
+document.addEventListener('click', function(event) {
+  const panel = document.getElementById("notification_panel");
+  const button = document.querySelector(".notification-wrapper");
+
+  if (!panel || !button) return;
+
+  const clickedInsidePanel = panel.contains(event.target);
+  const clickedButton = button.contains(event.target);
+
+  if (!clickedInsidePanel && !clickedButton && !panel.classList.contains("hidden")) {
+    panel.classList.add("hidden");
+  }
+});
+
 
 function sendNotification(type, postId, message) {
   fetch('../php/insert_notification.php', {
@@ -2152,6 +2169,8 @@ function toggleTopUserFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -2202,6 +2221,8 @@ function toggleMorePeopleFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");

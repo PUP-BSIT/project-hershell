@@ -74,6 +74,7 @@ if ($action === 'follow') {
         echo json_encode([
             'success' => true,
             'action' => 'followed',
+            'target_user_id' => $targetUserId,
             'target_user_followers' => $targetUserFollowers,
             'current_user_following' => $currentUserFollowing
         ]);
@@ -107,6 +108,7 @@ if ($action === 'follow') {
         echo json_encode([
             'success' => true,
             'action' => 'unfollowed',
+            'target_user_id' => $targetUserId,
             'target_user_followers' => $targetUserFollowers,
             'current_user_following' => $currentUserFollowing
         ]);
