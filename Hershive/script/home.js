@@ -4,9 +4,6 @@ let allSearchedUsers = [];
 let followStatusCache = {};
 let currentUserProfilePic = null;
 let clickedUserId = null;
-let postToDelete = null;
-let currentPostIdForComments = null;
-let commentToDeleteId = null;
 
 document.addEventListener("DOMContentLoaded", function () {
   checkUserSession(() => {
@@ -117,6 +114,7 @@ function displayPosts(posts) {
   existingPosts.forEach(post => post.remove());
 
   posts.forEach(post => {
+    console.log('post.source_platform =', post.source_platform, 'post:', post); //=======================================================  
     const postElement = createPostElement(post);
     leftContent.appendChild(postElement);
   });
@@ -126,6 +124,10 @@ function displayPosts(posts) {
   }, 100);
 }
 
+function capitalize(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function createPostElement(post) {
   const postDiv = document.createElement("div");
@@ -162,7 +164,12 @@ function createPostElement(post) {
           <span class="timestamp">
             ${post.formatted_time}
             <img src="${visibilityIcon}" class="visibility-icon" alt="${post.visibility}">
-          </span>
+            ${post.source_platform && post.source_platform !== "hershive" ? `
+            <div class="external-share-indicator">
+              Shared from ${capitalize(post.source_platform)}
+            </div>
+          ` : ''}
+            </span>
         </div>
       </div>
       ${isOwner ? `
@@ -420,7 +427,7 @@ function editPost(button) {
   const post = button.closest('.sample-post');
   const postId = post.dataset.postId;
   const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('.post-text');
+  const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
   const sharedCard = contentDiv.querySelector('.shared-card');
   const existingImage = contentDiv.querySelector('img:not(.shared-card img)');
   const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
@@ -448,8 +455,7 @@ function editPost(button) {
 
   saveBtn.onclick = () => {
     const content = editor.innerHTML.trim();
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
-    const hasText = plainText !== '';
+    const hasText = content.replace(/<[^>]*>/g, '').trim() !== '';
     const hasNewImage = fileInputImage.files.length > 0;
     const hasNewVideo = fileInputVideo.files.length > 0;
     const hasExistingMedia = existingImage || existingVideo;
@@ -481,6 +487,7 @@ function editPost(button) {
     fetch('../php/edit_post.php', { method: 'POST', body: formData })
       .then(res => res.json())
       .then(data => {
+        console.log('Edit response:', data);
         if (!data.success) {
           alert(data.error || 'Failed to update post');
           return;
@@ -603,36 +610,6 @@ function createUploadControls() {
     visibilityIcon.src = iconMap[miniPrivacy.value] || iconMap.public;
   }
 
-  const previewMedia = (file, isVideo) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const media = document.createElement(isVideo ? 'video' : 'img');
-      media.src = e.target.result;
-      media.className = isVideo ? 'preview-video' : 'preview-image';
-      if (isVideo) media.controls = true;
-
-      const existing = container.querySelector('.preview-image, .preview-video');
-      if (existing) existing.remove();
-
-      container.appendChild(media);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  fileInputImage.addEventListener('change', () => {
-    if (fileInputImage.files.length > 0) {
-      fileInputVideo.value = '';
-      previewMedia(fileInputImage.files[0], false);
-    }
-  });
-
-  fileInputVideo.addEventListener('change', () => {
-    if (fileInputVideo.files.length > 0) {
-      fileInputImage.value = '';
-      previewMedia(fileInputVideo.files[0], true);
-    }
-  });
-
   container.append(imageLabel, videoLabel, visibility);
   return {
     uploadControls: container,
@@ -659,23 +636,17 @@ function createCancelButton(onClick) {
 
 function updatePostContent(container, newContent, sharedCard, paragraph, fileInputImage, fileInputVideo, oldImg, oldVid) {
   const hasText = newContent.replace(/<[^>]*>/g, '').trim() !== '';
-
-  if (paragraph) {
-    if (hasText) {
-      paragraph.innerHTML = newContent;
-      paragraph.classList.remove('hidden');
-    } else {
-      paragraph.remove();
-    }
-  } else if (hasText) {
-    const newText = document.createElement('div');
-    newText.className = 'post-text';
-    newText.innerHTML = newContent;
-    if (sharedCard) {
-      container.insertBefore(newText, sharedCard);
-    } else {
-      container.insertBefore(newText, container.firstChild);
-    }
+  if (paragraph && hasText) {
+    paragraph.innerHTML = newContent;
+    paragraph.classList.remove('hidden');
+  } else if (paragraph && !hasText) {
+    paragraph.remove();
+  } else if (!paragraph && hasText) {
+    const p = document.createElement('p');
+    p.innerHTML = newContent;
+    sharedCard
+      ? container.insertBefore(p, sharedCard)
+      : container.insertBefore(p, container.firstChild);
   }
 
   const file = fileInputImage.files[0] || fileInputVideo.files[0];
@@ -692,14 +663,14 @@ function updatePostContent(container, newContent, sharedCard, paragraph, fileInp
     if (oldImg) oldImg.remove();
     if (oldVid) oldVid.remove();
 
-    if (sharedCard) {
-      container.insertBefore(media, sharedCard);
-    } else {
-      container.appendChild(media);
-    }
+    sharedCard
+      ? container.insertBefore(media, sharedCard)
+      : container.appendChild(media);
   };
   reader.readAsDataURL(file);
 }
+
+let postToDelete = null;
 
 function deletePost(button) {
   console.log('Delete button clicked');
@@ -1392,6 +1363,8 @@ function loadNotifications() {
 function formatTime(timestamp) {
   return new Date(timestamp).toLocaleTimeString();
 }
+
+let currentPostIdForComments = null;
 
 function toggleCommentModal(button) {
   const postElement = button.closest('.sample-post');
