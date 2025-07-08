@@ -1344,7 +1344,7 @@ function sendNotification(type, postId, message) {
       console.log('Notification sent successfully.');
     } else {
       if (!data.success) {
-        showError("Failed to send notification: " + (data.error || "Unknown error"));
+        console.error('Failed to send notification:', data.error);
       }
     }
   })
