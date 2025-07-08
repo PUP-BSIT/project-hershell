@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_set_cookie_params([
     'lifetime' => 0,
     'secure' => true,
@@ -342,7 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 <img src="../assets/notification_icon.png" alt="notification"/>
             </button>
             
-            <div class="notification-panel" id="notification_panel">
+            <div class="notification-panel hidden" id="notification_panel">
                 <h4>Notification</h4>
                 <div class="notification">
                     <img src="../assets/temporary_pfp.png" alt="user" 
