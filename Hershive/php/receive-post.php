@@ -19,7 +19,7 @@ if (!$incoming_token) {
 
 switch (strtolower($provider)) {
 case 'devhive':
-    $media_url = $input['posts'][0]['file_path'] ?? null;
+    $media_url = $input['posts'][0]['image_url'] ?? $input['posts'][0]['video_url'] ?? null;
     $shared_content = $input['posts'][0]['content'] ?? '';
 
     $stmt = $conn->prepare("SELECT user_id FROM oauth_tokens WHERE token = ?");
