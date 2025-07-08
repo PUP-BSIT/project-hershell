@@ -60,6 +60,19 @@ function sanitize_input($input, $allow_html = false) {
 $content = sanitize_input($content, true);
 $media_url = $post_data['media_url']; // Keep existing media URL by default
 
+$plain_text = trim(strip_tags($content));
+$has_content = strlen($plain_text) > 0;
+$has_media = !empty($media_url);
+
+if (!$has_content && !$has_media) {
+    echo json_encode(['success' => false, 'error' => 'Post must contain either text or media']);
+    exit;
+}
+
+if (!$has_content) {
+    $content = null;
+}
+
 // Handle new media upload
 if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
     $uploadDir = '../uploads/';
@@ -98,20 +111,6 @@ if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
         echo json_encode(['success' => false, 'error' => 'Failed to upload media']);
         exit;
     }
-}
-
-// Check if content is empty or whitespace-only after sanitization
-$has_content = !empty($content);
-$has_media = !empty($media_url);
-
-// Check if post has content or media (reject whitespace-only posts)
-if (!$has_content && !$has_media) {
-    echo json_encode(['success' => false, 'error' => 'Post must contain either text or media']);
-    exit;
-}
-
-if (!$has_content) {
-    $content = null;
 }
 
 // Update post with visibility included

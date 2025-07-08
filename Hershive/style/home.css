@@ -3035,7 +3035,7 @@ body.modal-open {
 }
 
 .save-edit-button {
-  background-color: #000;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border: none;
 }
