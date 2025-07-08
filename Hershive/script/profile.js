@@ -911,6 +911,7 @@ function toggleFollow(userId, button) {
           if (isFollowing) {
               button.classList.remove('following');
               button.textContent = 'Follow';
+              sendNotification('follow', userId, 'started following you.');
           } else {
               button.classList.add('following');
               button.textContent = 'Following';
