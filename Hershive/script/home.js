@@ -1140,12 +1140,11 @@ function loadSuggestedUsers(limit = 4, page = 1) {
       }, 100);
     })
     .catch((error) => {
-      console.error("Error loading suggested users:", error);
+      showError("Error loading suggested users: " + error.message);
     });
 }
 
 function redirectToSuggestedPage(userId) {
-  console.log("Redirecting to suggested page for user ID:", userId);
   window.location.href = `../html/suggestion.html?userId=${userId}`;
 }
 
@@ -1246,14 +1245,14 @@ function toggleNotificationPanel() {
           .then(res => res.json())
           .then(data => {
             if (!data.success) {
-              console.error("Failed to mark notifications as read:", data.error);
+              showError("Failed to mark notifications as read: " + (data.error || "Unknown error"));
             }
           })
           .catch(error => {
-            console.error("Network error while marking notifications as read:", error);
+            showError("Network error while marking notifications as read: " + error.message);
           });
       } catch (err) {
-        console.error("Unexpected error:", err);
+        showError("Unexpected error: " + err.message);
       }
 
       if (badge) badge.classList.add("hidden");
@@ -1295,11 +1294,13 @@ function sendNotification(type, postId, message) {
     if (data.success) {
       console.log('Notification sent successfully.');
     } else {
-      console.error('Failed to send notification:', data.error);
+      if (!data.success) {
+        showError("Failed to send notification: " + (data.error || "Unknown error"));
+      }
     }
   })
   .catch(error => {
-    console.error('Network error while sending notification:', error);
+    showError("Network error while sending notification: " + error.message);
   });
 }
 
@@ -1312,7 +1313,6 @@ function loadNotifications() {
         const badge = document.getElementById('notification_count');
         const notifications = data.notifications || [];
         const unread = data.unread_count || 0;
-        console.log("Loaded notifications:", notifications, "Unread count:", unread);
 
         container.innerHTML = "";
 
@@ -1339,7 +1339,6 @@ function loadNotifications() {
 
         if (badge) {
           badge.textContent = unread;
-          console.log("Unread notifications count:", unread);
           if (unread > 0) {
             badge.classList.remove("hidden");
           } else {
@@ -1348,7 +1347,7 @@ function loadNotifications() {
         }
       }
     })
-    .catch(err => console.error("Failed to load notifications:", err));
+    .catch(err => showError("Failed to load notifications: " + err.message));
 }
 
 function formatTime(timestamp) {
@@ -1962,8 +1961,7 @@ function submitShare() {
       }
     })
     .catch((err) => {
-      console.error("Error:", err);
-      alert("Error sharing post");
+      showError("Error sharing post: " + err.message);
     });
 }
 
@@ -2392,4 +2390,16 @@ function handleOutsideClick(event) {
 
 function logout() {
   window.location.href = "../php/logout.php";
+}
+
+function showError(message) {
+  const popup = document.getElementById("error_popup");
+  if (!popup) return;
+
+  popup.textContent = message;
+  popup.classList.remove("hidden");
+
+  setTimeout(() => {
+    popup.classList.add("hidden");
+  }, 4000); // auto-hide after 4 seconds
 }
