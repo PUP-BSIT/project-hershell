@@ -63,9 +63,30 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         </div>
         <div id="notification_container"></div>
       </div>
-      <button class="menu-button">☰</button>
+        <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
     </div>
   </div>
+  
+    <div id="menu_dropdown" class="hidden">
+      <a href="../php/settings.php" class="menu-dropdown-item">
+        <img src="../assets/settings_icon.png" alt="settings"/>
+        Settings
+      </a>
+      <div onclick="toggleLogout()" class="menu-dropdown-item">
+        <img src="../assets/logout_icon.png" alt="logout"/>
+        <p>Log out</p>
+      </div>
+    </div>  
+    
+    <div class="logout-modal-overlay hidden" id="logout_modal">
+      <div id="logout">
+        <p><strong>Log out of your account?</strong></p>
+        <div class="button-holder">
+          <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
+          <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+      </div>
+    </div>
 
   <div class="main-container">
     <div class="profile-card">
