@@ -60,7 +60,7 @@ if ($user = $result->fetch_assoc()) {
     $local_user_id = $user['user_id'];
 
     $user_data_url = match ($provider) {
-      'heybleepi' => $provider_url . '/get-user-data.php',
+      'heybleepi' => $provider_url . '/PROJECT-CLUB-404/heybleepi/codes/php/get-user-data.php',
       'hershive'  => $provider_url . '/project-hersell/Herhsive/php/get_user_data.php',
       'devhive'   => $provider_url . '/api/users/get-user-data.php',
       default     => null,
@@ -111,7 +111,7 @@ if ($user = $result->fetch_assoc()) {
   }
   } else {
     $user_data_url = match ($provider) {
-      'heybleepi' => $provider_url . '/get-user-data.php',
+      'heybleepi' => $provider_url . '/PROJECT-CLUB-404/heybleepi/codes/php/get-user-data.php',
       'hershive'  => $provider_url . '/project-hershell/Hershive/php/get_user_data.php',
       'devhive'   => $provider_url . '/api/users/get-user-data.php',
       default     => null,
