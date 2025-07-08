@@ -354,10 +354,16 @@ function checkUserSession() {
 function toggleNotificationPanel() {
   const panel = getElement("notification_panel");
   if (panel) {
-    const isVisible = panel.style.display === "block";
-    panel.style.display = isVisible ? "none" : "block";
+    panel.classList.toggle("hidden");
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const panel = getElement("notification_panel");
+  if (panel && !panel.classList.contains("hidden")) {
+    panel.classList.add("hidden");
+  }
+});
 
 function menuToggleDropdown() {
   const dropdown = getElement("menu_dropdown");
