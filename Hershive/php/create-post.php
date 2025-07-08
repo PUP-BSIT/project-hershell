@@ -95,11 +95,11 @@ if (!empty($clients) && $share_post_id) {
     $share_post_id = intval($share_post_id);
 
     // Fetch original post data
-    $stmt = $conn->prepare("SELECT content, media_url FROM post WHERE post_id = ?");
+    $stmt = $conn->prepare("SELECT content, media_url, source_platform FROM post WHERE post_id = ?");
     $stmt->bind_param("i", $share_post_id);
     $stmt->execute();
     $stmt->store_result();
-    $stmt->bind_result($shared_content, $shared_media_url);
+    $stmt->bind_result($shared_content, $shared_media_url, $provider);
 
     if (!$stmt->fetch()) {
         echo json_encode(['success' => false, 'error' => 'Original post not found']);

@@ -3035,7 +3035,7 @@ body.modal-open {
 }
 
 .save-edit-button {
-  background: linear-gradient(135deg, #ecb06e, #ad7943);
+  background-color: #000;
   color: white;
   border: none;
 }
@@ -3227,3 +3227,20 @@ body.modal-open {
   z-index: 9999;
   transition: opacity 0.3s ease-in-out;
 }
+
+.external-share-indicator {
+  display: inline-block;
+  background: linear-gradient(135deg, #f5d2a2, #e4b87d);
+  color: #5a3b1a;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+  margin-left: 0; /* Remove offset */
+  box-shadow: none;
+  pointer-events: none;
+}
+
