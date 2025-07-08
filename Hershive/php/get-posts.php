@@ -24,6 +24,7 @@ SELECT
     p.created_at,
     p.visibility,
     p.is_shared,
+    p.source_platform,
     (SELECT COUNT(*) FROM heart_react WHERE post_id = p.post_id) as likes_count,
     (SELECT COUNT(*) FROM comment WHERE post_id = p.post_id AND deleted = 0) as comments_count,
     (SELECT COUNT(*) FROM share WHERE post_id = p.post_id) as shares_count,

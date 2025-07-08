@@ -19,7 +19,7 @@ if (!$incoming_token) {
 
 switch (strtolower($provider)) {
 case 'devhive':
-    $media_url = $input['posts'][0]['image_url'] ?? $input['posts'][0]['video_url'] ?? null;
+    $media_url = $input['posts'][0]['image_url']?? $input['posts'][0]['video_url'] ?? null;
     $shared_content = $input['posts'][0]['content'] ?? '';
 
     $stmt = $conn->prepare("SELECT user_id FROM oauth_tokens WHERE token = ?");
@@ -41,8 +41,8 @@ case 'devhive':
         exit;
     }
 
-    $stmt = $conn->prepare("INSERT INTO post (user_id, content) VALUES (?, ?)");
-    $stmt->bind_param("is", $local_user_id, $shared_content);
+    $stmt = $conn->prepare("INSERT INTO post (user_id, content, source_platform) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $local_user_id, $shared_content, $provider);
     $stmt->execute();
     $new_post_id = $stmt->insert_id;
 
@@ -111,8 +111,8 @@ case 'heybleepi':
     }
     
     // Save post
-    $stmt = $conn->prepare("INSERT INTO post (user_id, content) VALUES (?, ?)");
-    $stmt->bind_param("is", $local_user_id, $shared_content);
+    $stmt = $conn->prepare("INSERT INTO post (user_id, content, source_platform) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $local_user_id, $shared_content, $provider);
     $stmt->execute();
     $new_post_id = $stmt->insert_id;
 
