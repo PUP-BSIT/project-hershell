@@ -109,7 +109,7 @@ if (!empty($clients) && $share_post_id) {
 
     $endpoints = [
         'heybleepi' => "https://heybleepi.site/PROJECT-CLUB-404/heybleepi/codes/php/receive-post.php",
-        'devhive'   => "https://devhivespace.com/api/posts/receive-post.php",
+        'devhive'   => "https://devhivespace.com/api/posts/share-receive.php",
         'hershive'  => "https://hershive.com/project-hershell/Hershive/php/receive-post.php"
     ];
 
@@ -134,7 +134,8 @@ if (!empty($clients) && $share_post_id) {
             'shared_content' => $shared_content,
             'media_url' => $shared_media_url,
             'token' => $user_token,
-            'client' => $client
+            'client' => $client,
+            'provider' => 'hershive'
         ];
 
         if (!isset($endpoints[$client])) {
