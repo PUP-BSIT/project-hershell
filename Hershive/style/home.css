@@ -3212,3 +3212,18 @@ body.modal-open {
   font-family: inherit;
   /* or 'monospace' if you're showing code-style posts */
 }
+
+.error-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff4d4f;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 14px;
+  z-index: 9999;
+  transition: opacity 0.3s ease-in-out;
+}
