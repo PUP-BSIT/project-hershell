@@ -1,5 +1,6 @@
 let currentUser = null;
 let popupAction = null;
+let originalValues = {};
 
 const getElement = (id) => document.getElementById(id);
 const getElements = (selector) => document.querySelectorAll(selector);
@@ -33,41 +34,32 @@ function togglePasswordReset() {
 function setElementVisibility(elements) {
   Object.entries(elements).forEach(([id, hidden]) => {
     const element = getElement(id);
-    if (element) element.hidden = hidden;
+    if (element) {
+      if (hidden) {
+        element.hidden = true;
+        element.classList.add('hidden');
+      } else {
+        element.hidden = false;
+        element.classList.remove('hidden');
+      }
+    }
   });
 }
 
 function setActiveButton(activeId, inactiveIds) {
   const activeElement = getElement(activeId);
-  if (activeElement) activeElement.classList.add('active');
+  if (activeElement) {
+    activeElement.classList.add('active');
+    activeElement.classList.remove('inactive');
+  }
   
   inactiveIds.forEach(id => {
     const element = getElement(id);
-    if (element) element.classList.remove('active');
+    if (element) {
+      element.classList.remove('active');
+      element.classList.add('inactive');
+    }
   });
-}
-
-function savePersonalDetails() {
-  const data = {
-    action: 'update_personal_details',
-    username: getElement('new_username')?.value || '',
-    first_name: getElement('new_first_name')?.value || '',
-    middle_name: getElement('new_middle_name')?.value || '',
-    last_name: getElement('new_last_name')?.value || '',
-    birthday: getElement('new_birthday')?.value || '',
-    country: getElement('new_country')?.value || '',
-    city: getElement('new_city')?.value || ''
-  };
-
-  makeApiRequest('settings.php', data)
-    .then(res => {
-      const isUsernameError = res.field === 'username' && 
-                              res.status === 'error';
-      const title = isUsernameError ? 'Username Error' : 'Personal Details';
-      showPopup(title, res.message, res.status);
-    })
-    .catch(err => showPopup('Error', 
-           `An error occurred: ${err.message}`, 'error'));
 }
 
 function updatePassword(e) {
@@ -96,6 +88,7 @@ function updatePassword(e) {
       if (res.status === 'success') {
         const form = getElement('password_form');
         if (form) form.reset();
+        validatePassword();
       }
     })
     .catch(err => showPopup('Error', 
@@ -129,28 +122,40 @@ document.addEventListener('click', function(event) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-  const saveBtn = getElement('personal_details')?.querySelector('.save-btn');
-  if (saveBtn) {
-    saveBtn.disabled = false;
-    saveBtn.addEventListener('click', savePersonalDetails);
-  }
-  
-  const personalDetailsInputs = [
-    'new_username', 'new_first_name', 'new_middle_name', 
-    'new_last_name', 'new_birthday', 'new_country', 'new_city'
-  ];
-  
-  personalDetailsInputs.forEach(inputId => {
-    const input = getElement(inputId);
-    if (input) {
-      input.addEventListener('input', enableSaveButton);
-      input.addEventListener('change', enableSaveButton);
-    }
+  togglePersonalDetails();
+
+  const fields = ['name', 'username', 'location'];
+  fields.forEach(field => {
+    updateCharacterCounts(field);
   });
+
+  const popupOkBtn = getElement('popup_ok_btn');
+  const popupCancelBtn = getElement('popup_cancel_btn');
+  const popupConfirmBtn = getElement('popup_confirm_btn');
+
+  if (popupOkBtn) {
+    popupOkBtn.addEventListener('click', closePopup);
+  }
+
+  if (popupCancelBtn) {
+    popupCancelBtn.addEventListener('click', closePopup);
+  }
+
+  if (popupConfirmBtn) {
+    popupConfirmBtn.addEventListener('click', executePopupAction);
+  }
+
+  const newPasswordInput = getElement('new_password');
+  const confirmPasswordInput = getElement('confirm_password');
+
+  if (newPasswordInput) {
+    newPasswordInput.addEventListener('focus', showRules);
+    newPasswordInput.addEventListener('blur', hideRules);
+  }
 });
 
 function enableSaveButton() {
-  const saveBtn = getElement('personal_details')?.querySelector('.save-btn');
+  const saveBtn = document.getElementById('save_personal_btn');
   if (saveBtn) {
     saveBtn.disabled = false;
   }
@@ -182,37 +187,6 @@ async function makeApiRequest(url, data) {
   }
 
   return response.json();
-}
-
-function confirmDelete() {
-  const message = 'Are you sure you want to delete your account? ' +
-                  'This action cannot be undone. ';
-
-  showPopup('Delete Account', message, 'confirm', executeAccountDeletion);
-}
-
-function executeAccountDeletion() {
-  const deleteBtn = getElement('confirm_delete_btn');
-  if (!deleteBtn) return;
-
-  const originalText = deleteBtn.textContent;
-  setButtonLoadingState(deleteBtn, 'Deleting...', true);
-
-  const formData = new URLSearchParams();
-  formData.append('action', 'delete_account');
-
-  fetch('settings.php', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json'
-    },
-    body: formData,
-    credentials: 'same-origin'
-  })
-  .then(response => validateResponse(response))
-  .then(data => handleDeleteResponse(data, deleteBtn, originalText))
-  .catch(error => handleDeleteError(error, deleteBtn, originalText));
 }
 
 function validateResponse(response) {
@@ -269,8 +243,18 @@ function clearStorageAndRedirect() {
 }
 
 function cancelDelete() {
-  getElement("delete_account").hidden = true;
-  togglePersonalDetails();
+  setElementVisibility({
+    personal_details: true,
+    password: true,
+    delete_account: false
+  });
+
+  setActiveButton('delete_button', [
+    'personal_details_btn',
+    'password_btn'
+  ]);
+
+  closeDeletePasswordModal();
 }
 
 function toggleDropdown() {
@@ -279,13 +263,13 @@ function toggleDropdown() {
 }
 
 function toggleLogout() {
-  const logoutElement = getElement('logout');
-  if (logoutElement) logoutElement.hidden = false;
+  const overlay = document.getElementById('logout_overlay');
+  if (overlay) overlay.classList.remove('hidden');
 }
 
 function hideLogout() {
-  const logoutElement = getElement('logout');
-  if (logoutElement) logoutElement.hidden = true;
+  const overlay = document.getElementById('logout_overlay');
+  if (overlay) overlay.classList.add('hidden');
 }
 
 function logout() {
@@ -303,23 +287,29 @@ function goHome() {
 }
 
 function togglePassword(inputId, btn) {
-  const input = getElement(inputId);
+  const input = document.getElementById(inputId);
   if (!input || !btn) return;
-  
+
   const isPassword = input.type === 'password';
   input.type = isPassword ? 'text' : 'password';
-  btn.textContent = isPassword ? 'Hide' : 'Show';
+
+  const icon = btn.querySelector('img');
+  if (icon) {
+    icon.src = isPassword 
+      ? '../assets/eye_open.png' 
+      : '../assets/eye_closed.png';
+  }
 }
 
 function showRules() {
-  const rules = getElement("rules");
-  if (rules) rules.style.display = "block";
+  const rules = document.getElementById("rules");
+  if (rules) rules.classList.add("active");
 }
 
 function hideRules() {
   setTimeout(() => {
-    const rules = getElement("rules");
-    if (rules) rules.style.display = "none";
+    const rules = document.getElementById("rules");
+    if (rules) rules.classList.remove("active");
   }, 300);
 }
 
@@ -343,7 +333,7 @@ function validatePassword() {
     if (!isValid) valid = false;
   });
 
-  const match = newPass === confirmPass;
+  const match = newPass === confirmPass && newPass.length > 0;
   const resetBtn = getElement("reset_btn");
   if (resetBtn) resetBtn.disabled = !(valid && match);
 }
@@ -375,37 +365,31 @@ function menuToggleDropdown() {
 }
 
 function showPopup(title, message, type = 'info', callback = null) {
-  const titleElement = getElement('popup_title');
-  const messageElement = getElement('popup_message');
-  
-  if (titleElement) titleElement.textContent = title;
-  if (messageElement) messageElement.textContent = message;
-  
+  getElement('popup_title').textContent = title;
+  getElement('popup_message').textContent = message;
+
   const buttons = {
     ok: getElement('popup_ok_btn'),
     cancel: getElement('popup_cancel_btn'),
     confirm: getElement('popup_confirm_btn')
   };
-  
-  if (buttons.ok) buttons.ok.style.display = 'inline-block';
-  if (buttons.cancel) buttons.cancel.style.display = 'none';
-  if (buttons.confirm) buttons.confirm.style.display = 'none';
-  
+
+  buttons.ok.classList.remove('hidden');
+  buttons.cancel.classList.add('hidden');
+  buttons.confirm.classList.add('hidden');
+
   if (type === 'confirm') {
-    if (buttons.ok) buttons.ok.style.display = 'none';
-    if (buttons.cancel) buttons.cancel.style.display = 'inline-block';
-    if (buttons.confirm) buttons.confirm.style.display = 'inline-block';
+    buttons.ok.classList.add('hidden');
+    buttons.cancel.classList.remove('hidden');
+    buttons.confirm.classList.remove('hidden');
   }
-  
+
   popupAction = callback;
-  
-  const overlay = getElement('popup_overlay');
-  if (overlay) overlay.style.display = 'flex';
+  getElement('popup_overlay').classList.remove('hidden');
 }
 
 function closePopup() {
-  const overlay = getElement('popup_overlay');
-  if (overlay) overlay.style.display = 'none';
+  getElement('popup_overlay').classList.add('hidden');
   popupAction = null;
 }
 
@@ -416,28 +400,346 @@ function executePopupAction() {
   closePopup();
 }
 
-document.addEventListener('click', function(event) {
-  const menuDropdown = getElement('menu_dropdown');
-  const menuButton = document.querySelector('.menu-button');
-  
-  if (menuDropdown && menuButton && 
-      !menuDropdown.contains(event.target) && 
-      !menuButton.contains(event.target)) {
-    menuDropdown.classList.add('hidden');
+function showEditForm(field) {
+  document.getElementById('personal_details_view').classList.add('hidden');
+  document.getElementById(`edit_${field}`).classList.remove('hidden');
+
+  storeOriginalValues(field);
+  updateCharacterCounts(field);
+  validateField(field);
+}
+
+function hideEditForm(field) {
+  document.getElementById(`edit_${field}`).classList.add('hidden');
+  document.getElementById('personal_details_view').classList.remove('hidden');
+
+  resetFormValues(field);
+}
+
+function storeOriginalValues(field) {
+  switch(field) {
+    case 'name':
+      originalValues.name = {
+        first_name: document.getElementById('edit_first_name').value,
+        middle_name: document.getElementById('edit_middle_name').value,
+        last_name: document.getElementById('edit_last_name').value
+      };
+      break;
+    case 'username':
+      originalValues.username = document.getElementById(
+        'edit_username_input'
+      ).value;
+      break;
+    case 'birth':
+      originalValues.birth = document.getElementById('edit_birthday').value;
+      break;
+    case 'location':
+      originalValues.location = {
+        country: document.getElementById('edit_country').value,
+        city: document.getElementById('edit_city').value
+      };
+      break;
   }
+}
+
+function resetFormValues(field) {
+  switch(field) {
+    case 'name':
+      if (originalValues.name) {
+        document.getElementById('edit_first_name').value =
+          originalValues.name.first_name;
+        document.getElementById('edit_middle_name').value =
+          originalValues.name.middle_name;
+        document.getElementById('edit_last_name').value =
+          originalValues.name.last_name;
+      }
+      break;
+    case 'username':
+      if (originalValues.username !== undefined) {
+        document.getElementById('edit_username_input').value =
+          originalValues.username;
+      }
+      break;
+    case 'birth':
+      if (originalValues.birth !== undefined) {
+        document.getElementById('edit_birthday').value =
+          originalValues.birth;
+      }
+      break;
+    case 'location':
+      if (originalValues.location) {
+        document.getElementById('edit_country').value =
+          originalValues.location.country;
+        document.getElementById('edit_city').value =
+          originalValues.location.city;
+      }
+      break;
+  }
+  updateCharacterCounts(field);
+}
+
+function validateField(field) {
+  let isValid = false;
+  let hasChanges = false;
+
+  switch(field) {
+    case 'name':
+      const firstName = document.getElementById('edit_first_name')
+        .value.trim();
+      const middleName = document.getElementById('edit_middle_name')
+        .value.trim();
+      const lastName = document.getElementById('edit_last_name')
+        .value.trim();
+
+      isValid = firstName.length > 0 && lastName.length > 0;
+
+      if (originalValues.name) {
+        hasChanges = firstName !== originalValues.name.first_name.trim() ||
+                    middleName !== originalValues.name.middle_name.trim() ||
+                    lastName !== originalValues.name.last_name.trim();
+      }
+      break;
+
+    case 'username':
+      const username = document.getElementById('edit_username_input')
+        .value.trim();
+      isValid = username.length > 0;
+
+      if (originalValues.username !== undefined) {
+        hasChanges = username !== originalValues.username.trim();
+      }
+      break;
+
+    case 'birth':
+      const birthday = document.getElementById('edit_birthday').value;
+      isValid = true;
+
+      if (originalValues.birth !== undefined) {
+        hasChanges = birthday !== originalValues.birth;
+      }
+      break;
+
+    case 'location':
+      const country = document.getElementById('edit_country').value.trim();
+      const city = document.getElementById('edit_city').value.trim();
+      isValid = true;
+
+      if (originalValues.location) {
+        hasChanges = country !== originalValues.location.country.trim() ||
+                    city !== originalValues.location.city.trim();
+      }
+      break;
+  }
+
+  const saveBtn = document.querySelector(`#edit_${field} .save-btn-header`);
+  if (saveBtn) {
+    saveBtn.disabled = !(isValid && hasChanges);
+  }
+
+  updateCharacterCounts(field);
+}
+
+
+function updateCharacterCounts(field) {
+  const updateCount = (inputId, countId, max) => {
+    const input = document.getElementById(inputId);
+    const counter = document.getElementById(countId);
+    if (input && counter) {
+      const length = input.value.length;
+      counter.textContent = `${length}/${max}`;
+      counter.style.color = length > max * 0.9 ? '#ff6b6b' : '#666';
+    }
+  };
   
-  const notificationPanel = getElement('notification_panel');
-  const notificationButton = document.querySelector(
-    '.navigation-icons button[onclick="toggleNotificationPanel()"]'
+  switch(field) {
+    case 'username':
+      updateCount('edit_username_input', 'username_count', 30);
+      break;
+  }
+}
+
+function saveField(field) {
+  const saveBtn = document.querySelector(`#edit_${field} .save-btn-header`);
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+  }
+
+  const data = { action: 'update_personal_details' };
+
+  switch (field) {
+    case 'name':
+      data.first_name = document.getElementById('edit_first_name')
+        ?.value.trim() || '';
+      data.middle_name = document.getElementById('edit_middle_name')
+        ?.value.trim() || '';
+      data.last_name = document.getElementById('edit_last_name')
+        ?.value.trim() || '';
+      break;
+    case 'username':
+      data.username = document.getElementById('edit_username_input')
+        ?.value.trim() || '';
+      break;
+    case 'birth':
+      data.birthday = document.getElementById('edit_birthday')?.value || '';
+      break;
+    case 'location':
+      data.country = document.getElementById('edit_country')
+        ?.value.trim() || '';
+      data.city = document.getElementById('edit_city')?.value.trim() || '';
+      break;
+  }
+
+  makeApiRequest('settings.php', data)
+    .then(res => {
+      if (res.status === 'success') {
+        updateDisplay(field);
+        hideEditForm(field);
+        showPopup('Success', 'Information updated successfully', 'success');
+      } else {
+        showPopup('Error', res.message, 'error');
+      }
+    })
+    .catch(err => {
+      showPopup('Error', `An error occurred: ${err.message}`, 'error');
+    })
+    .finally(() => {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
+      }
+    });
+}
+
+function updateDisplay(field) {
+  switch(field) {
+    case 'name':
+      const firstName = document.getElementById('edit_first_name').value;
+      const lastName = document.getElementById('edit_last_name').value;
+      document.getElementById('name_display').textContent = 
+        `${firstName} ${lastName}`;
+      break;
+    case 'username':
+      const username = document.getElementById('edit_username_input').value;
+      document.getElementById('username_display').textContent = 
+        `@${username}`;
+      break;
+    case 'birth':
+      const birthday = document.getElementById('edit_birthday').value;
+      document.getElementById('birth_display').textContent = birthday;
+      break;
+    case 'location':
+      const country = document.getElementById('edit_country').value;
+      const city = document.getElementById('edit_city').value;
+      document.getElementById('location_display').textContent = 
+        `${country}, ${city}`;
+      break;
+  }
+}
+
+function confirmDelete() {
+  setElementVisibility({
+      personal_details: true,
+      password: true,
+      delete_account: false
+  });
+  
+  setActiveButton('delete_button', [
+      'personal_details_btn',
+      'password_btn'
+  ]);
+}
+
+function showDeletePasswordModal() {
+  document.getElementById('delete_password_modal').classList.remove('hidden');
+  document.getElementById('delete_confirm_password').focus();
+}
+
+function closeDeletePasswordModal() {
+  document.getElementById('delete_password_modal').classList.add('hidden');
+  document.getElementById('delete_confirm_password').value = '';
+}
+
+function confirmAccountDeletion() {
+  const password = document.getElementById('delete_confirm_password')
+    .value.trim();
+  
+  if (!password) {
+    showPopup('Password Required', 
+      'Please enter your password to confirm deletion.', 'error');
+    return;
+  }
+
+  const confirmMessage = 'Are you absolutely sure you want to delete your ' +
+    'account? This action cannot be undone and all your data will be ' +
+    'permanently lost.';
+  
+  showPopup(
+    'Final Confirmation',
+    confirmMessage,
+    'confirm',
+    () => executeAccountDeletion(password)
   );
-  
-  const panelVisible = notificationPanel && 
-                       notificationPanel.style.display === 'block';
-  const clickedOutside = !notificationPanel.contains(event.target) && 
-                         (!notificationButton || 
-                          !notificationButton.contains(event.target));
-  
-  if (panelVisible && clickedOutside) {
-    notificationPanel.style.display = 'none';
-  }
-});
+}
+
+function executeAccountDeletion(password) {
+  const deleteBtn = document.querySelector('.delete-modal .delete-btn');
+  const originalText = deleteBtn.textContent;
+
+  deleteBtn.disabled = true;
+  deleteBtn.textContent = 'Deleting...';
+
+  const formData = new URLSearchParams();
+  formData.append('action', 'delete_account');
+  formData.append('confirm_password', password);
+
+  fetch('settings.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    },
+    body: formData,
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Server did not return JSON response');
+    }
+
+    return response.json();
+  })
+  .then(data => {
+    if (data.status === 'success') {
+      closeDeletePasswordModal();
+      const successMessage = 'Your account has been successfully deleted. ' +
+        'You will now be redirected to the login page.';
+      showPopup(
+        'Account Deleted', 
+        successMessage, 
+        'success', 
+        () => {
+          clearStorageAndRedirect();
+        }
+      );
+    } else {
+      showPopup('Error', data.message || 'Failed to delete account.', 
+        'error');
+    }
+  })
+  .catch(error => {
+    console.error('Delete account error:', error);
+    const errorMessage = 'An error occurred while deleting your account. ' +
+      'Please try again.';
+    showPopup('Error', errorMessage, 'error');
+  })
+  .finally(() => {
+    deleteBtn.disabled = false;
+    deleteBtn.textContent = originalText;
+  });
+}
