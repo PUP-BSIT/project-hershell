@@ -1126,6 +1126,7 @@ body.modal-open {
 /* Menu Dropdown for settings and logout Style */
 #menu_dropdown {
   position: absolute;
+  top: 60px;
   right: 20px;
   background-color: #f8f5ea;
   border: 1px solid #000000;
