@@ -132,7 +132,7 @@ input, select {
 }
 
 .save-btn {
-  background-color: black;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   padding: 10px 30px;
   border: none;
@@ -493,7 +493,7 @@ button:disabled {
 }
 
 .save-btn-header {
-  background: #000;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border: none;
   padding: 8px 16px;
