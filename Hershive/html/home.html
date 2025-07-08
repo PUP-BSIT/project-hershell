@@ -24,31 +24,35 @@
           <img src="../assets/home_icon.png" alt="home" />
         </button>
 
-        <button onclick="toggleNotificationPanel()">
-          <img src="../assets/notification_icon.png" alt="notification"/>
+        <button onclick="toggleNotificationPanel()" 
+                class="notification-wrapper">
+          <div class="notification-icon-container">
+            <img src="../assets/notification_icon.png" alt="notification"/>
+            <span id="notification_count" 
+                  class="notification-count hidden">0
+            </span>
+          </div>
         </button>
 
-        <div class="notification-panel" id="notification_panel">
+        <div class="notification-panel hidden" id="notification_panel">
           <div class="notification-header">
             <h4>Notification</h4>
-            <button onclick="toggleNotificationPage()">See all</button>
           </div>
-
           <div id="notification_container"></div>
         </div>
 
         <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
-      </div>
-    </div>
 
-    <div id="menu_dropdown" class="hidden">
-      <a href="../php/settings.php" class="menu-dropdown-item">
-        <img src="../assets/settings_icon.png" alt="settings"/>
-        Settings
-      </a>
-      <div onclick="toggleLogout()" class="menu-dropdown-item">
-        <img src="../assets/logout_icon.png" alt="logout"/>
-        <p>Log out</p>
+        <div id="menu_dropdown" class="hidden">
+          <a href="../php/settings.php" class="menu-dropdown-item">
+            <img src="../assets/settings_icon.png" alt="settings"/>
+            Settings
+          </a>
+          <div onclick="toggleLogout()" class="menu-dropdown-item">
+            <img src="../assets/logout_icon.png" alt="logout"/>
+            <p>Log out</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -61,6 +65,8 @@
         </div>
       </div>
     </div>
+
+    <div id="error_popup" class="error-popup hidden"></div>
 
     <div class="main-container">
       <div class="left-content">
@@ -255,7 +261,10 @@
           <h2>Create Post</h2>
           <button class="close-button" onclick="closePostModal()">×</button>
         </div>
-        <span class="username">Loading...</span>
+        <div class="user-info-box">
+          <img src="../assets/temporary_pfp.png" alt="user profile" class="modal-profile-pic" />
+          <span class="username">Loading...</span>
+        </div>
         <div
           class="text-editor"
           id="editor"
@@ -381,26 +390,27 @@
         <button class="submit-share-btn" onclick="submitShare()">Share</button>
 
         <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+          <p><strong>Share To:</strong></p>
           <input type="hidden" name="shared_post_id" id="shared_post_id">
           <div class="share-icons">
-            <button type="submit" name="share_to" value="DevhiveSpace" id="share_to"
-              ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/>
+            <button type="submit" name="share_to" value="devhive" id="share_to"
+              ><img src="../assets/devhive_logo.jpg" alt="devhive"/>
             </button>
-            <button type="submit" name="share_to" value="heybleepi" id="share_to"
-              ><img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+            <button type="submit" name="share_to" value="heybleepi"
+                    id="share_to" title="Share to heybleepi">
+              <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
             </button>
           </div>
         </form>
 
-
         <div class="share-link-section">
-          <label>Page link</label>
+          <p><strong>Page link</strong></p>
           <div class="link-box">
             <input
               type="text"
               id="share_link"
               readonly>
-            <button id="copy_link" onclick="copyLink(this)">
+            <button id="copy_link" onclick="copyLink(this)" title="Copy link">
               <img src="../assets/copy_icon.png" alt="Copy"/>
             </button>
           </div>

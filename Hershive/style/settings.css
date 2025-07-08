@@ -1,10 +1,10 @@
 .settings-container {
   display: flex;
-  padding: 40px;
   max-width: 900px;
   margin: 40px auto 0;
   justify-content: center;
   align-items: flex-start;
+  padding: 30px;
 }
 
 .sidebar {
@@ -29,29 +29,26 @@
   width: 100%;
   margin-bottom: 10px;
   padding: 10px;
-  background: none;
   border: none;
   cursor: pointer;
   position: relative;
 }
 
 .sidebar button.active {
-  background: white;
+  background: #f8f5ea;
   border-radius: 25px;
   border: 2px solid #000;
 }
 
 .sidebar .delete-btn {
   color: #ff0000;
-  margin-top: 40px;
+  margin-top: 155px;
   border: none;
 }
 
 .sidebar .delete-btn.active {
-  background: #ff0000;
-  color: white;
+  color: #ff0000;
   border-radius: 25px;
-  border: 2px solid #ff0000;
 }
 
 .delete-btn:active {
@@ -78,7 +75,7 @@ button.inactive {
   background-color: #ded7c7;
   width: 500px;
   min-height: 400px;
-  padding: 30px;
+  padding: 40px;
   border-radius: 10px;
   position: relative;
   flex-shrink: 0;
@@ -88,6 +85,205 @@ button.inactive {
   overflow-y: auto;
 }
 
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #888;
+  background-color: #f8f5ea;
+  box-sizing: border-box;
+}
+
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.form-group input[type="password"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 10px 40px 10px 10px;
+  border-radius: 12px;
+  border: 1px solid #888;
+  background-color: white;
+  box-sizing: border-box;
+  line-height: 1.5;
+  height: 42px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.row .form-group {
+  flex: 1;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
+  color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  float: right;
+}
+
+.save-btn:enabled:hover {
+  background-color: #333;
+}
+
+button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.cancel-btn:hover {
+  background-color: #bbb;
+}
+
+.button-holder {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.button-holder .delete-btn,
+.button-holder .cancel-btn {
+  text-align: center;
+  width: 50%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border: 2px solid #000;
+  border-radius: 25px;
+  cursor: pointer;
+  color: red;
+}
+
+.toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-30%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.toggle-password {
+  display: inline-block;
+}
+
+.rules {
+  display: none;
+  text-align: left;
+  font-size: 12px;
+  margin-top: 10px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.rules.active {
+  display: block;
+}
+
+#rules {
+  text-align: left;
+  font-size: 12px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+#rules li.invalid {
+  color: red;
+}
+
+#rules li.valid {
+  color: green;
+}
+
+#delete_account {
+  background-color: #ded7c7;
+  padding: 60px;
+  border-radius: 10px;
+  display:center;
+}
+
+#logout {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ded7c7;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid black;
+  z-index: 1100;
+  display: none;
+}
+
+#logout:not([hidden]) {
+  display: block !important;
+}
+
+#logout .cancel-btn,
+#logout .logout-btn {
+  text-align: center;
+  width: 50%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: black;
+  color: white;
+  border: 2px solid black;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+#logout .cancel-btn {
+  background: white;
+  color: black;
+}
+
+.logout-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -95,7 +291,7 @@ button.inactive {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -152,188 +348,384 @@ button.inactive {
   opacity: 0.8;
 }
 
-.form-group {
-  margin-bottom: 15px;
-  position: relative;
+.hidden {
+  display: none !important;
 }
 
-.toggle-btn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #666;
+.settings-section {
+  background: #f8f5ea;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
-  font-size: 12px;
-  margin-top: 20px;
+  border: 1px solid #ccc;
 }
 
-.toggle-btn:hover {
-  color: #000;
+.settings-section h4 {
+  margin: 0;
+  font-size: 16px;
 }
 
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
+.settings-section p {
+  margin: 5px 0 0;
+  color: #555;
 }
 
-input, select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid #888;
-  background-color: #f8f5ea;
+.edit-section {
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
 }
 
-.row {
+.settings-section {
+  background: #f8f5ea;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  position: relative;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.settings-section:hover {
+  background-color: #f0ede0;
+}
+
+.settings-section .edit-arrow {
+  font-size: 18px;
+  color: #666;
+  font-weight: bold;
+}
+
+.settings-section h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-section p {
+  margin: 5px 0 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.edit-form {
+  background: #ded7c7;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -30px;
+  padding: 15px 30px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.edit-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.edit-header-left {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.row .form-group {
-  flex: 1;
+.edit-content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 100%;
+  position: relative;
 }
 
-.save-btn {
-  background-color: black;
+.save-btn-header {
+  align-self: flex-end;
+  margin-top: auto;
+  background: #000;
   color: white;
-  padding: 10px 30px;
   border: none;
+  padding: 10px 20px;
   border-radius: 20px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  float: right;
+  font-size: 14px;
 }
 
-.save-btn:enabled:hover {
+.save-btn-header:enabled:hover {
   background-color: #333;
 }
 
-button:disabled {
+.save-btn-header:disabled {
   background: #999;
   cursor: not-allowed;
 }
 
-#rules {
-  text-align: left;
-  font-size: 12px;
-  margin-top: 10px;
-  margin-bottom: 0;
-  padding-left: 20px;
-  list-style: disc;
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: #333;
 }
 
-.rules {
-  display: none;
+.back-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
-.rules.active {
+.save-btn-header {
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.save-btn-header:enabled:hover {
+  background-color: #333;
+}
+
+.save-btn-header:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-group label {
   display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
 }
 
-#rules li.invalid {
-  color: red;
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  background-color: #fff;
+  box-sizing: border-box;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
 }
 
-#rules li.valid {
-  color: green;
+.form-group input:focus {
+  outline: none;
+  border-color: #007bff;
 }
 
-.toggle-password {
-  display: inline-block;
+.char-count {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  font-size: 12px;
+  color: #666;
+  background: none;
+  pointer-events: none;
 }
 
-#delete_account {
-  background-color: #ded7c7;
+.help-text {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.edit-form {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.save-btn-header:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group input.error {
+  border-color: #dc3545;
+}
+
+.form-group .error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.popup-content {
+  background: white;
   padding: 30px;
   border-radius: 10px;
-}
-
-.button-holder {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  gap: 10px;
-}
-
-.delete-btn, .cancel-btn{
+  max-width: 400px;
+  width: 90%;
+  position: relative;
   text-align: center;
-  width: 50%;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: white;
-  border: 2px solid #000;
-  border-radius: 25px;
-  cursor: pointer;
+  animation: fadeSlideIn 0.3s ease;
 }
 
-.button-holder {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  gap: 10px;
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-.cancel-btn {
-  background-color: #ccc;
-  color: #000;
-  padding: 10px 30px;
-  border: none;
-  border-radius: 20px;
-  font-weight: bold;
-  cursor: pointer;
+.popup-buttons .delete-btn:hover {
+  background-color: #cc0000;
 }
 
-.cancel-btn:hover {
-  background-color: #bbb;
-}
-
-.delete-btn {
-  background-color: #ff0000;
-  color: white;
-  padding: 10px 30px;
-  border: none;
-  border-radius: 20px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#logout {
+#delete_password_modal.popup-overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #ded7c7;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: 1px solid black;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.cancel-btn, .logout-btn {
+#delete_password_modal .popup-content.delete-modal {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
   text-align: center;
-  width: 50%;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: black;
-  color: white;
-  border: 2px solid black;
-  border-radius: 25px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+#delete_password_modal h3 {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+#delete_password_modal p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+#delete_password_modal .form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+#delete_password_modal input[type="password"] {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f8f5ea;
+  font-size: 14px;
+}
+
+#delete_password_modal .toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
   cursor: pointer;
 }
 
-.cancel-btn {
-  background: white;
-  color: black;
+#delete_password_modal .toggle-btn img {
+  width: 20px;
+  height: 20px;
 }
 
-#logout {
-  z-index: 1100;
-  display: none;
+#delete_password_modal .popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-#logout:not([hidden]) {
-  display: block !important;
+#delete_password_modal .popup-buttons .delete-btn:hover {
+  background-color: #cc0000;
+}
+
+#delete_password_modal .popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#delete_password_modal .popup-buttons button {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.2;
+  height: 45px;
+}
+
+#delete_password_modal .popup-buttons .cancel-btn {
+  background-color: white;
+  color: #000;
+  border-color: #ccc;
+}
+
+
+#delete_password_modal .popup-buttons .delete-btn {
+  background-color: #ff4444;
+  color: white;
+  border-color: #ff4444;
+}
+
+#delete_password_modal .popup-buttons .delete-btn:hover {
+  background-color: #cc0000;
+  border-color: #cc0000;
 }

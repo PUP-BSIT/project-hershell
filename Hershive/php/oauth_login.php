@@ -20,7 +20,7 @@ if ($row = $result->fetch_assoc()) {
 
     switch ($provider) {
         case 'heybleepi':
-            $auth_path = '/oauth_authorize.php';
+            $auth_path = '/PROJECT-CLUB-404/heybleepi/codes/php/oauth_authorize.php';
             break;
 
         case 'devhive':

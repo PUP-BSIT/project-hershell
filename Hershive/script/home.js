@@ -69,6 +69,14 @@ function checkUserSession(callback) {
           modalUsername.textContent = data.username;
         }
 
+        const modalProfilePic = document.querySelector(".create-post-modal .modal-profile-pic");
+        if (modalProfilePic) {
+          modalProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          modalProfilePic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
+
         if (typeof callback === "function") {
           callback();
         }
@@ -168,14 +176,14 @@ function createPostElement(post) {
 
     <div class="post-content">
       <div class="content">
-        ${post.content ? `<p>${post.content}</p>` : ""}
+        ${post.content ? `<div class="post-text">${post.content}</div>` : ""}
 
         ${isShared ? `
           <div class="shared-card">
             <p class="shared-username">Originally posted by
               <strong>${post.original_post.username}</strong>
             </p>
-            <p>${post.original_post.content}</p>
+            <div class="shared-content">${post.original_post.content}</div>
             ${post.original_post.media_url ? (
               post.original_post.media_type === "video"
                 ? `<video controls class="preview-video">
@@ -250,6 +258,38 @@ function createPostElement(post) {
   return postDiv;
 }
 
+function handlePaste(editor) {
+  editor.addEventListener('paste', function(e) {
+    e.preventDefault();
+
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
+
+    // Create a <pre> styled span to hold the formatted content
+    const span = document.createElement("span");
+    span.textContent = pastedText; // This preserves all formatting as plain text
+    span.style.whiteSpace = "pre-wrap"; // Ensures tabs and line breaks are shown
+
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(span);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+
+
+// Initialize the editor with paste handling
+document.addEventListener('DOMContentLoaded', function() {
+  const editor = document.getElementById("editor");
+  if (editor) {
+    handlePaste(editor);
+  }
+});
+
 function togglePostFollow(button, username) {
   const isFollowing = button.classList.contains("following");
   const action = isFollowing ? 'unfollow' : 'follow';
@@ -275,6 +315,8 @@ function togglePostFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -285,7 +327,6 @@ function togglePostFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -303,7 +344,7 @@ function togglePostFollow(button, username) {
 
 function submitPost() {
   const editor = document.getElementById("editor");
-  const content = editor.innerHTML.trim();
+  let content = editor.innerHTML.trim();
 
   const imageInput = document.getElementById("media_input");
   const videoInput = document.getElementById("media_input_video");
@@ -321,7 +362,10 @@ function submitPost() {
 
   const formData = new FormData();
 
-  if (hasText) formData.append("content", content);
+  if (hasText) {
+    formData.append("content", content);
+  }
+
   if (hasImage && hasVideo) {
     alert("You can only upload one media at a time.");
     return;
@@ -790,7 +834,6 @@ function syncPrivacyToMini() {
 
 // Rest of your existing functions
 function openPostModal(event) {
-  // Prevent modal from opening when clicking the mini privacy <select>
   if (event && event.target.closest("#privacy")) {
     return;
   }
@@ -799,14 +842,17 @@ function openPostModal(event) {
   postModal.classList.remove("hidden");
   postModal.classList.add("flex-center");
 
-  syncPrivacyToModal(); // sync outside to modal privacy
-}
+  document.body.classList.add("no-scroll");
 
+  syncPrivacyToModal();
+}
 
 function closePostModal() {
   const postModal = document.getElementById("post_modal");
   postModal.classList.add("hidden");
   postModal.classList.remove("flex-center");
+
+  document.body.classList.remove("no-scroll");
 }
 
 window.addEventListener("click", function (e) {
@@ -821,6 +867,7 @@ window.addEventListener("click", function (e) {
     hideLogout();
   }
 });
+
 
 function cancelDropdown(button) {
   const parent = button.closest(".more-option");
@@ -1093,12 +1140,11 @@ function loadSuggestedUsers(limit = 4, page = 1) {
       }, 100);
     })
     .catch((error) => {
-      console.error("Error loading suggested users:", error);
+      showError("Error loading suggested users: " + error.message);
     });
 }
 
 function redirectToSuggestedPage(userId) {
-  console.log("Redirecting to suggested page for user ID:", userId);
   window.location.href = `../html/suggestion.html?userId=${userId}`;
 }
 
@@ -1136,7 +1182,7 @@ function toggleFollow(button) {
         button.textContent = "Following";
         button.classList.add("following");
         // followStatusCache[username] = true;
-        sendNotification('follow', userId, 'Started following you.');
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -1147,7 +1193,6 @@ function toggleFollow(button) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -1183,11 +1228,54 @@ function menuToggleDropdown() {
   }
 }
 
+setInterval(() => {
+  loadNotifications();
+}, 3000);
+
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
-  if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
-  loadNotifications();
+  const badge = document.getElementById("notification_count");
+
+  if (panel) {
+    panel.classList.toggle("hidden");
+
+    if (!panel.classList.contains("hidden")) {
+      try {
+        fetch('../php/mark_notifications_read.php', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (!data.success) {
+              showError("Failed to mark notifications as read: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch(error => {
+            showError("Network error while marking notifications as read: " + error.message);
+          });
+      } catch (err) {
+        showError("Unexpected error: " + err.message);
+      }
+
+      if (badge) badge.classList.add("hidden");
+    }
+
+    loadNotifications();
+  }
 }
+
+document.addEventListener('click', function(event) {
+  const panel = document.getElementById("notification_panel");
+  const button = document.querySelector(".notification-wrapper");
+
+  if (!panel || !button) return;
+
+  const clickedInsidePanel = panel.contains(event.target);
+  const clickedButton = button.contains(event.target);
+
+  if (!clickedInsidePanel && !clickedButton && !panel.classList.contains("hidden")) {
+    panel.classList.add("hidden");
+  }
+});
+
 
 function sendNotification(type, postId, message) {
   fetch('../php/insert_notification.php', {
@@ -1206,11 +1294,13 @@ function sendNotification(type, postId, message) {
     if (data.success) {
       console.log('Notification sent successfully.');
     } else {
-      console.error('Failed to send notification:', data.error);
+      if (!data.success) {
+        showError("Failed to send notification: " + (data.error || "Unknown error"));
+      }
     }
   })
   .catch(error => {
-    console.error('Network error while sending notification:', error);
+    showError("Network error while sending notification: " + error.message);
   });
 }
 
@@ -1220,33 +1310,44 @@ function loadNotifications() {
     .then(data => {
       if (data.success) {
         const container = document.getElementById('notification_container');
+        const badge = document.getElementById('notification_count');
+        const notifications = data.notifications || [];
+        const unread = data.unread_count || 0;
+
         container.innerHTML = "";
 
-        if (data.length === 0) {
+        if (notifications.length === 0) {
           container.innerHTML = "<p>No notifications available.</p>";
-          return;
+        } else {
+          notifications.forEach(notif => {
+            const div = document.createElement('div');
+            div.className = "notification";
+
+            div.innerHTML = `
+              <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
+              <div class="notif-content">
+                <div class="notif-middle-content">
+                  <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
+                  <p class="time">${formatTime(notif.created_at)}</p>
+                </div>
+                ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
+              </div>
+            `;
+            container.appendChild(div);
+          });
         }
 
-        data.notifications.forEach(notif => {
-          const div = document.createElement('div');
-          div.className = "notification";
-
-          let html = `
-            <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
-            <div class="notif-content">
-              <div class="notif-middle-content">
-                <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
-                <p class="time">${formatTime(notif.created_at)}</p>
-              </div>
-              ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
-            </div>
-          `;
-
-          div.innerHTML = html;
-          container.appendChild(div);
-        });
+        if (badge) {
+          badge.textContent = unread;
+          if (unread > 0) {
+            badge.classList.remove("hidden");
+          } else {
+            badge.classList.add("hidden");
+          }
+        }
       }
-    });
+    })
+    .catch(err => showError("Failed to load notifications: " + err.message));
 }
 
 function formatTime(timestamp) {
@@ -1330,7 +1431,7 @@ function toggleCommentModal(button) {
 
   loadComments(currentPostIdForComments, commentListEl);
   setTimeout(() => inputEl.focus(), 300);
-  
+
   if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
     window.commentPollingInterval = setInterval(() => {
       loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
@@ -1349,7 +1450,7 @@ function closeCommentModal() {
     if (commentInput) {
         commentInput.value = '';
     }
-    
+
     if (window.commentPollingInterval) {
       clearInterval(window.commentPollingInterval);
       window.commentPollingInterval = null;
@@ -1507,6 +1608,8 @@ function submitComment() {
 
     loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
     updateCommentCount(currentPostIdForComments);
+
+    sendNotification('comment', currentPostIdForComments, 'commented on your post.');
 
     setTimeout(() => {
       inp.focus();
@@ -1820,7 +1923,7 @@ function toggleShareModal(postElement) {
 
   preview.innerHTML = content;
   postIdInput.value = postId;
-  linkInput.value = `https://www.hershive.com/post/${postId}`;
+  linkInput.value = `https://www.hershive.com/project-hershell/Hershive/php/post.php?id=${postId}`;
 
   modal.classList.remove("hidden");
   document.body.classList.add("modal-open");
@@ -1852,13 +1955,13 @@ function submitShare() {
         alert("Post shared successfully!");
         closeShareModal();
         loadPosts();
+        sendNotification('share', postId, 'shared your post.');
       } else {
         alert(data.error || "Error sharing post");
       }
     })
     .catch((err) => {
-      console.error("Error:", err);
-      alert("Error sharing post");
+      showError("Error sharing post: " + err.message);
     });
 }
 
@@ -2064,6 +2167,8 @@ function toggleTopUserFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -2074,7 +2179,6 @@ function toggleTopUserFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -2115,6 +2219,8 @@ function toggleMorePeopleFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         followStatusCache[username] = true;
+        const userId = data.target_user_id;
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -2125,7 +2231,6 @@ function toggleMorePeopleFollow(button, username) {
 
       syncAllFollowButtons(username, data.action === 'followed');
 
-      console.log(`${data.action} ${username}`);
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -2285,4 +2390,16 @@ function handleOutsideClick(event) {
 
 function logout() {
   window.location.href = "../php/logout.php";
+}
+
+function showError(message) {
+  const popup = document.getElementById("error_popup");
+  if (!popup) return;
+
+  popup.textContent = message;
+  popup.classList.remove("hidden");
+
+  setTimeout(() => {
+    popup.classList.add("hidden");
+  }, 4000); // auto-hide after 4 seconds
 }

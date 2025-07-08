@@ -19,6 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status' => 'error', 
             'message' => 'Unauthorized'
         ]);
+        if (isset($conn)) {
+            $conn->close();
+        }
         exit;
     }
 
@@ -44,46 +47,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'message' => 'Server error: ' . $e->getMessage()
         ]);
     }
+    
+    if (isset($conn)) {
+        $conn->close();
+    }
     exit;
 }
 
 function handlePersonalDetailsUpdate($conn, $user_id, $data) {
-    $fields = [
+    $allowedFields = [
         'username', 'first_name', 'middle_name', 
         'last_name', 'birthday', 'country', 'city'
     ];
-    
-    $username = $data['username'] ?? '';
-    
-    if (!empty($username)) {
+
+    $updateFields = [];
+    $params = [];
+    $types = '';
+
+    // Check if username is being updated
+    if (isset($data['username'])) {
+        $username = trim($data['username']);
+        if ($username === '') {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Username cannot be empty.',
+                'field' => 'username'
+            ]);
+            exit;
+        }
+
         $sql = "SELECT `user_id` FROM `user` 
                 WHERE `username` = ? AND `user_id` != ? 
                 AND `deleted_account` = 0";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("si", $username, $user_id);
         $stmt->execute();
-        
+
         if ($stmt->get_result()->num_rows > 0) {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Username already exists. ' . 
-                           'Please choose a different username.',
+                'message' => 'Username already exists. Please choose a different username.',
                 'field' => 'username'
             ]);
             $stmt->close();
             exit;
         }
         $stmt->close();
+
+        $updateFields[] = "`username` = ?";
+        $params[] = $username;
+        $types .= 's';
     }
 
-    $updateFields = [];
-    $params = [];
-    $types = '';
+    // Loop through other fields and prepare update
+    foreach ($allowedFields as $field) {
+        if ($field === 'username') continue; // already handled
 
-    foreach ($fields as $field) {
-        $value = $data[$field] ?? '';
-        if (!empty($value)) {
-            $updateFields[] = "`{$field}` = ?";
+        if (isset($data[$field])) {
+            $value = trim($data[$field]);
+
+            // Validate required fields if they're being updated
+            if (in_array($field, ['first_name', 'last_name']) && 
+                $value === '') {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => ucfirst(str_replace('_', ' ', $field)) . 
+                                ' is required.',
+                    'field' => $field
+                ]);
+                exit;
+            }
+
+            $updateFields[] = "`$field` = ?";
             $params[] = $value;
             $types .= 's';
         }
@@ -92,7 +127,7 @@ function handlePersonalDetailsUpdate($conn, $user_id, $data) {
     if (empty($updateFields)) {
         echo json_encode([
             'status' => 'error',
-            'message' => 'No fields to update'
+            'message' => 'No fields to update.'
         ]);
         exit;
     }
@@ -162,29 +197,50 @@ function handlePasswordUpdate($conn, $user_id, $data) {
 }
 
 function handleAccountDeletion($conn, $user_id) {
-    $checkStmt = $conn->prepare(
-        "SELECT `user_id`, `deleted_account`, `username` 
-         FROM `user` WHERE `user_id`=?"
-    );
-    $checkStmt->bind_param("i", $user_id);
-    
-    if (!$checkStmt->execute()) {
-        throw new Exception('Failed to check user status: ' . 
-                          $checkStmt->error);
+    $password = $_POST['confirm_password'] ?? '';
+
+    if (empty($password)) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Password confirmation is required.'
+        ]);
+        exit;
     }
-    
-    $result = $checkStmt->get_result();
-    $user = $result->fetch_assoc();
-    $checkStmt->close();
+
+    // Verify password
+    $stmt = $conn->prepare(
+        "SELECT password, deleted_account FROM user WHERE user_id = ?"
+    );
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
     if (!$user) {
-        throw new Exception('User not found');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'User not found.'
+        ]);
+        exit;
+    }
+
+    if (!password_verify($password, $user['password'])) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Incorrect password.'
+        ]);
+        exit;
     }
 
     if ($user['deleted_account'] == 1) {
-        throw new Exception('Account is already deleted');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Account is already deleted.'
+        ]);
+        exit;
     }
 
+    // Delete the account
     $deleteStmt = $conn->prepare(
         "UPDATE `user` SET `deleted_account` = 1, `updated_at` = NOW() 
          WHERE `user_id` = ? AND `deleted_account` = 0"
@@ -192,27 +248,38 @@ function handleAccountDeletion($conn, $user_id) {
     $deleteStmt->bind_param("i", $user_id);
     
     if (!$deleteStmt->execute()) {
-        throw new Exception('Failed to delete account: ' . $deleteStmt->error);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Failed to delete account: ' . $deleteStmt->error
+        ]);
+        $deleteStmt->close();
+        exit;
     }
     
     $affected = $deleteStmt->affected_rows;
     $deleteStmt->close();
     
     if ($affected === 0) {
-        throw new Exception(
-            'No rows were updated. Account may already be deleted or ' .
-            'user not found.'
-        );
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'No rows were updated. Account may already be deleted.'
+        ]);
+        exit;
     }
 
+    // Verify deletion
     $verifyStmt = $conn->prepare(
-        "SELECT `deleted_account` FROM `user` WHERE `user_id`=?"
+        "SELECT `deleted_account` FROM `user` WHERE `user_id` = ?"
     );
     $verifyStmt->bind_param("i", $user_id);
     
     if (!$verifyStmt->execute()) {
-        throw new Exception('Failed to verify deletion: ' . 
-                          $verifyStmt->error);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Failed to verify deletion: ' . $verifyStmt->error
+        ]);
+        $verifyStmt->close();
+        exit;
     }
     
     $verifyStmt->bind_result($deleted_status);
@@ -220,16 +287,24 @@ function handleAccountDeletion($conn, $user_id) {
     $verifyStmt->close();
     
     if ($deleted_status != 1) {
-        throw new Exception(
-            'Account deletion verification failed - ' .
-            'deleted_account is not set to 1'
-        );
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Account deletion verification failed.'
+        ]);
+        exit;
     }
 
+    // Clear session
     session_unset();
     session_destroy();
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Account deleted successfully.'
+    ]);
 }
 
+// Handle GET request for displaying the form
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $userData = [];
     if (isset($_SESSION['user_id'])) {
@@ -253,7 +328,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     <link rel="stylesheet" href="../style/home.css"/>
     <link rel="stylesheet" href="../style/settings.css"/>
     <link rel="icon" href="../assets/logo.png"/>
-
 </head>
 <body>
     <div class="top-bar">
@@ -319,11 +393,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         </div>
     </div>
 
-    <div id="logout" hidden>
-        <p><strong>Log out of your account?</strong></p>
-        <div class="button-holder">
-            <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
-            <button class="logout-btn" onclick="logout()">Log out</button>
+    <div id="logout_overlay" class="logout-modal-overlay hidden" 
+         onclick="hideLogout()">
+        <div id="logout" onclick="event.stopPropagation()">
+            <p><strong>Log out of your account?</strong></p>
+            <div class="button-holder">
+                <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
+                <button class="logout-btn" onclick="logout()">Log out</button>
+            </div>
         </div>
     </div>
 
@@ -346,88 +423,224 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         <div class="content-area">
             <div id="personal_details">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="new_username" placeholder="@example" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['username'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" id="new_first_name" 
-                           placeholder="First name" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['first_name'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>Middle Name</label>
-                    <input type="text" id="new_middle_name" 
-                           placeholder="Middle name" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['middle_name'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" id="new_last_name" 
-                           placeholder="Last name" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['last_name'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>Birthday</label>
-                    <input type="date" id="new_birthday" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['birthday'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <input type="text" id="new_country" placeholder="Country" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['country'] ?? ''
-                           ); ?>">
-                </div>
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" id="new_city" placeholder="City" 
-                           value="<?php echo htmlspecialchars(
-                               $userData['city'] ?? ''
-                           ); ?>">
+                <!-- Default view showing current information -->
+                <div id="personal_details_view">
+                    <div class="settings-section" onclick="showEditForm('name')">
+                        <h4>Name</h4>
+                        <p id="name_display">
+                            <?php echo htmlspecialchars(
+                                ($userData['first_name'] ?? '') . ' ' . 
+                                ($userData['last_name'] ?? '')
+                            ); ?>
+                        </p>
+                        <span class="edit-arrow">›</span>
+                    </div>
+                    
+                    <div class="settings-section" 
+                         onclick="showEditForm('username')">
+                        <h4>Username</h4>
+                        <p id="username_display">
+                            @<?php echo htmlspecialchars(
+                                $userData['username'] ?? ''
+                            ); ?>
+                        </p>
+                        <span class="edit-arrow">›</span>
+                    </div>
+                    
+                    <div class="settings-section" 
+                         onclick="showEditForm('birth')">
+                        <h4>Birth Date</h4>
+                        <p id="birth_display">
+                            <?php echo htmlspecialchars(
+                                $userData['birthday'] ?? ''
+                            ); ?>
+                        </p>
+                        <span class="edit-arrow">›</span>
+                    </div>
+                    
+                    <div class="settings-section" 
+                         onclick="showEditForm('location')">
+                        <h4>Country & City</h4>
+                        <p id="location_display">
+                            <?php echo htmlspecialchars(
+                                ($userData['country'] ?? '') . ', ' . 
+                                ($userData['city'] ?? '')
+                            ); ?>
+                        </p>
+                        <span class="edit-arrow">›</span>
+                    </div>
                 </div>
 
-                <button type="button" class="save-btn" 
-                            disabled>
-                        Save
-                </button>
+                <!-- Edit Name -->
+                <div id="edit_name" class="edit-form hidden">
+                    <div class="edit-header">
+                        <div class="edit-header-left">
+                            <button class="back-btn" 
+                                    onclick="hideEditForm('name')">‹</button>
+                            <h3>Change name</h3>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="edit_first_name" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['first_name'] ?? ''
+                                   ); ?>" 
+                                   required maxlength="50" 
+                                   oninput="validateField('name')" />
+                        </div>
+                        <div class="form-group">
+                            <label>Middle Name</label>
+                            <input type="text" id="edit_middle_name" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['middle_name'] ?? ''
+                                   ); ?>" 
+                                   maxlength="50" 
+                                   oninput="validateField('name')" />
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="edit_last_name" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['last_name'] ?? ''
+                                   ); ?>" 
+                                   required maxlength="50" 
+                                   oninput="validateField('name')" />
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <button class="save-btn-header" 
+                                onclick="saveField('name')" disabled>
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Edit Username -->
+                <div id="edit_username" class="edit-form hidden">
+                    <div class="edit-header">
+                        <div class="edit-header-left">
+                            <button class="back-btn" 
+                                    onclick="hideEditForm('username')">‹</button>
+                            <h3>Change username</h3>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="edit_username_input" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['username'] ?? ''
+                                   ); ?>" 
+                                   maxlength="30" 
+                                   oninput="validateField('username')" />
+                            <span class="char-count" id="username_count">
+                                0/30
+                            </span>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <button class="save-btn-header" 
+                                onclick="saveField('username')" disabled>
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Edit Birth -->
+                <div id="edit_birth" class="edit-form hidden">
+                    <div class="edit-header">
+                        <div class="edit-header-left">
+                            <button class="back-btn" 
+                                    onclick="hideEditForm('birth')">‹</button>
+                            <h3>Change birth date</h3>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <div class="form-group">
+                            <label>Birth Date</label>
+                            <input type="date" id="edit_birthday" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['birthday'] ?? ''
+                                   ); ?>" 
+                                   oninput="validateField('birth')" />
+                            <small class="help-text">
+                                Your birth date is used to calculate your age.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <button class="save-btn-header" 
+                                onclick="saveField('birth')" disabled>
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Edit Location -->
+                <div id="edit_location" class="edit-form hidden">
+                    <div class="edit-header">
+                        <div class="edit-header-left">
+                            <button class="back-btn" 
+                                    onclick="hideEditForm('location')">‹</button>
+                            <h3>Change location</h3>
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <div class="form-group">
+                            <label>Country</label>
+                            <input type="text" id="edit_country" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['country'] ?? ''
+                                   ); ?>" 
+                                   maxlength="50" 
+                                   oninput="validateField('location')" />
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" id="edit_city" 
+                                   value="<?php echo htmlspecialchars(
+                                       $userData['city'] ?? ''
+                                   ); ?>" 
+                                   maxlength="50" 
+                                   oninput="validateField('location')" />
+                        </div>
+                    </div>
+                    <div class="edit-content">
+                        <button class="save-btn-header" 
+                                onclick="saveField('location')" disabled>
+                            Save
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div id="password" hidden>
+            <div id="password" class="settings-panel">
                 <form id="password_form" onsubmit="updatePassword(event)">
                     <div class="form-group">
                         <label>Current Password</label>
-                        <input type="password" id="current_password" required>
+                        <input type="password" id="current_password" required />
                         <button type="button" class="toggle-btn" 
                                 onclick="togglePassword('current_password', this)">
-                            Show
+                            <img src="../assets/eye_closed.png" 
+                                 alt="Toggle visibility" />
                         </button>
                     </div>
-
+                
                     <div class="form-group">
                         <label>New Password</label>
                         <input type="password" id="new_password" 
                                oninput="validatePassword()" 
-                               onfocus="showRules()" required>
+                               onfocus="showRules()" required />
                         <button type="button" class="toggle-btn" 
                                 onclick="togglePassword('new_password', this)">
-                            Show
+                            <img src="../assets/eye_closed.png" 
+                                 alt="Toggle visibility" />
                         </button>
                     </div>
-
-                    <ul id="rules" class="rules" style="display:none;">
+                
+                    <ul id="rules" class="rules">
                         <li id="length" class="invalid">Minimum 8 characters</li>
                         <li id="number" class="invalid">At least one number</li>
                         <li id="uppercase" class="invalid">
@@ -437,17 +650,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                             At least one lowercase letter
                         </li>
                     </ul>
-
+                
                     <div class="form-group">
                         <label>Confirm Password</label>
                         <input type="password" id="confirm_password" 
-                               oninput="validatePassword()" required>
+                               oninput="validatePassword()" required />
                         <button type="button" class="toggle-btn" 
                                 onclick="togglePassword('confirm_password', this)">
-                            Show
+                            <img src="../assets/eye_closed.png" 
+                                 alt="Toggle visibility" />
                         </button>
                     </div>
-
+                
                     <button type="submit" id="reset_btn" class="save-btn" 
                             disabled>
                         Save
@@ -455,41 +669,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 </form>
             </div>
 
-            <div id="delete_account" hidden>
-                <h3>Delete account?</h3>
+            <div id="delete_account" class="settings-panel">
+                <h3>Delete account</h3>
                 <p>
-                    If you delete your account, all data will be deleted 
-                    and you will be logged out immediately.
+                    Deleting your account will permanently remove all your data 
+                    and cannot be undone. You will be logged out immediately.
                 </p>
                 <div class="button-holder">
-                    <button class="cancel-btn" onclick="cancelDelete()">
-                        Cancel
-                    </button>
-                    <button class="delete-btn" id="confirm_delete_btn" 
-                            onclick="confirmDelete()">
-                        Delete
+                    <button class="delete-btn" 
+                            onclick="showDeletePasswordModal()">
+                        Delete Account
                     </button>
                 </div>
             </div>
 
-            <div id="popup_overlay" class="popup-overlay" 
-                 onclick="closePopup()">
-                <div class="popup-content" onclick="event.stopPropagation()">
-                    <span class="close-btn" onclick="closePopup()">&times;</span>
-                    <h3 id="popup_title">Message</h3>
-                    <p id="popup_message">Your message here</p>
-                    <div class="popup-buttons">
-                        <button id="popup_ok_btn" onclick="closePopup()">
-                            OK
+            <div id="delete_password_modal" class="popup-overlay hidden" 
+                 onclick="closeDeletePasswordModal()">
+                <div class="popup-content delete-modal" 
+                     onclick="event.stopPropagation()">
+                    <h3>Confirm Account Deletion</h3>
+                    <p>Please enter your password to confirm account deletion:</p>
+                    <div class="form-group">
+                        <input type="password" id="delete_confirm_password" 
+                               placeholder="Enter your password" />
+                        <button type="button" class="toggle-btn" 
+                                onclick="togglePassword('delete_confirm_password', this)">
+                            <img src="../assets/eye_closed.png" 
+                                 alt="Toggle visibility" />
                         </button>
-                        <button id="popup_cancel_btn" onclick="closePopup()" 
-                                style="display:none;">
+                    </div>
+                    <div class="popup-buttons">
+                        <button class="cancel-btn" onclick="cancelDelete()">
                             Cancel
                         </button>
-                        <button id="popup_confirm_btn" 
-                                onclick="executePopupAction()" 
-                                style="display:none;">
-                            Confirm
+                        <button class="delete-btn" 
+                                onclick="confirmAccountDeletion()">
+                            Delete Account
                         </button>
                     </div>
                 </div>
@@ -497,12 +712,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         </div>
     </div>
 
+    <div id="popup_overlay" class="popup-overlay hidden" 
+         onclick="closePopup()">
+        <div class="popup-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <h3 id="popup_title">Message</h3>
+            <p id="popup_message">Your message here</p>
+            <div class="popup-buttons">
+                <button id="popup_ok_btn">OK</button>
+                <button id="popup_cancel_btn" class="hidden">Cancel</button>
+                <button id="popup_confirm_btn" class="hidden">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../script/settings.js"></script>
 </body>
 </html>
-<?php } ?>
-
 <?php
+}
+
 if (isset($conn)) {
     $conn->close();
 }

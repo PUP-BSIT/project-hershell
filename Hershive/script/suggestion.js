@@ -375,7 +375,7 @@ function toggleFollow(button, userId) {
       if (data.action === 'followed') {
         button.textContent = "Following";
         button.classList.add("following");
-        // sendNotification('follow', userId, 'Started following you.');
+        sendNotification('follow', userId, 'started following you.');
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -448,9 +448,115 @@ function menuToggleDropdown() {
   }
 }
 
+setInterval(() => {
+  loadNotifications();
+}, 3000);
+
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
-  if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
+  const badge = document.getElementById("notification_count");
+
+  if (panel) {
+    panel.classList.toggle("hidden");
+
+    if (!panel.classList.contains("hidden")) {
+      try {
+        fetch('../php/mark_notifications_read.php', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (!data.success) {
+              console.error("Failed to mark notifications as read:", data.error);
+            }
+          })
+          .catch(error => {
+            console.error("Network error while marking notifications as read:", error);
+          });
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
+
+      if (badge) badge.classList.add("hidden");
+    }
+
+    loadNotifications();
+  }
+}
+
+function sendNotification(type, postId, message) {
+  fetch('../php/insert_notification.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      type: type,
+      post_id: postId,
+      message: message
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Notification sent successfully.');
+    } else {
+      console.error('Failed to send notification:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Network error while sending notification:', error);
+  });
+}
+
+function loadNotifications() {
+  fetch('../php/get_notifications.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const container = document.getElementById('notification_container');
+        const badge = document.getElementById('notification_count');
+        const notifications = data.notifications || [];
+        const unread = data.unread_count || 0;
+        console.log("Loaded notifications:", notifications, "Unread count:", unread);
+
+        container.innerHTML = "";
+
+        if (notifications.length === 0) {
+          container.innerHTML = "<p>No notifications available.</p>";
+        } else {
+          notifications.forEach(notif => {
+            const div = document.createElement('div');
+            div.className = "notification";
+
+            div.innerHTML = `
+              <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
+              <div class="notif-content">
+                <div class="notif-middle-content">
+                  <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
+                  <p class="time">${formatTime(notif.created_at)}</p>
+                </div>
+                ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        }
+
+        if (badge) {
+          badge.textContent = unread;
+          console.log("Unread notifications count:", unread);
+          if (unread > 0) {
+            badge.classList.remove("hidden");
+          } else {
+            badge.classList.add("hidden");
+          }
+        }
+      }
+    })
+    .catch(err => console.error("Failed to load notifications:", err));
+}
+
+function formatTime(timestamp) {
+  return new Date(timestamp).toLocaleTimeString();
 }
 
 window.addEventListener("click", function (e) {
