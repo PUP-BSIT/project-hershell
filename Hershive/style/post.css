@@ -1,0 +1,263 @@
+body {
+    background: #e6e3d6;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.post-detail {
+    max-width: 850px;
+    margin: 24px auto;
+    background: #edeadd;
+    padding: 28px 32px 32px 32px;
+    border-radius: 20px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.profile-pic {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    border: 2px solid #d6d3c2;
+}
+
+.username {
+    font-weight: 700;
+    font-size: 20px;
+    color: #222;
+}
+
+.post-header .follow-btn {
+    margin-left: 12px;
+    font-size: 15px;
+    color: #1877f2;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.timestamp {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.shared-card {
+    background: #f6f5f1;
+    padding: 16px 18px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.post-content {
+    font-size: 17px;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.post-actions {
+    display: flex;
+    gap: 36px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.like-btn, .comment-btn, .share-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 22px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.like-btn.liked .outline { display: none; }
+.like-btn:not(.liked) .filled { display: none; }
+
+.like-count, .comment-count, .share-count {
+    margin-left: 2px;
+    font-size: 16px;
+    color: #444;
+}
+
+.comment-section {
+    margin-top: 18px;
+}
+
+.comment-section h3 {
+    margin-bottom: 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.comment-entry {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    border: 1px solid #d6d3c2;
+}
+
+.comment-bubble {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 8px 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.comment-username {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-right: 6px;
+}
+
+.comment-text {
+    font-size: 15px;
+    color: #444;
+    line-height: 1.4;
+    margin: 0;
+    word-break: break-word;
+}
+
+.comment-timestamp {
+    font-size: 12px;
+    color: #888;
+    margin-left: 8px;
+}
+
+.comment-input {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.comment-input input {
+    flex: 1;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s;
+    background: #f8f8f8;
+}
+
+.comment-input input:focus {
+    border: 1.5px solid #1877f2;
+    background: #fff;
+}
+
+.send-comment-btn {
+    border: none;
+    background: #1877f2;
+    color: #fff;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.send-comment-btn:hover {
+    background: #1456b8;
+}
+
+#shareModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#shareModal.active {
+    display: flex;
+}
+
+#shareModal .modal-content {
+    background: #fff;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90vw;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#shareModal h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+#shareModal input[type="text"] {
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    width: 100%;
+}
+
+#shareModal button {
+    margin-right: 8px;
+    margin-bottom: 0;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #1877f2;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#shareModal button:last-child {
+    background: #888;
+}
+
+#shareModal button:hover {
+    background: #1456b8;
+}
+
+.like-btn img,
+.comment-btn img,
+.share-btn img {
+    width: 30px;
+    height: 30px;
+}

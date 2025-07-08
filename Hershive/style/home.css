@@ -19,10 +19,12 @@ body {
   display: flex;
   align-items: center;
   padding: 10px 20px;
-  border-bottom: 1px solid black;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(to right, #ecb06e, #ad7943) 1;
   justify-content: space-between;
   margin-bottom: 10px;
   z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .logo {
@@ -58,9 +60,23 @@ body {
 
 .search-bar input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid black;
+  padding: 10px 15px;
+  border: 1px solid transparent;
   border-radius: 20px;
+
+  background-image:
+    linear-gradient(white, white),
+    /* inner background */
+    linear-gradient(to right, #ecb06e, #ad7943);
+  /* border gradient */
+
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #333;
+  outline: none;
 }
 
 .navigation-icons {
@@ -79,6 +95,26 @@ body {
 .navigation-icons img {
   width: 30px;
   height: 30px;
+}
+
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  line-height: 1;
+  min-width: 18px;
+  text-align: center;
 }
 
 .menu-button {
@@ -106,6 +142,7 @@ body {
   align-items: center;
   background-color: #dfdbcd;
   width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .main-create-post {
@@ -177,6 +214,7 @@ select {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   height: calc(100vh - 90px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .side-panel::-webkit-scrollbar {
@@ -216,6 +254,7 @@ select {
   background-color: #dfdbcd;
   border-radius: 20px;
   width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .post-header {
@@ -272,6 +311,7 @@ select {
   margin-left: 10px;
   overflow-wrap: break-word;
   word-break: break-word;
+  margin-bottom: 10px;
 }
 
 .content img {
@@ -294,6 +334,14 @@ select {
 .more-option img {
   width: 20px;
   height: 20px;
+}
+
+.shared-card {
+  border: 1px solid #8b6A47;
+  background-color: #f0e8dd;
+  border-left: 4px solid #8b6A47;
+  padding: 10px;
+  border-radius: 10px;
 }
 
 .dropdown-menu {
@@ -449,8 +497,7 @@ body.modal-open {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  background: linear-gradient(135deg, rgb(185, 141, 91), rgb(166, 124, 82));
+  backdrop-filter: darken(10);
 }
 
 .formatting-options button::before {
@@ -474,7 +521,7 @@ body.modal-open {
 }
 
 .formatting-options button.active {
-  background: linear-gradient(135deg, #b98d5b, #a67c52);
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border-color: #8b6a47;
   transform: translateY(-1px);
@@ -580,33 +627,47 @@ body.modal-open {
 }
 
 .create-post-modal:focus-within .modal-header::after {
-  width: 60%;
+  width: 100%;
 }
 
 .modal-header h2 {
   font-size: 22px;
   margin: 0;
-  background: linear-gradient(135deg, #8b6a47, #a67c52);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 600;
+}
+
+.modal-user-info {
+  margin-bottom: 16px;
+}
+
+.user-info-box {
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  border-left: 3px solid #b98d5b;
+  transition: all 0.3s ease;
+  width: 30%;
+}
+
+.user-info-box:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.modal-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
 }
 
 .create-post-modal .username {
   font-weight: 600;
   font-size: 14px;
-  color: #8b6a47;
-  margin: 0 0 16px 0;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 8px;
-  border-left: 3px solid #b98d5b;
-  transition: all 0.3s ease;
-}
-
-.create-post-modal .username:hover {
-  background: rgba(255, 255, 255, 0.6);
+  color: rgb(110, 108, 108);
+  margin: 0;
+  padding: 0;
 }
 
 .create-post-modal:hover {
@@ -637,7 +698,7 @@ body.modal-open {
 }
 
 .submit-button {
-  background: linear-gradient(135deg, #b98d5b, #a67c52);
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   border: none;
   border-radius: 12px;
@@ -884,7 +945,7 @@ body.modal-open {
 
 .preview-image,
 .preview-video {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   margin-top: 10px;
   border-radius: 12px;
@@ -951,13 +1012,44 @@ body.modal-open {
 
 .profile-button {
   display: inline-block;
-  background: black;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
   padding: 8px 16px;
+  border: none;
   border-radius: 15px;
   text-decoration: none;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(185, 141, 91, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.profile-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.profile-button:hover::before {
+  left: 100%;
+}
+
+.profile-button:hover {
+  background: linear-gradient(135deg, #a67c52, #8b6a47);
+  box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
+}
+
+.profile-button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
 }
 
 .suggested-section {
@@ -1034,6 +1126,7 @@ body.modal-open {
 /* Menu Dropdown for settings and logout Style */
 #menu_dropdown {
   position: absolute;
+  top: 60px;
   right: 20px;
   background-color: #f8f5ea;
   border: 1px solid #000000;
@@ -1077,17 +1170,18 @@ body.modal-open {
 
 /* notification style */
 .notification-panel {
-  display: none;
   position: absolute;
-  top: 69px;
-  right: 60px;
-  width: 300px;
+  top: 60px;
+  right: 20px;
+  width: 350px;
   background-color: #f8f5ea;
   border: 1px solid #000000;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 15px;
+  height: 450px;
   z-index: 1000;
+  overflow-y: auto;
 }
 
 .notification-panel h4 {
@@ -1752,7 +1846,7 @@ body.modal-open {
   background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
   padding: 20px;
   border-radius: 12px;
-  width: 60vw;
+  width: 30vw;
   max-height: 70vh;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -1794,15 +1888,22 @@ body.modal-open {
 }
 
 .share-icons img {
-  width: 36px;
+  width: 5vh;
   height: 5vh;
   cursor: pointer;
+  border-radius: 50%;
+  display: block;
 }
 
-.share-link-section label {
-  font-size: 1.5vh;
-  margin-bottom: 4px;
-  display: block;
+#share_to {
+  border: none;
+  background: transparent;
+}
+
+.share-link-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .link-box {
@@ -1815,17 +1916,25 @@ body.modal-open {
   flex: 1;
   padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1.4vh;
+  border-radius: 10px;
+  font-size: 1.7vh;
+  background-color: #f8f5ea;
 }
 
 .link-box button {
-  height: 4vh;
-  background: #f2f2f2;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   border: 1px solid #ccc;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.link-box button:hover {
+  background: linear-gradient(135deg, #a67c52, #8b6a47);
+  box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
 }
 
 .link-box button img {
@@ -1837,25 +1946,50 @@ body.modal-open {
   width: 100%;
   min-height: 8vh;
   padding: 10px;
-  margin: 10px 0;
   font-size: 1.4vh;
   resize: none;
+  border: none;
+  border-radius: 10px;
 }
 
 .shared-post-preview {
+  display: flex;
+  flex-direction: column;
   border: 1px solid #ccc;
   padding: 10px;
-  background-color: #f9f9f9;
-  margin-bottom: 15px;
+  background-color: #f8f5ea;
   overflow-y: auto;
   max-height: 48vh;
-  -webkit-overflow-scrolling: scroll;
-  scrollbar-width: thin;
+  border-radius: 10px;
+  gap: 10px;
 }
+
+.shared-post-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shared-post-preview::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.shared-post-preview:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #b98d5b, #a67c52);
+}
+
+.shared-post-preview::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shared-post-preview:hover::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
 
 #shared_post_preview img,
 #shared_post_preview video {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   border-radius: 8px;
   margin-top: 10px;
@@ -1863,15 +1997,20 @@ body.modal-open {
 }
 
 .submit-share-btn {
-  background-color: #1877f2;
+  background: linear-gradient(135deg, #ecb06e, #ad7943);
   color: white;
-  padding: 10px 20px;
+  padding: 8px 20px;
   border: none;
-  height: fit-content;
-  font-size: 2vh;
+  height: 4vh;
+  font-size: 1.8vh;
   font-weight: bold;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 10px;
+}
+
+.submit-share-btn:hover {
+  background: linear-gradient(135deg, #a67c52, #8b6a47);
+  box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
 }
 
 .like-btn {
@@ -2177,11 +2316,27 @@ body.modal-open {
 }
 
 .icon-people::before {
-  content: "👥";
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background-image: url('../assets/following_icon.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  image-rendering: auto;
 }
 
 .icon-followers::before {
-  content: "👁️";
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-image: url('../assets/followers_icon.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  image-rendering: auto;
 }
 
 .timestamp-container {
@@ -2859,52 +3014,6 @@ body.modal-open {
   transform: translateY(0);
 }
 
-.user-item {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  margin-bottom: 10px;
-  background: #f8f5ea;
-  border-radius: 10px;
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-right: 15px;
-  object-fit: cover;
-}
-
-.user-info {
-  flex-grow: 1;
-}
-
-.user-name {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.user-username {
-  color: #666;
-  font-size: 14px;
-}
-
-.follow-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 20px;
-  background: #000;
-  color: white;
-  cursor: pointer;
-}
-
-.follow-button.following {
-  background: white;
-  color: #000;
-  border: 1px solid #000;
-}
-
 .edit-editor {
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -3088,4 +3197,33 @@ body.modal-open {
 
 .delete-post-confirm-btn:hover {
   background-color: #c0392b;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+#editor {
+  white-space: pre-wrap;
+}
+
+.post-text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  /* or 'monospace' if you're showing code-style posts */
+}
+
+.error-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff4d4f;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 14px;
+  z-index: 9999;
+  transition: opacity 0.3s ease-in-out;
 }

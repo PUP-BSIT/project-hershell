@@ -3,7 +3,7 @@ session_start();
 require_once 'db_connection.php';
 
 if (!isset($_SESSION['user_id'])) {
-  echo json_encode(['success' => false, 'notifications' => []]);
+  echo json_encode(['success' => false, 'error' => 'Not authenticated']);
   exit;
 }
 
@@ -18,7 +18,6 @@ $stmt = $conn->prepare("
   ORDER BY n.notification_id DESC
   LIMIT 20
 ");
-
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -27,9 +26,23 @@ $notifications = [];
 while ($row = $result->fetch_assoc()) {
   $notifications[] = $row;
 }
-
-echo json_encode(['success' => true, 'notifications' => $notifications]);
-
 $stmt->close();
+
+$countStmt = $conn->prepare("
+  SELECT COUNT(*) as unread_count
+  FROM notification
+  WHERE recipient_user_id = ? AND read_status = 0
+");
+$countStmt->bind_param("i", $userId);
+$countStmt->execute();
+$countResult = $countStmt->get_result();
+$unreadCount = $countResult->fetch_assoc()['unread_count'] ?? 0;
+$countStmt->close();
+
 $conn->close();
-?>
+
+echo json_encode([
+  'success' => true,
+  'notifications' => $notifications,
+  'unread_count' => $unreadCount
+]);

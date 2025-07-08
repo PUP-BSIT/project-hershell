@@ -15,14 +15,21 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Sanitize text input
 function sanitize_input($input, $allow_html = false) {
     if ($allow_html) {
-        $clean = strip_tags($input, '<b><i><u><strong><em><br><p>');
-        $clean = preg_replace('/(<\w+\s*)style="[^"]*"/i', '$1', $clean);
+        $input = nl2br($input);
+
+        $allowed_tags = '<b><i><u><strong><em><br><p><div><span><h1><h2><h3>
+          <h4><h5><h6><ul><ol><li><blockquote><pre><code>';
+        $clean = strip_tags($input, $allowed_tags);
+        $clean = preg_replace('/(<\w+\s*)(?:style|onclick|onload|onerror|javascript:|data-|on\w+)="[^"]*"\s*/i', '$1', $clean);
+        $clean = preg_replace('/(<\w+\s*)(?:style|onclick|onload|onerror|javascript:|data-|on\w+)=\'[^\']*\'\s*/i', '$1', $clean);
+
         return $clean;
     }
-    return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+
+    $escaped = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+    return nl2br($escaped);
 }
 
 $content = isset($_POST['content']) ? sanitize_input($_POST['content'], true) : '';
@@ -34,9 +41,9 @@ $visibility = in_array($_POST['visibility'], ['public', 'private', 'followers'])
 $clients = isset($_POST['share_to']) ? explode(',', $_POST['share_to']) : [];
 $share_post_id = $_POST['shared_post_id'] ?? null;
 
-$isExternalOnlyShare = !empty($clients) && $share_post_id && empty(trim($content)) && empty($_FILES['media']['name']);
+$isExternalOnlyShare = !empty($clients) && $share_post_id && empty(trim(strip_tags($content))) && empty($_FILES['media']['name']);
 
-if (!$isExternalOnlyShare && empty(trim($content)) && empty($_FILES['media']['name'])) {
+if (!$isExternalOnlyShare && empty(trim(strip_tags($content))) && empty($_FILES['media']['name'])) {
     echo json_encode(['success' => false, 'error' => 'Post must have text, media, or shared post']);
     exit;
 }
