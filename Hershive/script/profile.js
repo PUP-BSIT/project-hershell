@@ -308,28 +308,58 @@ function saveProfileUpdates() {
 
 const currentUser = document.body.dataset.username || "";
 
+function capitalize(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function createPostElement(post) {
   const postDiv = document.createElement("div");
-  postDiv.className = "user-post";
+  postDiv.className = "user-post"; // Use user-post for profile page
   postDiv.dataset.postId = post.post_id;
 
-  const isOwner = post.sharer_username === currentUser;
+  const isOwner = (post.sharer_username || post.username) === currentUser;
   const isShared = post.shared && post.original_post;
+
+  const profilePicUrl = post.sharer_profile_pic || "../assets/temporary_pfp.png";
+
+  // Select correct visibility icon
+  const visibilityIcon = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png",
+  }[post.visibility] || "../assets/public_icon.png";
 
   postDiv.innerHTML = `
     <div class="post-header">
       <div class="post-header-left">
-      <img src="${post.sharer_profile_pic || '../assets/temporary_pfp.png'}" class="profile-pic" alt="User" />
-      <div class="post-info">
-          <span class="username">${post.sharer_username}</span>
-          <span class="timestamp">${post.formatted_time}</span>
+        <img src="${profilePicUrl}" alt="user profile"
+             class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
+        <div class="post-info">
+          <div class="username-container">
+            <span class="username">${post.sharer_username || post.username}</span>
+            ${!isOwner ? `
+              <button class="post-follow-btn" onclick="togglePostFollow(this,
+                  '${post.sharer_username || post.username}')">
+                Follow
+              </button>
+            ` : ''}
+          </div>
+          <span class="timestamp">
+            ${post.formatted_time}
+            <img src="${visibilityIcon}" class="visibility-icon" alt="${post.visibility}">
+            ${post.source_platform && post.source_platform !== "hershive" ? `
+            <div class="external-share-indicator">
+              Shared from ${capitalize(post.source_platform)}
+            </div>
+          ` : ''}
+            </span>
         </div>
       </div>
       ${isOwner ? `
         <div class="more-option">
-          <img src="../assets/more_icon.png"
-              alt="more" onclick="toggleDropdown(this)">
-          <div class="dropdown-menu">
+          <img src="../assets/more_icon.png" alt="more" onclick="toggleDropdown(this)">
+          <div class="dropdown-menu" onclick="event.stopPropagation()">
             <button onclick="editPost(this)">Edit</button>
             <button onclick="deletePost(this)">Delete</button>
             <button onclick="cancelDropdown(this)">Cancel</button>
@@ -340,28 +370,31 @@ function createPostElement(post) {
 
     <div class="post-content">
       <div class="content">
-        ${post.content ? `<p>${post.content}</p>` : ""}
+        ${post.content ? `<div class="post-text">${post.content}</div>` : ""}
 
         ${isShared ? `
-          <div class="shared-post">
-            <p class="shared-post-username">Originally posted by
-                <strong>${post.original_post.username}</strong></p>
-            <p>${post.original_post.content}</p>
-            ${post.original_post.media_url ?
-              (post.original_post.media_type === 'video'
-                ? `<video controls class="post-media"><source src="
-                    ${post.original_post.media_url}" type="video/mp4"></video>`
-                : `<img src="${post.original_post.media_url}"
-                    class="post-media" alt="Shared Image">`): ""}
+          <div class="shared-card">
+            <p class="shared-username">Originally posted by
+              <strong>${post.original_post.username}</strong>
+            </p>
+            <div class="shared-content">${post.original_post.content}</div>
+            ${post.original_post.media_url ? (
+              post.original_post.media_type === "video"
+                ? `<video controls class="preview-video">
+                     <source src="${post.original_post.media_url}" type="video/mp4">
+                   </video>`
+                : `<img src="${post.original_post.media_url}" class="preview-image"
+                    alt="Shared Image">`
+            ) : ""}
           </div>
         ` : `
-          ${post.media_url ?
-            (post.media_type === 'video'
-              ? `<video controls class="post-media"><source
-                  src="${post.media_url}" type="video/mp4"></video>`
-              : `<img src="${post.media_url}"
-                  class="post-media" alt="Post Image">`)
-            : ""}
+          ${post.media_url ? (
+            post.media_type === "video"
+              ? `<video controls class="preview-video">
+                   <source src="${post.media_url}" type="video/mp4">
+                 </video>`
+              : `<img src="${post.media_url}" class="preview-image" alt="Post Image">`
+          ) : ""}
         `}
       </div>
 
@@ -369,9 +402,9 @@ function createPostElement(post) {
         <div class="action-button">
           <button class="like-btn" onclick="toggleLike(this, ${post.post_id})">
             <img class="heart-icon outline ${post.user_liked ? 'hidden' : ''}"
-                src="../assets/heart_icon.png">
+                 src="../assets/heart_icon.png" alt="Like">
             <img class="heart-icon filled ${post.user_liked ? '' : 'hidden'}"
-                src="../assets/red_heart_icon.png">
+                 src="../assets/red_heart_icon.png" alt="Liked">
           </button>
           <span class="like-count">${post.likes_count}</span>
         </div>
