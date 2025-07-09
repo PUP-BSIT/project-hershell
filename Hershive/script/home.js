@@ -117,7 +117,7 @@ function displayPosts(posts) {
   existingPosts.forEach(post => post.remove());
 
   posts.forEach(post => {
-    console.log('post.source_platform =', post.source_platform, 'post:', post); //=======================================================  
+    console.log('post.source_platform =', post.source_platform, 'post:', post); //=======================================================
     const postElement = createPostElement(post);
     leftContent.appendChild(postElement);
   });
@@ -2122,35 +2122,47 @@ function performSearch() {
 function renderTopUserResult(user) {
   const topUserResult = document.getElementById("top_user_result");
   if (!topUserResult) return;
-
-  topUserResult.innerHTML = `
-    <div class="top-user-card">
-      <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
-           class="top-user-avatar" alt="${user.first_name} ${user.last_name}">
-      <div class="top-user-info">
-        <h3 class="top-user-name">${user.first_name} ${user.last_name}</h3>
-        <p class="top-user-handle">@${user.username}</p>
-        <div class="top-user-stats">
-          <div class="stat-item">
-            <span class="icon-people"></span>
-            <span>${user.following_count || 0} following</span>
-          </div>
-          <div class="stat-item">
-            <span class="icon-followers"></span>
-            <span>${user.followers_count || 0} followers</span>
-          </div>
+  const card = document.createElement("div");
+  card.className = "top-user-card";
+  card.dataset.userId = user.user_id;
+  card.addEventListener("click", (e) => {
+    const userId = e.currentTarget.dataset.userId;
+    redirectToUserProfile(userId);
+  });
+  card.innerHTML = `
+    <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
+         class="top-user-avatar" alt="${user.first_name} ${user.last_name}">
+    <div class="top-user-info">
+      <h3 class="top-user-name">${user.first_name} ${user.last_name}</h3>
+      <p class="top-user-handle">@${user.username}</p>
+      <div class="top-user-stats">
+        <div class="stat-item">
+          <span class="icon-people"></span>
+          <span>${user.following_count || 0} following</span>
         </div>
-        ${user.username !== currentUser
-          ? `<button class="follow-button" onclick="toggleTopUserFollow(this,
-          '${user.username}')">Follow</button>`: ""}
+        <div class="stat-item">
+          <span class="icon-followers"></span>
+          <span>${user.followers_count || 0} followers</span>
+        </div>
       </div>
+      ${user.username !== currentUser
+        ? `<button class="follow-button"
+                  onclick="event.stopPropagation(); toggleTopUserFollow(this,
+                  '${user.username}')">
+             Follow</button>` : ""}
     </div>
   `;
-
+  topUserResult.innerHTML = "";
+  topUserResult.appendChild(card);
   setTimeout(() => {
     initializeFollowStatus();
   }, 100);
 }
+
+function redirectToUserProfile(userId) {
+  window.location.href = `../php/profile.php?user_id=${userId}`;
+}
+
 
 function renderMorePeople(users) {
   const morePeopleList = document.getElementById("more_people_list");
@@ -2386,6 +2398,11 @@ function showAllUsers() {
 function createMoreUserElement(user) {
   const userItem = document.createElement("div");
   userItem.className = "more-people-item";
+  userItem.dataset.userId = user.user_id;
+  userItem.addEventListener("click", (e) => {
+    const userId = e.currentTarget.dataset.userId;
+    redirectToUserProfile(userId);
+  });
   userItem.innerHTML = `
     <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
          class="more-people-avatar" alt="${user.first_name} ${user.last_name}">
@@ -2395,7 +2412,8 @@ function createMoreUserElement(user) {
     </div>
     ${user.username !== currentUser
       ? `<button class="more-people-follow-btn"
-      onclick="toggleMorePeopleFollow(this, '${user.username}')">
+                 onclick="event.stopPropagation(); toggleMorePeopleFollow(this,
+                 '${user.username}')">
            Follow</button>` : ""}`;
   return userItem;
 }

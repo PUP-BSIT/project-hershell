@@ -66,10 +66,7 @@ body {
 
   background-image:
     linear-gradient(white, white),
-    /* inner background */
     linear-gradient(to right, #ecb06e, #ad7943);
-  /* border gradient */
-
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
 
@@ -165,6 +162,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  cursor: pointer;
 }
 
 .sub-create-post img {
@@ -284,6 +282,7 @@ select {
 .username {
   font-weight: bold;
   margin: 0 10px;
+  cursor: pointer;
 }
 
 .timestamp {
@@ -2146,6 +2145,7 @@ body.modal-open {
   border-radius: 50%;
   object-fit: cover;
   background: #f0f0f0;
+  cursor: pointer;
 }
 
 .top-user-info {
@@ -2157,6 +2157,7 @@ body.modal-open {
   font-weight: 600;
   color: #333;
   margin: 0 0 4px 0;
+  cursor: pointer;
 }
 
 .top-user-handle {
@@ -2242,6 +2243,7 @@ body.modal-open {
   border-radius: 50%;
   object-fit: cover;
   background: #f0f0f0;
+  cursor: pointer;
 }
 
 .more-people-info {
@@ -2253,6 +2255,7 @@ body.modal-open {
   color: #333;
   margin: 0 0 2px 0;
   font-size: 15px;
+  cursor: pointer;
 }
 
 .more-people-handle {
@@ -2422,6 +2425,7 @@ body.modal-open {
   font-weight: bold;
   font-size: 14px;
   color: #333;
+  cursor: pointer;
 }
 
 .comment-timestamp {
@@ -3243,4 +3247,3 @@ body.modal-open {
   box-shadow: none;
   pointer-events: none;
 }
-
