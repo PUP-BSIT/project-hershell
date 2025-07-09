@@ -1,22 +1,17 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #fef9f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f4e8;
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-.card-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
-
-.auth-card {
+.container {
+  position: relative;
   background-color: white;
   padding: 40px 30px;
   border-radius: 20px;
@@ -24,54 +19,83 @@ body {
   max-width: 420px;
   width: 100%;
   text-align: center;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.auth-card h2 {
-  margin-bottom: 10px;
-  font-size: 24px;
+.container:hover {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.15);
 }
 
-.auth-card p {
+h1 {
+  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #222;
+}
+
+p {
   font-size: 16px;
-  color: #333;
-  margin-bottom: 30px;
-}
-
-.auth-form input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 15px;
+  margin-bottom: 40px;
+  color: #555;
 }
 
 .button-group {
   display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  align-items: stretch;
 }
 
 .btn {
-  width: 100px;
-  padding: 10px 0;
-  font-size: 16px;
-  border-radius: 999px;
+  flex: 1;
+  padding: 16px 0;
+  border-radius: 30px;
   border: none;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.btn.login {
-  background-color: #000;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
+.btn-allow {
+  background-color: #000000;
+  color: #ffffff;
 }
 
-.error-message {
-  color: red;
-  margin-bottom: 15px;
+.btn-allow:hover {
+  background-color: #222222;
+}
+
+.btn-deny {
+  background-color: #e0e0e0;
+  color: #333333;
+}
+
+.btn-deny:hover {
+  background-color: #cacaca;
+}
+
+/* Top-right login switch */
+.switch-form {
+  position: absolute;
+  top: 24px;
+  right: 30px;
+}
+
+.btn-top-switch {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.btn-top-switch:hover {
+  color: #222;
 }
