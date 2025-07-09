@@ -22,12 +22,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   }
 
-  window.addEventListener("click"), function (e) {
+    window.addEventListener("click", function (e) {
       const logoutModal = document.getElementById("logout_modal");
-      if (e.target === logoutModal){
-          hideLogout();
+      if (e.target === logoutModal) {
+        hideLogout();
       }
-  }
+    });
 
   document.getElementById("media_input")?.addEventListener("change", function () {
     handleCreatePostFileInput(this, false);
