@@ -20,7 +20,7 @@ if (isset($_POST['allow'])) {
     $stmt->bind_param("is", $user_id, $client_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($row = $result->fetch_assoc()) {
         $token = $row['token'];
     } else {
@@ -30,12 +30,19 @@ if (isset($_POST['allow'])) {
         $stmt->bind_param("isss", $user_id, $client_id, $token, $expires_at);
         $stmt->execute();
     }
-    
+
     header("Location: $redirect_uri&token=$token");
     exit;
 }
+
 if (isset($_POST['deny'])) {
-    header("Location: $redirect_uri?error=access_denied");  
+    header("Location: $redirect_uri?error=access_denied");
+    exit;
+}
+
+if (isset($_POST['switch_user'])) {
+    session_destroy();
+    header("Location: oauth_authorize.php?client_id=$client_id&redirect_uri=" . urlencode($redirect_uri));
     exit;
 }
 
@@ -65,7 +72,6 @@ if (!isset($_SESSION['user_id'])) {
       <title>Authorize Access</title>
       <link rel="stylesheet" href="../style/oauth_login.css"/>
       <link rel="icon" href="../assets/logo.png"/>
-  
     </head>
     <body>
       <div class="card-container">
@@ -88,7 +94,7 @@ if (!isset($_SESSION['user_id'])) {
             <div class="button-group">
                 <button type="submit" class="btn login">Login</button>
             </div>
-            </form>
+          </form>
         </div>
       </div>
     </body>
@@ -109,13 +115,19 @@ if (!isset($_SESSION['user_id'])) {
 </head>
 <body>
     <div class="container">
+        <form method="post" class="switch-form">
+            <input type="hidden" name="client_id" value="<?= htmlspecialchars($client_id) ?>">
+            <input type="hidden" name="redirect_uri" value="<?= htmlspecialchars($redirect_uri) ?>">
+            <button type="submit" name="switch_user" class="btn-top-switch">Login with another account</button>
+        </form>
+
         <h1>Authorize Access</h1>
-        <p>The application <strong><?php echo htmlspecialchars($_GET["client_id"]); ?></strong> is requesting permission to access your account.</p>
+        <p>The application <strong><?= htmlspecialchars($client_id) ?></strong> is requesting permission to access your account.</p>
 
         <form method="post" class="button-group">
             <input type="hidden" name="client_id" value="<?= htmlspecialchars($client_id) ?>">
             <input type="hidden" name="redirect_uri" value="<?= htmlspecialchars($redirect_uri) ?>">
-        
+
             <button type="submit" name="allow" class="btn btn-allow">Allow</button>
             <button type="submit" name="deny" class="btn btn-deny">Deny</button>
         </form>
