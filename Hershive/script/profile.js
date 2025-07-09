@@ -926,7 +926,6 @@ function toggleFollow(userId, button) {
               button.textContent = 'Following';
           }
 
-          // Try to send notification, but don't let it break the flow
           try {
               if (!isFollowing) {
                   sendNotification('follow', userId, 'started following you.');
@@ -935,7 +934,6 @@ function toggleFollow(userId, button) {
               console.error('Notification error:', error);
           }
 
-          // Try to update stats, but don't let it break the flow
           try {
               updateFollowStatsDirectly(action, username);
           } catch (error) {
@@ -948,7 +946,6 @@ function toggleFollow(userId, button) {
               console.error('Follow counts update error:', error);
           }
 
-          // Update the viewed user's follower count on their profile page
           const urlParams = new URLSearchParams(window.location.search);
           const viewedUserId = urlParams.get('user_id');
 
