@@ -134,9 +134,9 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function createPostElement(post) {
+function createPostElement(post, forModal = false) {
   const postDiv = document.createElement("div");
-  postDiv.className = "sample-post";
+  postDiv.className = forModal ? "sample-post modal-post" : "sample-post";
   postDiv.dataset.postId = post.post_id;
 
   const isOwner = (post.sharer_username || post.username) === currentUser;
@@ -1411,6 +1411,16 @@ function appendNotifications(count) {
     const notif = allNotifications[i];
     const div = document.createElement('div');
     div.className = "notification";
+    if (notif.follow_id) {
+      div.onclick = () => {
+        window.location.href = `../php/profile.php?user_id=${notif.actor_user_id}`;
+      };
+    }else if (notif.post_id) {
+      div.onclick = () => {
+        openPostModalFromNotification(notif.post_id);
+      };
+    }
+
     let html = `
       <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
       <div class="notif-content">
@@ -1453,6 +1463,51 @@ function formatTimeN(timestamp) {
   return date.toLocaleDateString();
 }
 
+function openPostModalFromNotification(postId) {
+  fetch(`../php/get_single_post.php?post_id=${postId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        showError("Failed to load post");
+        return;
+      }
+
+      const post = data.post;
+      currentPostIdForComments = postId;
+
+      const header = document.getElementById('preview_header')
+      const overlayEl = document.getElementById('commentModalOverlay');
+      const previewEl = document.getElementById('commentPostPreview');
+      const inputEl = document.getElementById('commentInput');
+      const commentListEl = document.getElementById('commentListContainer');
+
+      if (!overlayEl || !previewEl || !inputEl || !commentListEl) return;
+
+      // Clear and inject the full post layout
+      header.innerHTML = "";
+      previewEl.innerHTML = "";
+      header.innerHTML = `${post.sharer_username || post.username}'s post`;
+      const postElement = createPostElement(post, true);
+      previewEl.appendChild(postElement);
+
+      // Reapply modal styling
+      overlayEl.classList.add("active");
+      document.body.classList.add("modal-open");
+      document.body.style.overflow = "hidden";
+
+      loadComments(postId, commentListEl);
+      setTimeout(() => inputEl.focus(), 300);
+
+      if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
+      window.commentPollingInterval = setInterval(() => {
+        if (!isEditingComment) {
+          loadComments(postId, commentListEl);
+        }
+      }, 5000);
+    })
+    .catch(err => showError("Network error while loading post: " + err.message));
+}
+
 function toggleCommentModal(button) {
   const postElement = button.closest('.sample-post');
   if (!postElement || !postElement.dataset.postId) {
@@ -1461,6 +1516,7 @@ function toggleCommentModal(button) {
     return;
   }
 
+  const header = document.getElementById('preview_header');
   const overlayEl = document.getElementById('commentModalOverlay');
   const previewEl = document.getElementById('commentPostPreview');
   const inputEl = document.getElementById('commentInput');
@@ -1477,7 +1533,10 @@ function toggleCommentModal(button) {
   }
 
   currentPostIdForComments = postElement.dataset.postId;
+  header.innerHTML = '';
   previewEl.innerHTML = '';
+
+  header.innerHTML = "Comments";
 
   isCommentModalActive = true;
 
@@ -2106,10 +2165,11 @@ function submitShare() {
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
+        const postWrapperId = data.post_id;
         alert("Post shared successfully!");
         closeShareModal();
         loadPosts();
-        sendNotification('share', postId, 'shared your post.');
+        sendNotification('share', postWrapperId, 'shared your post.');
       } else {
         alert(data.error || "Error sharing post");
       }
