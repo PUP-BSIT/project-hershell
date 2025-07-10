@@ -1626,3 +1626,109 @@ body.no-scroll {
   box-shadow: none;
   pointer-events: none;
 }
+
+/*=====Delete modal=====*/
+.delete-post-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-post-modal-overlay:not(.hidden) {
+  display: flex;
+}
+
+.delete-post-modal {
+  background-color: #f4ead5;
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.delete-post-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e0d4c4;
+}
+
+.delete-post-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.delete-post-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.delete-post-close-btn:hover {
+  background-color: #e0d4c4;
+  color: #333;
+}
+
+.delete-post-modal-content {
+  padding: 16px 24px;
+}
+
+.delete-post-modal-content p {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.delete-post-button-holder {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.delete-post-cancel-btn,
+.delete-post-confirm-btn {
+  padding: 8px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-post-cancel-btn {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.delete-post-cancel-btn:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.delete-post-confirm-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+}
+
+.delete-post-confirm-btn:hover {
+  background-color: #c0392b;
+}
