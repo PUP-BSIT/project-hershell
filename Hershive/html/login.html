@@ -6,58 +6,102 @@
     <title>Hershive - Login</title>
     <link rel="stylesheet" href="../style/login.css"/>
     <link rel="icon" href="../assets/logo.png"/>
-
   </head>
 
   <body>
-    <div class="container">
+    <!-- Background particles -->
+    <div class="bg-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <!-- Hexagonal hive pattern -->
+    <div class="hive-pattern">
+      <div class="hexagon hex1"></div>
+      <div class="hexagon hex2"></div>
+      <div class="hexagon hex3"></div>
+      <div class="hexagon hex4"></div>
+      <div class="hexagon hex5"></div>
+      <div class="hexagon hex6"></div>
+      <div class="hexagon hex7"></div>
+      <div class="hexagon hex8"></div>
+    </div>
+
+    <!-- Flying bees -->
+    <div class="bee-swarm">
+      <div class="bee bee1">🐝</div>
+      <div class="bee bee2">🐝</div>
+      <div class="bee bee3">🐝</div>
+    </div>
+
+    <!-- Main content -->
+    <main>
       <div class="left-section">
         <h1>Log in</h1>
         <p>Connect, Share, Explore.</p>
-        <img
-            src="../assets/Login_image.png"
-            alt="Login Design Image"
-            class="login-image"/>
+        <div class="image-container">
+          <img src="../assets/Login_image.png" alt="Login Design Image" class="login-image">
+        </div>
       </div>
 
       <div class="right-section">
-        <h2>Welcome Back!</h2>
-        <p>Please enter login details below</p>
+        <div class="login-form-container">
+          <h2>Welcome Back!</h2>
+          <p>Please enter login details below</p>
 
-        <p id="error"></p>
+          <div id="error" class="error-message"></div>
 
-        <form id="login-form" onsubmit="return validateForm();">
-          <label>Username</label>
-          <input type="text" id="username" placeholder="username" required/>
-        
-          <label>Password</label>
-          <input
-              type="password"
-              id="password"
-              placeholder="password"
-              required/>
-        
-          <a href="/project-hershell/Hershive/php/forgot_password.php" class="forgot-link">
-            forgot password?
-          </a>
-          <button type="submit" class="login-btn">Log in</button>
-        
-          <p class="or-text">or Log in with</p>
-          <div class="social-icons">
-            <a href="/project-hershell/Hershive/php/oauth_login.php?provider=devhive">
-              <img src="../assets/devhive_logo.jpg" alt="Devhive">
-            </a>
-            <a href="/project-hershell/Hershive/php/oauth_login.php?provider=heybleepi">
-              <img src="../assets/heybleepi_logo.png" alt="HeyBleepi">
-            </a>
-          </div>
-        
-          <p>Don't have an account?
-            <a href="/project-hershell/Hershive/php/register.php">Register here</a>
-          </p>
-        </form>
+          <form id="login-form" onsubmit="return validateForm();">
+            <div class="input-group">
+              <label for="username">Username or Email</label>
+              <input type="text" id="username" placeholder="Enter your username/email" required>
+            </div>
+
+            <div class="input-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <a href="/project-hershell/Hershive/php/forgot_password.php" class="forgot-link">Forgot password?</a>
+
+            <button type="submit" class="login-btn honey-button">
+              <span>Log Into Hive</span>
+            </button>
+
+            <div class="divider">
+              <span>or continue with</span>
+            </div>
+
+            <div class="social-login">
+              <a href="/project-hershell/Hershive/php/oauth_login.php?provider=devhive" class="social-btn honey-button">
+                <img src="../assets/devhive_logo.jpg" alt="Devhive">
+                <span>Devhive</span>
+              </a>
+              <a href="/project-hershell/Hershive/php/oauth_login.php?provider=heybleepi" class="social-btn honey-button">
+                <img src="../assets/heybleepi_logo.png" alt="HeyBleepi">
+                <span>HeyBleepi</span>
+              </a>
+            </div>
+
+            <p class="register-link">
+              Don't have an account?
+              <a href="/project-hershell/Hershive/php/register.php">Join the hive</a>
+            </p>
+          </form>
+        </div>
       </div>
-    </div>
+    </main>
     <script src="../script/login.js"></script>
   </body>
+
 </html>
