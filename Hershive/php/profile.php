@@ -43,75 +43,81 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <link rel="icon" href="../assets/logo.png"/>
 </head>
 <body data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
-<div class="top-bar">
-  <img src="../assets/logo.png" alt="hershive logo" class="logo">
-  <div class="search-bar">
-    <input type="text" placeholder="Search">
-    <button class="search-button"><img src="../assets/search_icon.png"
-        alt="search_icon"></button>
-  </div>
-  <div class="navigation-icons">
-    <button class="profile-tab-btn" onclick="scrollToProfile()">
-      <span class="profile-tab-circle"><?php echo $username; ?></span>
-    </button>
-    <a href="../html/home.html"><button><img src="../assets/home_icon.png"
-        alt="home"></button></a>
-    <button onclick="toggleNotificationPanel()">
-      <img src="../assets/notification_icon.png" alt="notification"/>
-    </button>
-
-    <div class="notification-panel" id="notification_panel">
-      <div class="notification-header">
-        <h4>Notification</h4>
-      </div>
-      <div id="notification_container"></div>
-    </div>
-      <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
-  </div>
-</div>
-
-  <div id="menu_dropdown" class="hidden">
-    <a href="../php/settings.php" class="menu-dropdown-item">
-      <img src="../assets/settings_icon.png" alt="settings"/>
-      Settings
-    </a>
-    <div onclick="toggleLogout()" class="menu-dropdown-item">
-      <img src="../assets/logout_icon.png" alt="logout"/>
-      <p>Log out</p>
-    </div>
-  </div>
-
-  <div class="logout-modal-overlay hidden" id="logout_modal">
-    <div id="logout">
-      <p><strong>Log out of your account?</strong></p>
-      <div class="button-holder">
-        <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
-        <button class="logout-btn" onclick="logout()">Log out</button>
-      </div>
-    </div>
-  </div>
-
-<div class="main-container">
-  <div class="profile-card">
-    <div class="profile-header">
-        <?php if (!$isOwnProfile): ?>
-        <?php if ($fromSearch): ?>
-          <button class="back-btn" onclick="backToSearch()">← Back</button>
-        <?php else: ?>
-          <button class="back-btn" onclick="history.back()">← Back</button>
+  <div class="top-bar">
+    <img src="../assets/logo.png" alt="hershive logo" class="logo">
+    <?php if (!$isOwnProfile): ?>
+          <?php if ($fromSearch): ?>
+            <button class="back-btn" onclick="backToSearch()">← Back</button>
+          <?php endif; ?>
         <?php endif; ?>
-      <?php endif; ?>
-      <?php if ($isOwnProfile): ?>
-        <div class="more-option">
-          <img src="../assets/more_icon.png"
-              alt="more" onclick="toggleDropdown(this)">
-          <div class="dropdown-menu">
-            <button onclick="openEditModal()">Edit Profile</button>
-            <button onclick="cancelDropdown(this)">Cancel</button>
-          </div>
-        </div>
-      <?php endif; ?>
+    <div class="search-bar">
+      <input type="text" placeholder="Search">
+      <button class="search-button"><img src="../assets/search_icon.png"
+          alt="search_icon"></button>
     </div>
+    <div class="navigation-icons">
+      <button class="profile-tab-btn" onclick="scrollToProfile()">
+        <span class="profile-tab-circle"><?php echo $username; ?></span>
+      </button>
+      <a href="/project-hershell/Hershive/html/home.html"><button><img src="../assets/home_icon.png"
+          alt="home"></button></a>
+      <button onclick="toggleNotificationPanel()">
+        <img src="../assets/notification_icon.png" alt="notification"/>
+      </button>
+
+      <div class="notification-panel" id="notification_panel">
+        <div class="notification-header">
+          <h4>Notification</h4>
+        </div>
+        <div id="notification_container"></div>
+      </div>
+        <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
+    </div>
+  </div>
+
+    <div id="menu_dropdown" class="hidden">
+      <a href="/project-hershell/Hershive/php/settings.php" class="menu-dropdown-item">
+        <img src="/project-hershell/Hershive/assets/settings_icon.png" alt="settings"/>
+        Settings
+      </a>
+      <div onclick="toggleLogout()" class="menu-dropdown-item">
+        <img src="../assets/logout_icon.png" alt="logout"/>
+        <p>Log out</p>
+      </div>
+    </div>
+
+    <div class="logout-modal-overlay hidden" id="logout_modal">
+      <div id="logout">
+        <p><strong>Log out of your account?</strong></p>
+        <div class="button-holder">
+          <button class="cancel-btn" onclick="hideLogout()">Cancel</button>
+          <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+      </div>
+    </div>
+
+  <div class="main-container">
+    <div class="profile-card">
+      <div class="profile-header">
+          <?php if (!$isOwnProfile): ?>
+          <?php if ($fromSearch): ?>
+            <button class="back-btn" onclick="backToSearch()">← Back</button>
+          <?php else: ?>
+            <button class="back-btn" onclick="history.back()">← Back</button>
+          <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if ($isOwnProfile): ?>
+          <div class="more-option">
+            <img src="../assets/more_icon.png"
+                alt="more" onclick="toggleDropdown(this)">
+            <div class="dropdown-menu">
+              <button onclick="openEditModal()">Edit Profile</button>
+              <button onclick="cancelDropdown(this)">Cancel</button>
+            </div>
+          </div>
+        <?php endif; ?>
+      </div>
 
     <div class="profile-banner">
       <img src="<?php echo $coverPhoto; ?>"
@@ -120,88 +126,101 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           alt="Profile Picture" class="profile-img">
     </div>
 
-    <div class="profile-info">
-      <h3><?php echo $fullName; ?></h3>
-      <p>@<?php echo $username; ?></p>
+      <div class="profile-info">
+        <div class="profile-name-section">
+          <h3><?php echo $fullName; ?></h3>
+          <?php if (!$isOwnProfile): ?>
+            <button class="follow-btn" id="follow_btn"
+                onclick="toggleMainProfileFollow('<?php echo $username; ?>', this)">
+              Follow
+            </button>
+          <?php endif; ?>
+        </div>
+        <p>@<?php echo $username; ?></p>
+        <div class="bio-section">
+          <p><?php echo $bio; ?></p>
+        </div>
 
-      <div class="bio-section">
-        <p><?php echo $bio; ?></p>
-      </div>
-
-      <div class="profile-stats">
-        <div onclick="window.location.href=
-            '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">
-          <strong id="postCount">0</strong>
-          <p>Posts</p>
-        </div>
-        <div onclick="window.location.href=
-            '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">
-          <strong id="followerCount">0</strong>
-          <p>Followers</p>
-        </div>
-        <div onclick="window.location.href=
-            '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">
-          <strong id="followingCount">0</strong>
-          <p>Following</p>
+        <div class="profile-stats">
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">
+            <strong id="postCount">0</strong>
+            <p>Posts</p>
+          </div>
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">
+            <strong id="followerCount">0</strong>
+            <p>Followers</p>
+          </div>
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">
+            <strong id="followingCount">0</strong>
+            <p>Following</p>
+          </div>
         </div>
       </div>
-    </div>
 
     <div class="post-divider"></div>
 
-    <div class="container">
-      <div class="post-section-toggle" id="tabs">
-        <div class="tab active" data-tab="post">Post</div>
-        <div class="tab" data-tab="followers">Followers</div>
-        <div class="tab" data-tab="following">Following</div>
+      <div class="container">
+        <div class="post-section-toggle" id="tabs">
+          <div class="tab active" data-tab="post">
+            <strong id="postCount">0</strong>
+          Post</div>
+          <div class="tab" data-tab="followers">
+            <strong id="followerCount">0</strong>
+          Followers</div>
+          <div class="tab" data-tab="following">
+            <strong id="followingCount">0</strong>
+          Following</div>
+        </div>
       </div>
-    </div>
 
-      <!-- Post Tab Content -->
-      <div class="tab-content active" id="post-tab">
-        <?php if ($isOwnProfile): ?>
-          <div class="create-post" id="share_trigger" onclick="openPostModal(event)">
-            <div class="main-create-post">
-              <img
-                src="<?php echo $profilePic; ?>"
-                alt="user profile"
-                class="profile-pic"/>
-              <span>Share something</span>
-            </div>
+        <!-- Post Tab Content -->
+        <div class="tab-content active" id="post-tab">
+          <?php if ($isOwnProfile): ?>
+            <div class="create-post" id="share_trigger" onclick="openPostModal(event)">
+              <div class="main-create-post">
+                <img
+                  src="<?php echo $profilePic; ?>"
+                  alt="user profile"
+                  class="profile-pic"/>
+                <span>Share something</span>
+              </div>
 
-            <div class="sub-create-post">
-              <label class="upload-option">
-                <div class="image">
-                  <img src="../assets/camera_icon.png" alt="image"/>
-                  <span>image</span>
+              <div class="sub-create-post">
+                <label class="upload-option">
+                  <div class="image">
+                    <img src="../assets/camera_icon.png" alt="image"/>
+                    <span>image</span>
+                  </div>
+                  <input type="file" accept="image/*" hidden id="trigger_media_image"/>
+                </label>
+
+                <label class="upload-option">
+                  <div class="video">
+                    <img src="../assets/video_icon.png" alt="video"/>
+                    <span>video</span>
+                  </div>
+                  <input type="file" accept="video/*" hidden id="trigger_media_video"/>
+                </label>
+
+                <div class="privacy">
+                  <img id="mini_privacy_icon" src="../assets/public_icon.png"
+                      alt="public" />
+                  <span>
+                    <select name="visibility" id="privacy">
+                      <option value="public">Public</option>
+                      <option value="followers">Followers</option>
+                      <option value="private">Private</option>
+                    </select>
+                  </span>
                 </div>
-                <input type="file" accept="image/*" hidden id="trigger_media_image"/>
-              </label>
-
-              <label class="upload-option">
-                <div class="video">
-                  <img src="../assets/video_icon.png" alt="video"/>
-                  <span>video</span>
-                </div>
-                <input type="file" accept="video/*" hidden id="trigger_media_video"/>
-              </label>
-
-              <div class="privacy">
-                <img id="mini_privacy_icon" src="../assets/public_icon.png"
-                    alt="public" />
-                <span>
-                  <select name="visibility" id="privacy">
-                    <option value="public">Public</option>
-                    <option value="followers">Followers</option>
-                    <option value="private">Private</option>
-                  </select>
-                </span>
               </div>
             </div>
-          </div>
-        <?php endif; ?>
-        <div id="post-container" class="post-container"></div>
-      </div>
+          <?php endif; ?>
+          <div id="post-container" class="post-container"></div>
+        </div>
 
       <!-- Following Tab Content -->
       <div class="tab-content" id="following-tab">
@@ -219,11 +238,11 @@ $bio = htmlspecialchars($user['bio'] ?? '');
     <span id="profile_user_id"
         style="display:none;"><?php echo $userId; ?></span>
 
-    <?php if ($isOwnProfile): ?>
-      <!-- Edit Modal -->
-      <div id="edit_modal" class="modal hidden">
-        <div class="modal-content">
-          <h2>Edit Profile</h2>
+      <?php if ($isOwnProfile): ?>
+        <!-- Edit Modal -->
+        <div id="edit_modal" class="modal hidden">
+          <div class="modal-content">
+            <h2>Edit Profile</h2>
 
           <div class="edit-section">
             <label>Profile Picture</label>
@@ -238,76 +257,76 @@ $bio = htmlspecialchars($user['bio'] ?? '');
             </div>
           </div>
 
-          <div class="edit-section">
-            <label>Cover Photo</label>
-            <div class="cover-preview">
-              <img id="cover_img_preview"
-                  src="<?php echo $coverPhoto; ?>"
-                  alt="Cover Preview" class="cover-img-preview">
-              <label class="profile-icon-button">
-                <img src="../assets/camera_icon.png" alt="Image Icon">
-                <input type="file"
-                    id="cover_media_input" accept="image/*" hidden>
-              </label>
+            <div class="edit-section">
+              <label>Cover Photo</label>
+              <div class="cover-preview">
+                <img id="cover_img_preview"
+                    src="<?php echo $coverPhoto; ?>"
+                    alt="Cover Preview" class="cover-img-preview">
+                <label class="profile-icon-button">
+                  <img src="../assets/camera_icon.png" alt="Image Icon">
+                  <input type="file"
+                      id="cover_media_input" accept="image/*" hidden>
+                </label>
+              </div>
+            </div>
+
+            <div class="edit-section">
+              <label>Bio</label>
+              <textarea id="bio_textarea"
+                  placeholder="Enter your bio here..."><?php echo $bio; ?>
+              </textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button onclick="closeEditModal()">Cancel</button>
+              <button onclick="saveProfileUpdates()">Save</button>
             </div>
           </div>
+        </div>
 
-          <div class="edit-section">
-            <label>Bio</label>
-            <textarea id="bio_textarea"
-                placeholder="Enter your bio here..."><?php echo $bio; ?>
+        <!-- Share Modal -->
+        <div class="modal-overlay hidden" id="share_modal">
+          <div class="share-modal">
+            <div class="share-modal-header">
+              <h3>Share Post</h3>
+              <button class="close-btn"
+                  onclick="closeShareModal()">&times;</button>
+            </div>
+
+            <textarea id="share_message" class="share-textarea"
+                placeholder="Say something about this...">
             </textarea>
-          </div>
 
-          <div class="modal-actions">
-            <button onclick="closeEditModal()">Cancel</button>
-            <button onclick="saveProfileUpdates()">Save</button>
-          </div>
-        </div>
-      </div>
+            <div class="shared-post-preview" id="shared_post_preview">
+            </div>
 
-      <!-- Share Modal -->
-      <div class="modal-overlay hidden" id="share_modal">
-        <div class="share-modal">
-          <div class="share-modal-header">
-            <h3>Share Post</h3>
-            <button class="close-btn"
-                onclick="closeShareModal()">&times;</button>
-          </div>
+            <input type="hidden" id="shared_post_id">
 
-          <textarea id="share_message" class="share-textarea"
-              placeholder="Say something about this...">
-          </textarea>
+            <button class="submit-share-btn"
+                onclick="submitShare()">Share</button>
 
-          <div class="shared-post-preview" id="shared_post_preview">
-          </div>
+            <div class="share-icons">
+              <a href="#" title="DevhiveSpace"
+                ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/></a>
+              <a href="#" title="Heybleepi"
+                ><img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/></a>
+            </div>
 
-          <input type="hidden" id="shared_post_id">
-
-          <button class="submit-share-btn"
-              onclick="submitShare()">Share</button>
-
-          <div class="share-icons">
-            <a href="#" title="DevhiveSpace"
-              ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/></a>
-            <a href="#" title="Heybleepi"
-              ><img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/></a>
-          </div>
-
-          <div class="share-link-section">
-            <label>Page link</label>
-            <div class="link-box">
-              <input
-                type="text"
-                id="share_link"
-                readonly>
-              <button id="copy_link" onclick="copyLink(this)">
-                <img src="../assets/copy_icon.png" alt="Copy"/>
-              </button>
+            <div class="share-link-section">
+              <label>Page link</label>
+              <div class="link-box">
+                <input
+                  type="text"
+                  id="share_link"
+                  readonly>
+                <button id="copy_link" onclick="copyLink(this)">
+                  <img src="../assets/copy_icon.png" alt="Copy"/>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Post Modal -->
       <div class="modal-overlay hidden" id="post_modal">

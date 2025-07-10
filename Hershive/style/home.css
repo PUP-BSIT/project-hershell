@@ -1183,17 +1183,29 @@ body.modal-open {
   overflow-y: auto;
 }
 
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .notification-panel h4 {
-  margin: 10px 0 5px;
-  font-size: 14px;
-  color: #555;
+  margin: 0;
+  font-size: 18px;
+}
+
+#notification_container {
+  max-height: 450px;
+  padding-bottom: 10px;
 }
 
 .notification {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 10px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0e8dd;
 }
 
 .notif-pfp {
@@ -1202,21 +1214,16 @@ body.modal-open {
   border-radius: 50%;
 }
 
-.notification p {
-  flex: 1;
-  font-size: 13px;
-  color: #333;
+.notif-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .notification .time {
   color: #888;
   font-size: 12px;
-}
-
-.notification a {
-  font-size: 12px;
-  color: #007bff;
-  text-decoration: none;
 }
 
 .notif-thumbnail {
@@ -1226,11 +1233,24 @@ body.modal-open {
   border-radius: 5px;
 }
 
-.notif-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+.notification-preview {
+  padding: 10px 0;
+  text-align: center;
+}
+
+.notification-preview button {
+  font-size: 14px;
+  color: #222;
+  background: #e0c48f;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notification-preview button:hover {
+  background: #d2b075;
 }
 
 /* like, comment, share buttons style */
@@ -2026,7 +2046,7 @@ body.modal-open {
 
 .button-holder {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   margin-top: 20px;
   gap: 10px;
 }
@@ -2354,6 +2374,7 @@ body.modal-open {
   opacity: 0.7;
   transition: opacity 0.2s ease;
   transform: translateY(3px);
+  /* margin-top: 10px; */
 }
 
 .visibility-icon:hover {
@@ -2563,11 +2584,6 @@ body.modal-open {
   object-fit: cover;
 }
 
-.comment-post-preview {
-  border-bottom: 1px solid #e0d4c4;
-  overflow: hidden;
-}
-
 .comment-modal-overlay {
   display: none;
   position: fixed;
@@ -2593,7 +2609,7 @@ body.modal-open {
 }
 
 .comment-post-preview {
-  padding: 10px;
+  /* padding: 10px; */
   background: linear-gradient(145deg, #e8e4d6, #d4d0c1);
 }
 
@@ -2638,7 +2654,6 @@ body.modal-open {
 }
 
 .comment-post-header {
-  display: flex;
   gap: 10px;
   margin-bottom: 12px;
   justify-content: flex-start;
@@ -2674,7 +2689,7 @@ body.modal-open {
   max-width: 100%;
   height: auto;
   display: block;
-  margin-top: 10px;
+  margin-top: 0px;
   object-fit: cover;
 }
 
@@ -2693,13 +2708,6 @@ body.modal-open {
 
 .comment-modal {
   width: 700px;
-}
-
-.comment-post-preview .content {
-  align-content: center;
-  width: 100%;
-  padding: 0;
-  margin: 0;
 }
 
 .comment-list-container,
@@ -2853,7 +2861,7 @@ body.modal-open {
 }
 
 .edit-comment-save-btn {
-  background-color: #333;
+  background: linear-gradient(135deg, #d1ac83, #aa7c4d);
   color: white;
 }
 
@@ -2967,19 +2975,13 @@ body.modal-open {
   margin-bottom: 20px;
 }
 
-/* .button-holder {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-} */
-
 .cancel-btn,
 .confirm-button {
-  /* padding: 8px 30px; */
-  /* border-radius: 6px; */
+  padding: 8px 30px;
+  border-radius: 6px;
   font-size: 14px;
-  /* font-weight: 500; */
-  /* cursor: pointer; */
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .cancel-btn {
@@ -3214,7 +3216,6 @@ body.modal-open {
 .post-text {
   white-space: pre-wrap;
   font-family: inherit;
-  /* or 'monospace' if you're showing code-style posts */
 }
 
 .error-popup {
@@ -3246,4 +3247,165 @@ body.modal-open {
   margin-left: 0; /* Remove offset */
   box-shadow: none;
   pointer-events: none;
+}
+
+.comment-follow-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: color 0.2s ease;
+}
+
+.comment-follow-btn:hover {
+  color: #0056b3;
+}
+
+.comment-follow-btn.following {
+  color: #657786;
+}
+
+.comment-meta-with-follow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-preview-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.comment-preview-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.comment-preview-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.comment-preview-timestamp {
+  font-size: 12px;
+  color: #888;
+}
+
+.post-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.post-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.username-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timestamp-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.post-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.external-share-indicator {
+  display: inline-block;
+  background: linear-gradient(135deg, #f5d2a2, #e4b87d);
+  color: #5a3b1a;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.comment-post-header .timestamp {
+  display: flex;
+  gap: 6px;
+  font-weight: 400;
+  align-content: center;
+}
+
+.comment-post-header .external-share-indicator {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.img.visibility-icon.preview-image {
+  margin-top: 10px; 
+}
+
+.comment-cancel-btn {
+  background-color: #fff;
+  color: #333;
+  border: 2px solid #b98d5b;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 120px;
+}
+
+.comment-cancel-btn:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.comment-context-menu {
+  position: absolute;
+  z-index: 9999;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.comment-follow-btn {
+  background: none;
+  border: none;
+  color: #1876f2;
+  cursor: pointer;
+  font-size: 0.9rem;
 }

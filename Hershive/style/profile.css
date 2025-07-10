@@ -363,7 +363,7 @@ body {
   width: 100%;
   max-width: 900px;
   height: 1px;
-  background-color: black;
+  background-color: #ad7943;
   margin: 20px auto 10px auto;
 }
 
@@ -1410,7 +1410,7 @@ body.no-scroll {
 
 .tab.active {
   color: black;
-  border-bottom-color: gray;
+  border-bottom-color: #ad7943;
 }
 
 .tab:hover {
@@ -1434,7 +1434,7 @@ body.no-scroll {
   border-radius: 20px;
   background-color: #f8f5ea;
   cursor: pointer;
-  width: 85%;
+  width: 75%;
   margin: 0 auto;
 }
 
@@ -1625,6 +1625,106 @@ body.no-scroll {
   margin-left: 0;
   box-shadow: none;
   pointer-events: none;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 12px;
+  color: #ad7943;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  transform: translateX(-190px);
+}
+
+.back-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.profile-name-section {
+  display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.follow-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  transform: translateX(10px);
+  margin-top: 10px;
+}
+
+.follow-btn:hover {
+  color: #0e496e;
+}
+
+.follow-btn.following {
+  color: #657786;
+}
+
+.follow-btn.following:hover {
+  color: #dc3545;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 12px;
+  color: #ad7943;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  transform: translateX(-190px);
+}
+
+.back-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.profile-name-section {
+  display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.follow-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  transform: translateX(10px);
+  margin-top: 10px;
+}
+
+.follow-btn:hover {
+  color: #0e496e;
+}
+
+.follow-btn.following {
+  color: #657786;
+}
+
+.follow-btn.following:hover {
+  color: #dc3545;
 }
 
 /*=====Delete modal=====*/
