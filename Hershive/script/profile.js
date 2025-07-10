@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
+  const userId = urlParams.get('user_id');
 
   if (tabParam) {
     switchTab(tabParam);
@@ -58,7 +59,10 @@ document.addEventListener("DOMContentLoaded", function () {
     handleFileInput(this, document.getElementById("cover_img_preview"));
   });
 
-  fetch('../php/get_user_stats.php')
+  const statsUrl = userId ? `../php/get_user_stats.php?user_id=${userId}` :
+      '../php/get_user_stats.php';
+
+  fetch(statsUrl)
     .then(response => response.json())
     .then(data => {
       if (data.error) {
@@ -917,15 +921,45 @@ function toggleFollow(userId, button) {
           if (isFollowing) {
               button.classList.remove('following');
               button.textContent = 'Follow';
-              sendNotification('follow', userId, 'started following you.');
           } else {
               button.classList.add('following');
               button.textContent = 'Following';
           }
 
-          updateFollowStatsDirectly(action, username);
+          try {
+              if (!isFollowing) {
+                  sendNotification('follow', userId, 'started following you.');
+              }
+          } catch (error) {
+              console.error('Notification error:', error);
+          }
 
-          updateFollowCounts();
+          try {
+              updateFollowStatsDirectly(action, username);
+          } catch (error) {
+              console.error('Stats update error:', error);
+          }
+
+          try {
+              updateFollowCounts();
+          } catch (error) {
+              console.error('Follow counts update error:', error);
+          }
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const viewedUserId = urlParams.get('user_id');
+
+          if (viewedUserId && viewedUserId === userId) {
+              const followerCountElement = document.getElementById('followerCount');
+              if (followerCountElement) {
+                  let currentCount = parseInt(followerCountElement.textContent) || 0;
+                  if (action === 'follow') {
+                      followerCountElement.textContent = currentCount + 1;
+                  } else {
+                      followerCountElement.textContent = Math.max(0, currentCount - 1);
+                  }
+              }
+          }
       } else {
           alert('Error: ' + (data.error || 'Could not update follow status'));
       }
