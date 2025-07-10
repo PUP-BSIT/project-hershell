@@ -354,6 +354,22 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               onclick="submitPost()">Post</button>
         </div>
       </div>
+      
+      <div class="delete-post-modal-overlay hidden" id="delete_post_modal">
+        <div class="delete-post-modal">
+          <div class="delete-post-modal-header">
+            <h3>Delete Post</h3>
+            <button class="delete-post-close-btn" onclick="closeDeletePostModal()">&times;</button>
+          </div>
+          <div class="delete-post-modal-content">
+            <p>Are you sure you want to delete this post?</p>
+            <div class="delete-post-button-holder">
+            <button class="delete-post-cancel-btn" onclick="closeDeletePostModal()">Cancel</button>
+            <button class="delete-post-confirm-btn" onclick="confirmDeletePost()">Delete</button>
+          </div>
+          </div>
+        </div>
+      </div>
     <?php endif; ?>
   </div>
 </div>
