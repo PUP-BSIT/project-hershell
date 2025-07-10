@@ -97,8 +97,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <?php if (!$isOwnProfile): ?>
           <?php if ($fromSearch): ?>
             <button class="back-btn" onclick="backToSearch()">← Back</button>
-          <?php else: ?>
-            <button class="back-btn" onclick="history.back()">← Back</button>
           <?php endif; ?>
         <?php endif; ?>
         <?php if ($isOwnProfile): ?>
@@ -121,9 +119,15 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </div>
 
       <div class="profile-info">
-        <h3><?php echo $fullName; ?></h3>
+        <div class="profile-name-section">
+          <h3><?php echo $fullName; ?></h3>
+          <?php if (!$isOwnProfile): ?>
+            <button class="follow-btn" id="follow_btn" onclick="toggleFollow(<?php echo $userId; ?>, this)">
+              Follow
+            </button>
+          <?php endif; ?>
+        </div>
         <p>@<?php echo $username; ?></p>
-
         <div class="bio-section">
           <p><?php echo $bio; ?></p>
         </div>
