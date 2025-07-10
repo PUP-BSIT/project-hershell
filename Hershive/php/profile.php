@@ -51,9 +51,9 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <?php endif; ?>
         <?php endif; ?>
     <div class="search-bar">
-      <input type="text" placeholder="Search">
-      <button class="search-button"><img src="../assets/search_icon.png"
-          alt="search_icon"></button>
+      <input type="text" id="search_input" placeholder="Search">
+      <button class="search-button" id="search_button">
+          <img src="../assets/search_icon.png" alt="search_icon"></button>
     </div>
     <div class="navigation-icons">
       <button class="profile-tab-btn" onclick="scrollToProfile()">
