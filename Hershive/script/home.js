@@ -326,21 +326,29 @@ function togglePostFollow(button, username) {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      if (data.action === 'followed') {
+      const newFollowStatus = data.action === 'followed';
+
+      if (newFollowStatus) {
         button.textContent = "Following";
         button.classList.add("following");
-        followStatusCache[username] = true;
         const userId = data.target_user_id;
-        sendNotification('follow', userId, 'started following you.');
+        if (typeof sendNotification === 'function') {
+          sendNotification('follow', userId, 'started following you.');
+        }
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
-        followStatusCache[username] = false;
       }
 
-      updateFollowingCount(data.current_user_following);
+      // Update cache and broadcast to other pages
+      followStatusCache[username] = newFollowStatus;
+      broadcastFollowUpdate(username, newFollowStatus);
 
-      syncAllFollowButtons(username, data.action === 'followed');
+      updateFollowingCount(data.current_user_following);
+      broadcastFollowingCountUpdate(data.current_user_following);
+
+      // Sync all buttons on current page
+      syncAllFollowButtons(username, newFollowStatus);
 
     } else {
       alert(data.error || 'Failed to update follow status');
@@ -356,6 +364,7 @@ function togglePostFollow(button, username) {
     button.disabled = false;
   });
 }
+
 
 function submitPost() {
   const editor = document.getElementById("editor");
@@ -1229,20 +1238,28 @@ function toggleFollow(button) {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      if (data.action === 'followed') {
+      const newFollowStatus = data.action === 'followed';
+
+      if (newFollowStatus) {
         button.textContent = "Following";
         button.classList.add("following");
-        // followStatusCache[username] = true;
-        sendNotification('follow', userId, 'started following you.');
+        if (typeof sendNotification === 'function') {
+          sendNotification('follow', userId, 'started following you.');
+        }
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
-        // followStatusCache[username] = false;
       }
 
-      updateFollowingCount(data.current_user_following);
+      // Update cache and broadcast to other pages
+      followStatusCache[username] = newFollowStatus;
+      broadcastFollowUpdate(username, newFollowStatus);
 
-      syncAllFollowButtons(username, data.action === 'followed');
+      updateFollowingCount(data.current_user_following);
+      broadcastFollowingCountUpdate(data.current_user_following);
+
+      // Sync all buttons on current page
+      syncAllFollowButtons(username, newFollowStatus);
 
     } else {
       alert(data.error || 'Failed to update follow status');
@@ -1383,7 +1400,7 @@ function loadNotifications() {
         if (notifications.length === 0) {
           container.innerHTML = "<p>No notifications available.</p>";
           return;
-        } 
+        }
 
         allNotifications = data.notifications;
         notificationsShown = 0;
@@ -2440,18 +2457,63 @@ function toggleMorePeopleFollow(button, username) {
 function syncAllFollowButtons(username, isFollowing) {
   const allButtons = document.querySelectorAll(`
     button[onclick*="'${username}'"],
-    button[onclick*='"${username}"']
+    button[onclick*='"${username}"'],
+    button[data-username="${username}"],
+    .post-follow-btn,
+    .follow-button,
+    .more-people-follow-btn,
+    .follow-btn
   `);
 
   allButtons.forEach(btn => {
     if (btn.disabled) return;
 
-    if (isFollowing) {
-      btn.textContent = "Following";
-      btn.classList.add("following");
-    } else {
-      btn.textContent = "Follow";
-      btn.classList.remove("following");
+    // Check if this button is for the specific username
+    let buttonUsername = null;
+
+    const onclick = btn.getAttribute('onclick');
+    if (onclick) {
+      const match = onclick.match(/'([^']+)'|"([^"]+)"/);
+      if (match) {
+        buttonUsername = match[1] || match[2];
+      }
+    }
+
+    const dataUsername = btn.getAttribute('data-username');
+    if (dataUsername) {
+      buttonUsername = dataUsername;
+    }
+
+    // For post follow buttons, check the closest user info
+    if (!buttonUsername) {
+      const postHeader = btn.closest('.post-header');
+      if (postHeader) {
+        const userInfo = postHeader.querySelector('.username');
+        if (userInfo) {
+          buttonUsername = userInfo.textContent.trim();
+        }
+      }
+    }
+
+    // For suggested user cards
+    if (!buttonUsername) {
+      const userCard = btn.closest('.suggested-user');
+      if (userCard) {
+        const userInfo = userCard.querySelector('.user-info p:last-child');
+        if (userInfo) {
+          buttonUsername = userInfo.textContent.replace('@', '');
+        }
+      }
+    }
+
+    if (buttonUsername === username) {
+      if (isFollowing) {
+        btn.textContent = "Following";
+        btn.classList.add("following");
+      } else {
+        btn.textContent = "Follow";
+        btn.classList.remove("following");
+      }
     }
   });
 }
@@ -2466,41 +2528,161 @@ function updateFollowingCount(count) {
 function initializeFollowStatus() {
   const usernames = [];
 
-  const followButtons = document.querySelectorAll('.post-follow-btn, .follow-button, .more-people-follow-btn');
+  const followButtons = document.querySelectorAll('.post-follow-btn, .follow-button, .more-people-follow-btn, .follow-btn');
   followButtons.forEach(button => {
+    let username = null;
+
     const onclick = button.getAttribute('onclick');
     if (onclick) {
       const match = onclick.match(/'([^']+)'|"([^"]+)"/);
       if (match) {
-        const username = match[1] || match[2];
-        if (username && !usernames.includes(username)) {
-          usernames.push(username);
+        username = match[1] || match[2];
+      }
+    }
+
+    const dataUsername = button.getAttribute('data-username');
+    if (dataUsername) {
+      username = dataUsername;
+    }
+
+    // For post follow buttons, get username from post header
+    if (!username) {
+      const postHeader = button.closest('.post-header');
+      if (postHeader) {
+        const userInfo = postHeader.querySelector('.username');
+        if (userInfo) {
+          username = userInfo.textContent.trim();
         }
       }
+    }
+
+    // For suggested user cards
+    if (!username) {
+      const userCard = button.closest('.suggested-user');
+      if (userCard) {
+        const userInfo = userCard.querySelector('.user-info p:last-child');
+        if (userInfo) {
+          username = userInfo.textContent.replace('@', '');
+        }
+      }
+    }
+
+    if (username && !usernames.includes(username)) {
+      usernames.push(username);
     }
   });
 
   if (usernames.length === 0) return;
 
-  fetch(`../php/check_follow_status.php?usernames=${usernames.join(',')}`)
+  // Apply cached status immediately for better UX
+  followButtons.forEach(button => {
+    let username = null;
+
+    const onclick = button.getAttribute('onclick');
+    if (onclick) {
+      const match = onclick.match(/'([^']+)'|"([^"]+)"/);
+      if (match) {
+        username = match[1] || match[2];
+      }
+    }
+
+    const dataUsername = button.getAttribute('data-username');
+    if (dataUsername) {
+      username = dataUsername;
+    }
+
+    if (!username) {
+      const postHeader = button.closest('.post-header');
+      if (postHeader) {
+        const userInfo = postHeader.querySelector('.username');
+        if (userInfo) {
+          username = userInfo.textContent.trim();
+        }
+      }
+    }
+
+    if (!username) {
+      const userCard = button.closest('.suggested-user');
+      if (userCard) {
+        const userInfo = userCard.querySelector('.user-info p:last-child');
+        if (userInfo) {
+          username = userInfo.textContent.replace('@', '');
+        }
+      }
+    }
+
+    if (username && followStatusCache.hasOwnProperty(username)) {
+      if (followStatusCache[username]) {
+        button.textContent = "Following";
+        button.classList.add("following");
+      } else {
+        button.textContent = "Follow";
+        button.classList.remove("following");
+      }
+    }
+  });
+  fetch(`../php/check_follow_status.php?usernames=${usernames.join(',')}&t=${Date.now()}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        followStatusCache = data.follow_status;
+        let hasChanges = false;
 
+        // Update cache with database data
+        Object.keys(data.follow_status).forEach(username => {
+          const dbStatus = data.follow_status[username];
+          if (followStatusCache[username] !== dbStatus) {
+            followStatusCache[username] = dbStatus;
+            hasChanges = true;
+
+            // Broadcast changes to other pages
+            broadcastFollowUpdate(username, dbStatus);
+          }
+        });
+
+        // Update buttons with database data
         followButtons.forEach(button => {
+          let username = null;
+
           const onclick = button.getAttribute('onclick');
           if (onclick) {
             const match = onclick.match(/'([^']+)'|"([^"]+)"/);
             if (match) {
-              const username = match[1] || match[2];
-              if (followStatusCache[username]) {
-                button.textContent = "Following";
-                button.classList.add("following");
-              } else {
-                button.textContent = "Follow";
-                button.classList.remove("following");
+              username = match[1] || match[2];
+            }
+          }
+
+          const dataUsername = button.getAttribute('data-username');
+          if (dataUsername) {
+            username = dataUsername;
+          }
+
+          if (!username) {
+            const postHeader = button.closest('.post-header');
+            if (postHeader) {
+              const userInfo = postHeader.querySelector('.username');
+              if (userInfo) {
+                username = userInfo.textContent.trim();
               }
+            }
+          }
+
+          if (!username) {
+            const userCard = button.closest('.suggested-user');
+            if (userCard) {
+              const userInfo = userCard.querySelector('.user-info p:last-child');
+              if (userInfo) {
+                username = userInfo.textContent.replace('@', '');
+              }
+            }
+          }
+
+          if (username && data.follow_status.hasOwnProperty(username)) {
+            if (data.follow_status[username]) {
+              button.textContent = "Following";
+              button.classList.add("following");
+            } else {
+              button.textContent = "Follow";
+              button.classList.remove("following");
             }
           }
         });
@@ -2600,3 +2782,78 @@ function showError(message) {
     popup.classList.add("hidden");
   }, 4000); // auto-hide after 4 seconds
 }
+
+const followChannel = new BroadcastChannel('follow-status-sync');
+
+// Listen for follow status updates from other pages
+followChannel.addEventListener('message', (event) => {
+  if (event.data.type === 'follow-status-update') {
+    const { username, isFollowing } = event.data;
+    followStatusCache[username] = isFollowing;
+    syncAllFollowButtons(username, isFollowing);
+  } else if (event.data.type === 'following-count-update') {
+    updateFollowingCount(event.data.count);
+  }
+});
+
+function broadcastFollowUpdate(username, isFollowing) {
+  followChannel.postMessage({
+    type: 'follow-status-update',
+    username: username,
+    isFollowing: isFollowing
+  });
+}
+
+// Broadcast following count update to other pages
+function broadcastFollowingCountUpdate(count) {
+  followChannel.postMessage({
+    type: 'following-count-update',
+    count: count
+  });
+}
+
+function getFollowStatus(username) {
+  return followStatusCache[username] || false;
+}
+
+function refreshFollowStatus(usernames = []) {
+  if (usernames.length === 0) {
+    // If no usernames provided, refresh all visible users
+    initializeFollowStatus();
+    return;
+  }
+
+  fetch(`../php/check_follow_status.php?usernames=${usernames.join(',')}&t=${Date.now()}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        Object.keys(data.follow_status).forEach(username => {
+          const dbStatus = data.follow_status[username];
+          if (followStatusCache[username] !== dbStatus) {
+            followStatusCache[username] = dbStatus;
+            syncAllFollowButtons(username, dbStatus);
+            broadcastFollowUpdate(username, dbStatus);
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error refreshing follow status:', error);
+    });
+}
+
+function clearFollowCache() {
+  followStatusCache = {};
+  initializeFollowStatus();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    // Page is now visible, refresh follow status
+    refreshFollowStatus();
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  followChannel.close();
+});
