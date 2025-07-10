@@ -2020,3 +2020,26 @@ window.clearFollowCache = clearFollowCache;
 function logout() {
   window.location.href = "../php/logout.php";
 }
+
+// --- Search bar logic for profile page ---
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("search_input");
+  const searchButton = document.getElementById("search_button");
+
+    function performSearch() {
+      const query = document.getElementById("search_input").value.trim();
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id');
+      if (!query) return;
+      let url = `/project-hershell/Hershive/html/home.html?search=${encodeURIComponent(query)}`;
+      if (userId) url += `&user_id=${encodeURIComponent(userId)}`;
+      window.location.href = url;
+    }
+
+  if (searchInput && searchButton) {
+    searchButton.addEventListener("click", performSearch);
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") performSearch();
+    });
+  }
+});

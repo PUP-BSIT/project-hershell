@@ -95,7 +95,14 @@ function checkUserSession(callback) {
 }
 
 function loadPosts() {
-  fetch('../php/get-posts.php?unlimited=true')
+  const urlParams = new URLSearchParams(window.location.search);
+  const search = urlParams.get('search') || '';
+  const userId = urlParams.get('user_id') || '';
+  let apiUrl = '../php/get-posts.php?unlimited=true';
+  if (search) apiUrl += `&search=${encodeURIComponent(search)}`;
+  if (userId) apiUrl += `&user_id=${encodeURIComponent(userId)}`;
+
+  fetch(apiUrl)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -365,77 +372,61 @@ function togglePostFollow(button, username) {
   });
 }
 
-
-function submitPost() {
-  const editor = document.getElementById("editor");
-  let content = editor.innerHTML.trim();
-
-  const imageInput = document.getElementById("media_input");
-  const videoInput = document.getElementById("media_input_video");
-
+function submitEditedPost() {
+  const modal = document.getElementById("edit_post_modal");
+  const postId = modal.dataset.postId;
+  const content = document.getElementById("edit_editor").innerHTML.trim();
+  const plainText = content.replace(/<[^>]*>/g, '').trim();
+  const hasText = plainText !== '';
+  const imageInput = document.getElementById("edit_media_input");
+  const videoInput = document.getElementById("edit_media_input_video");
   const hasImage = imageInput.files.length > 0;
   const hasVideo = videoInput.files.length > 0;
+  const hasShared = modal.dataset.shared === "true";
+  const visibility = document.getElementById("edit_privacy_setting").value;
 
-  const textOnly = content.replace(/<[^>]*>/g, '').trim();
-  const hasText = textOnly !== "" && textOnly !== "&nbsp;";
+  if (!hasText && !hasImage && !hasVideo && !hasShared) {
+    alert("Please include some content or media.");
+    return;
+  }
 
-  if (!hasText && !hasImage && !hasVideo) {
-    alert("Please write something or upload media.");
+  if (hasImage && hasVideo) {
+    alert("Only one media type is allowed.");
     return;
   }
 
   const formData = new FormData();
-
-  if (hasText) {
-    formData.append("content", content);
-  }
-
-  if (hasImage && hasVideo) {
-    alert("You can only upload one media at a time.");
-    return;
-  }
+  formData.append("post_id", postId);
+  formData.append("content", hasText ? content : '');
+  formData.append("visibility", visibility);
 
   if (hasImage) {
-   formData.append("media", imageInput.files[0]);
-   formData.append("media_type", "image");
+    formData.append("media", imageInput.files[0]);
+    formData.append("media_type", "image");
   } else if (hasVideo) {
     formData.append("media", videoInput.files[0]);
     formData.append("media_type", "video");
   }
 
-  // Get visibility from modal or fallback to mini post privacy
-  const privacy = document.getElementById("privacy_setting")?.value ||
-      document.getElementById("privacy").value;
-  formData.append("visibility", privacy);
-
-  fetch("../php/create-post.php", {
+  fetch("../php/edit_post.php", {
     method: "POST",
-    body: formData,
-    headers: {
-    "X-Requested-With": "XMLHttpRequest"
-    }
+    body: formData
   })
-    .then((res) => res.json())
-    .then((data) => {
+    .then(res => res.json())
+    .then(data => {
       if (data.success) {
-        closePostModal();
-        editor.innerHTML = "";
-        imageInput.value = "";
-        videoInput.value = "";
-
-        const previewContainer = document.getElementById("preview_container");
-        if (previewContainer) previewContainer.innerHTML = "";
-
-        loadPosts();
+        closeEditPostModal();
+        loadPosts(); // Refresh wall
       } else {
-        alert("Error: " + data.error);
+        alert(data.error || "Failed to update post.");
       }
     })
-    .catch((err) => {
-      alert("Post failed.");
-      console.error(err);
+    .catch(err => {
+      console.error("Edit post error:", err);
+      alert("Post failed to update.");
     });
 }
+
 
 function editPost(button) {
   const post = button.closest('.sample-post');
@@ -445,92 +436,50 @@ function editPost(button) {
   const sharedCard = contentDiv.querySelector('.shared-card');
   const existingImage = contentDiv.querySelector('img:not(.shared-card img)');
   const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
-  const postActions = post.querySelector('.post-actions');
   const visibilityIcon = post.querySelector('.visibility-icon');
 
-  if (contentDiv.querySelector('.edit-editor')) return;
 
-  const editor = createEditor(paragraph?.innerHTML || '');
-  const formatting = createFormatting(editor);
-  const { uploadControls, fileInputImage, fileInputVideo, visibilitySelect } = createUploadControls();
-  const saveBtn = createSaveButton();
-  const cancelBtn = createCancelButton(() => {
-    [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
-    if (paragraph) paragraph.classList.remove('hidden');
-    if (postActions) postActions.classList.remove('hidden');
-  });
+  // Show modal
+  const modal = document.getElementById("edit_post_modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex-center");
+  document.body.classList.add("no-scroll");
 
-  const buttonWrapper = document.createElement('div');
-  buttonWrapper.className = 'edit-button-wrapper';
-  buttonWrapper.append(cancelBtn, saveBtn);
+  // Inject editor content
+  document.getElementById("edit_editor").innerHTML = paragraph?.innerHTML || '';
+  document.getElementById("edit_privacy_setting").value = visibilityIcon?.alt || 'public';
+  updatePrivacyIcons(document.getElementById("edit_privacy_setting").value);
 
-  if (paragraph) paragraph.classList.add('hidden');
-  if (postActions) postActions.classList.add('hidden');
+  // Inject profile info
+  const profilePic = post.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
+  const username = post.querySelector('.post-info .username')?.textContent || 'User';
+  const modalUsernameEl = document.getElementById("edit_modal_username");
+  const modalProfilePicEl = document.getElementById("edit_modal_profile_pic");
 
-  saveBtn.onclick = () => {
-    const content = editor.innerHTML.trim();
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
-    const hasText = plainText !== '';
-    const hasNewImage = fileInputImage.files.length > 0;
-    const hasNewVideo = fileInputVideo.files.length > 0;
-    const hasExistingMedia = existingImage || existingVideo;
-    const hasShared = !!sharedCard;
+  if (modalUsernameEl) modalUsernameEl.textContent = username;
+  if (modalProfilePicEl) {
+    modalProfilePicEl.src = profilePic;
+    modalProfilePicEl.onerror = function () {
+      this.src = '../assets/temporary_pfp.png';
+    };
+  }
 
-    if (!hasText && !hasNewImage && !hasNewVideo && !hasExistingMedia && !hasShared) {
-      alert('Post must contain text or media.');
-      return;
-    }
+  // Store for submission
+  modal.dataset.postId = postId;
+  modal.dataset.originalText = paragraph?.innerHTML || '';
+  modal.dataset.mediaType = existingImage ? 'image' : existingVideo ? 'video' : '';
+  modal.dataset.shared = !!sharedCard;
 
-    if (hasNewImage && hasNewVideo) {
-      alert('You can only upload one media type.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('post_id', postId);
-    formData.append('content', hasText ? content : '');
-    formData.append('visibility', visibilitySelect.value);
-
-    if (hasNewImage) {
-      formData.append('media', fileInputImage.files[0]);
-      formData.append('media_type', 'image');
-    } else if (hasNewVideo) {
-      formData.append('media', fileInputVideo.files[0]);
-      formData.append('media_type', 'video');
-    }
-
-    fetch('../php/edit_post.php', { method: 'POST', body: formData })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) {
-          alert(data.error || 'Failed to update post');
-          return;
-        }
-
-        updatePostContent(contentDiv, content, sharedCard, paragraph, fileInputImage, fileInputVideo, existingImage, existingVideo);
-        [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
-        if (postActions) postActions.classList.remove('hidden');
-
-        const iconMap = {
-          public: '../assets/public_icon.png',
-          followers: '../assets/followers_icon.png',
-          private: '../assets/private_icon.png'
-        };
-        if (visibilityIcon) {
-          visibilityIcon.src = iconMap[visibilitySelect.value] || iconMap.public;
-          visibilityIcon.alt = visibilitySelect.value;
-        }
-      })
-      .catch(err => {
-        console.error('Edit error:', err);
-        alert('Error updating post');
-      });
-  };
-
-  [editor, formatting, uploadControls, buttonWrapper].reverse().forEach(el => {
-    contentDiv.insertBefore(el, contentDiv.firstChild);
-  });
+  // Media preview
+  const preview = document.getElementById("edit_preview_container");
+  preview.innerHTML = "";
+  if (existingImage) {
+    preview.appendChild(existingImage.cloneNode(true));
+  } else if (existingVideo) {
+    preview.appendChild(existingVideo.cloneNode(true));
+  }
 }
+
 
 function createEditor(initialHTML) {
   const div = document.createElement('div');
@@ -662,6 +611,55 @@ function createUploadControls() {
     visibilitySelect
   };
 }
+
+function handleEditFileInput(input, isVideo = false) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const previewContainer = document.getElementById("edit_preview_container");
+    previewContainer.innerHTML = "";
+
+    const media = document.createElement(isVideo ? "video" : "img");
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("preview-item");
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "✕";
+    removeBtn.onclick = () => {
+      previewContainer.innerHTML = "";
+      input.value = "";
+    };
+
+    wrapper.appendChild(media);
+    wrapper.appendChild(removeBtn);
+    previewContainer.appendChild(wrapper);
+  };
+  reader.readAsDataURL(file);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const editImageInput = document.getElementById("edit_media_input");
+  const editVideoInput = document.getElementById("edit_media_input_video");
+
+  if (editImageInput) {
+    editImageInput.addEventListener("change", () =>
+      handleEditFileInput(editImageInput, false)
+    );
+  }
+
+  if (editVideoInput) {
+    editVideoInput.addEventListener("change", () =>
+      handleEditFileInput(editVideoInput, true)
+    );
+  }
+});
+
 
 function createSaveButton() {
   const btn = document.createElement('button');
@@ -907,13 +905,49 @@ function openPostModal(event) {
   syncPrivacyToModal();
 }
 
-function closePostModal() {
-  const postModal = document.getElementById("post_modal");
-  postModal.classList.add("hidden");
-  postModal.classList.remove("flex-center");
+function closeEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  const editorContent = document.getElementById("edit_editor").innerHTML.trim();
+  const originalContent = modal.dataset.originalText?.trim() || '';
 
-  document.body.classList.remove("no-scroll");
+  const hasUnsavedChanges = editorContent !== originalContent ||
+    document.getElementById("edit_media_input").files.length > 0 ||
+    document.getElementById("edit_media_input_video").files.length > 0;
+
+  if (hasUnsavedChanges) {
+    document.getElementById("unsaved_changes_modal").classList.remove("hidden");
+    return;
+  }
+
+  // Proceed with reset if no changes
+  resetEditPostModal();
 }
+
+function keepEditing() {
+  document.getElementById("unsaved_changes_modal").classList.add("hidden");
+}
+
+function discardChanges() {
+  document.getElementById("unsaved_changes_modal").classList.add("hidden");
+  resetEditPostModal();
+}
+
+function hideUnsavedChangesModal() {
+  document.getElementById("unsaved_changes_modal").classList.add("hidden");
+}
+
+function resetEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex-center");
+  document.body.classList.remove("no-scroll");
+  document.getElementById("edit_editor").innerHTML = '';
+  document.getElementById("edit_preview_container").innerHTML = '';
+  document.getElementById("edit_media_input").value = '';
+  document.getElementById("edit_media_input_video").value = '';
+}
+
+
 
 window.addEventListener("click", function (e) {
   const postModal = document.getElementById("post_modal");

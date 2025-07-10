@@ -12,6 +12,7 @@ if (!$current_user_id) {
 }
 
 $target_user_id = $_GET['user_id'] ?? null;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 $sql = "
 SELECT
@@ -51,6 +52,14 @@ if ($target_user_id) {
     $sql .= " AND p.user_id = ?";
     $params[] = $target_user_id;
     $types .= "i";
+}
+
+if ($search !== '') {
+   $sql .= " AND (p.content LIKE ? OR sharer.username LIKE ? OR p.content LIKE ?)";
+   $params[] = "%$search%";
+   $params[] = "%$search%";
+   $params[] = "%#{$search}%";
+   $types .= "sss";
 }
 
 $sql .= " ORDER BY p.created_at DESC";
