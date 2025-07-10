@@ -1007,7 +1007,7 @@ function toggleShareModal(postElement) {
 
   preview.innerHTML = content;
   postIdInput.value = postId;
-  linkInput.value = `https://www.hershive.com/post/${postId}`;
+  linkInput.value = `https://www.hershive.com/project-hershell/Hershive/php/post.php?id=${postId}`;
 
   modal.classList.remove("hidden");
 }
