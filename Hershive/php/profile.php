@@ -38,13 +38,18 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="../style/profile.css?v=3"/>
+  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=3"/>
   <title>Profile Page</title>
   <link rel="icon" href="../assets/logo.png"/>
 </head>
 <body data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
+    <?php if (!$isOwnProfile): ?>
+          <?php if ($fromSearch): ?>
+            <button class="back-btn" onclick="backToSearch()">← Back</button>
+          <?php endif; ?>
+        <?php endif; ?>
     <div class="search-bar">
       <input type="text" placeholder="Search">
       <button class="search-button"><img src="../assets/search_icon.png"
@@ -54,7 +59,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       <button class="profile-tab-btn" onclick="scrollToProfile()">
         <span class="profile-tab-circle"><?php echo $username; ?></span>
       </button>
-      <a href="../html/home.html"><button><img src="../assets/home_icon.png"
+      <a href="/project-hershell/Hershive/html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
       <button onclick="toggleNotificationPanel()">
         <img src="../assets/notification_icon.png" alt="notification"/>
@@ -71,8 +76,8 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   </div>
 
     <div id="menu_dropdown" class="hidden">
-      <a href="../php/settings.php" class="menu-dropdown-item">
-        <img src="../assets/settings_icon.png" alt="settings"/>
+      <a href="/project-hershell/Hershive/php/settings.php" class="menu-dropdown-item">
+        <img src="/project-hershell/Hershive/assets/settings_icon.png" alt="settings"/>
         Settings
       </a>
       <div onclick="toggleLogout()" class="menu-dropdown-item">
@@ -94,11 +99,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   <div class="main-container">
     <div class="profile-card">
       <div class="profile-header">
-          <?php if (!$isOwnProfile): ?>
-          <?php if ($fromSearch): ?>
-            <button class="back-btn" onclick="backToSearch()">← Back</button>
-          <?php endif; ?>
-        <?php endif; ?>
         <?php if ($isOwnProfile): ?>
           <div class="more-option">
             <img src="../assets/more_icon.png"
@@ -122,7 +122,8 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <div class="profile-name-section">
           <h3><?php echo $fullName; ?></h3>
           <?php if (!$isOwnProfile): ?>
-            <button class="follow-btn" id="follow_btn" onclick="toggleFollow(<?php echo $userId; ?>, this)">
+            <button class="follow-btn" id="follow_btn"
+                onclick="toggleMainProfileFollow('<?php echo $username; ?>', this)">
               Follow
             </button>
           <?php endif; ?>
