@@ -34,6 +34,5 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
       </div>
     </div>
   </div>
-  <script src="../script/email_sent.js"></script>
 </body>
 </html>
