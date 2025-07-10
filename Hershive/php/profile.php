@@ -65,7 +65,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <img src="../assets/notification_icon.png" alt="notification"/>
       </button>
 
-      <div class="notification-panel" id="notification_panel">
+      <div class="notification-panel hidden" id="notification_panel">
         <div class="notification-header">
           <h4>Notification</h4>
         </div>

@@ -126,7 +126,7 @@ function displayPosts(posts) {
   existingPosts.forEach(post => post.remove());
 
   posts.forEach(post => {
-    console.log('post.source_platform =', post.source_platform, 'post:', post); //=======================================================
+    console.log('post.source_platform =', post.source_platform, 'post:', post); 
     const postElement = createPostElement(post);
     leftContent.appendChild(postElement);
   });
@@ -2770,6 +2770,10 @@ function createMoreUserElement(user) {
 
 function resetWall() {
   document.getElementById("search_input").value = "";
+  
+  const currentUrl = new URL(window.location);
+  currentUrl.search = "";
+  window.history.replaceState({}, '', currentUrl);
 
   const noResultsMessage = document.getElementById("no_results_message");
   if (noResultsMessage) noResultsMessage.classList.add("hidden");
