@@ -61,21 +61,16 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </button>
       <a href="/project-hershell/Hershive/html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
-          
-        <button onclick="toggleNotificationPanel()" class="notification-wrapper">
-          <div class="notification-icon-container">
-            <img src="../assets/notification_icon.png" alt="notification"/>
-            <span id="notification_count" class="notification-count hidden">0</span>
-          </div>
-        </button>
-    
-        <div class="notification-panel hidden" id="notification_panel">
-          <div class="notification-header">
-            <h4>Notification</h4>
-          </div>
-          <div id="notification_container"></div>
+      <button onclick="toggleNotificationPanel()">
+        <img src="../assets/notification_icon.png" alt="notification"/>
+      </button>
+
+      <div class="notification-panel" id="notification_panel">
+        <div class="notification-header">
+          <h4>Notification</h4>
         </div>
-        
+        <div id="notification_container"></div>
+      </div>
         <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
     </div>
   </div>
@@ -104,14 +99,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   <div class="main-container">
     <div class="profile-card">
       <div class="profile-header">
-          <?php if (!$isOwnProfile): ?>
-          <?php if ($fromSearch): ?>
-            <button class="back-btn" onclick="backToSearch()">← Back</button>
-          <?php else: ?>
-            <button class="back-btn" onclick="history.back()">← Back</button>
-          <?php endif; ?>
-        <?php endif; ?>
-
         <?php if ($isOwnProfile): ?>
           <div class="more-option">
             <img src="../assets/more_icon.png"
@@ -279,14 +266,14 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               <h3>Share Post</h3>
               <button class="close-btn" onclick="closeShareModal()">&times;</button>
             </div>
-        
+
             <textarea id="share_message" class="share-textarea"
                 placeholder="Say something about this..."></textarea>
-        
+
             <div class="shared-post-preview" id="shared_post_preview"></div>
-        
+
             <button class="submit-share-btn" onclick="submitShare()">Share</button>
-        
+
             <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
               <p><strong>Share To:</strong></p>
               <input type="hidden" name="shared_post_id" id="shared_post_id">
@@ -300,7 +287,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
                 </button>
               </div>
             </form>
-        
+
             <div class="share-link-section">
               <p><strong>Page link</strong></p>
               <div class="link-box">
@@ -361,7 +348,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               onclick="submitPost()">Post</button>
         </div>
       </div>
-      
+
       <div class="delete-post-modal-overlay hidden" id="delete_post_modal">
         <div class="delete-post-modal">
           <div class="delete-post-modal-header">
