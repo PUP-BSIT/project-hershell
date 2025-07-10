@@ -21,7 +21,28 @@ if (!$type || !$postId || !$message) {
   exit;
 }
 
-if ($type !== 'follow') {
+if ($type === 'share') {
+  $stmt = $conn->prepare("
+    SELECT p.user_id AS recipient_id, s.post_id
+    FROM share s
+    JOIN post p ON s.post_id = p.post_id
+    WHERE s.post_wrapper_id = ?
+    LIMIT 1
+  ");
+  $stmt->bind_param("i", $postId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($row = $result->fetch_assoc()) {
+    $recipientId = $row['recipient_id']; 
+  } else {
+    echo json_encode(['success' => false, 'error' => 'Original post not found']);
+    exit;
+  }
+  $stmt->close();
+}
+
+if (!isset($recipientId) && $type !== 'follow') {
   $stmt = $conn->prepare("SELECT user_id FROM post WHERE post_id = ?");
   $stmt->bind_param("i", $postId);
   $stmt->execute();
@@ -65,7 +86,7 @@ switch ($type) {
     break;
 
   case 'share':
-    $stmt = $conn->prepare("SELECT share_id FROM share WHERE post_id = ? AND user_id = ?");
+    $stmt = $conn->prepare("SELECT share_id FROM share WHERE post_wrapper_id = ? AND user_id = ?");
     $stmt->bind_param("ii", $postId, $actorId);
     $stmt->execute();
     $result = $stmt->get_result();
