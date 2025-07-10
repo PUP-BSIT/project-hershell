@@ -99,6 +99,14 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   <div class="main-container">
     <div class="profile-card">
       <div class="profile-header">
+          <?php if (!$isOwnProfile): ?>
+          <?php if ($fromSearch): ?>
+            <button class="back-btn" onclick="backToSearch()">← Back</button>
+          <?php else: ?>
+            <button class="back-btn" onclick="history.back()">← Back</button>
+          <?php endif; ?>
+        <?php endif; ?>
+
         <?php if ($isOwnProfile): ?>
           <div class="more-option">
             <img src="../assets/more_icon.png"
@@ -131,6 +139,24 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <p>@<?php echo $username; ?></p>
         <div class="bio-section">
           <p><?php echo $bio; ?></p>
+        </div>
+
+        <div class="profile-stats">
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">
+            <strong id="postCount">0</strong>
+            <p>Posts</p>
+          </div>
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">
+            <strong id="followerCount">0</strong>
+            <p>Followers</p>
+          </div>
+          <div onclick="window.location.href=
+              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">
+            <strong id="followingCount">0</strong>
+            <p>Following</p>
+          </div>
         </div>
       </div>
 
