@@ -6,7 +6,8 @@ $showForm = false;
 
 // Guard clause: Check if token exists
 if (!isset($_GET['token'])) {
-    $message = "We were unable to locate your password reset link.";
+    $message =
+        "We were unable to locate your password reset link.";
     renderPage($message, $showForm);
     exit;
 }
@@ -15,7 +16,8 @@ $raw_token = $_GET['token'];
 $token_hash = hash('sha256', $raw_token);
 
 $stmt = $conn->prepare(
-    "SELECT user_id, expires_at, is_used FROM password_reset_tokens WHERE token = ?"
+    "SELECT user_id, expires_at, is_used FROM password_reset_tokens " .
+    "WHERE token = ?"
 );
 $stmt->bind_param("s", $token_hash);
 $stmt->execute();
@@ -69,7 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Check if new password is different from current password
-    $check = $conn->prepare("SELECT password FROM user WHERE user_id = ?");
+    $check = $conn->prepare(
+        "SELECT password FROM user WHERE user_id = ?"
+    );
     $check->bind_param("i", $user_id);
     $check->execute();
     $current = $check->get_result()->fetch_assoc();
@@ -136,23 +140,29 @@ function renderPage($message, $showForm)
                 <label for="new_password">New password</label>
                 <div class="input-group">
                     <input type="password" name="new_password" 
-                        id="new_password" required />
-                    <img src="../assets/closed_eye.png" alt="Toggle" 
+                        id="new_password" required oninput="validateNewPassword()" 
+                        onfocus="showRulesOnFocus()" onblur="hideRules()" />
+                    <img src="../assets/eye_closed.png" alt="Toggle" 
                         class="eye-icon" id="toggle_new_pass" 
-                        onclick="togglePassword('new_password', 'toggle_new_pass')" />
+                        onclick="togglePassword('new_password', 
+                        'toggle_new_pass')" />
                 </div>
 
                 <div class="strength-meter">
-                    <div id="strength-bar"></div>
+                    <div id="strength_bar"></div>
                 </div>
 
-                <ul id="rules" class="rules">
-                    <li id="length" class="invalid">Minimum 8 characters</li>
-                    <li id="number" class="invalid">At least one number</li>
-                    <li id="uppercase" class="invalid">
+                <ul id="password_rules" class="rules">
+                    <li id="length_rule" class="invalid">
+                        Minimum 8 characters
+                    </li>
+                    <li id="number_rule" class="invalid">
+                        At least one number
+                    </li>
+                    <li id="uppercase_rule" class="invalid">
                         At least one uppercase letter
                     </li>
-                    <li id="lowercase" class="invalid">
+                    <li id="lowercase_rule" class="invalid">
                         At least one lowercase letter
                     </li>
                 </ul>
@@ -160,13 +170,16 @@ function renderPage($message, $showForm)
                 <label for="confirm_password">Re-enter password</label>
                 <div class="input-group">
                     <input type="password" name="confirm_password" 
-                        id="confirm_password" required />
-                    <img src="../assets/closed_eye.png" alt="Toggle" 
+                        id="confirm_password" required 
+                        oninput="validateConfirmPassword()" 
+                        onfocus="hideRules()" />
+                    <img src="../assets/eye_closed.png" alt="Toggle" 
                         class="eye-icon" id="toggle_confirm_pass" 
-                        onclick="togglePassword('confirm_password', 'toggle_confirm_pass')" />
+                        onclick="togglePassword('confirm_password', 
+                        'toggle_confirm_pass')" />
                 </div>
 
-                <p id="match-warning" class="warning-text hidden">
+                <p id="match_warning" class="warning-text hidden">
                     Passwords do not match.
                 </p>
 
