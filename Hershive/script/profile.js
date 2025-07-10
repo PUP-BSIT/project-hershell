@@ -23,12 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   }
 
-    window.addEventListener("click", function (e) {
-      const logoutModal = document.getElementById("logout_modal");
-      if (e.target === logoutModal) {
-        hideLogout();
-      }
-    });
+  window.addEventListener("click", function (e) {
+    const logoutModal = document.getElementById("logout_modal");
+    if (e.target === logoutModal) {
+      hideLogout();
+    }
+  });
 
   document.getElementById("media_input")?.addEventListener("change", function () {
     handleCreatePostFileInput(this, false);
@@ -76,23 +76,78 @@ document.addEventListener("DOMContentLoaded", function () {
     .catch(error => {
       console.error("Failed to load user stats:", error);
     });
+
+  // Initialize media upload functionality
+  initializeMediaUpload();
+  
+  // Initialize paste handling for text editor
+  const editor = document.getElementById("editor");
+  if (editor) {
+    handlePaste(editor);
+  }
+  
+  // Add formatting button state updates
+  document.addEventListener("selectionchange", () => {
+    const editor = document.getElementById("editor");
+    if (document.activeElement === editor || editor.contains(document.activeElement)) {
+      updateFormattingButtonStates();
+    }
+  });
+  
+  // Add keyboard shortcuts for text formatting
+  document.addEventListener("keydown", (e) => {
+    const editor = document.getElementById("editor");
+    if (document.activeElement === editor || editor.contains(document.activeElement)) {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b' || e.key === 'B') {
+          setTimeout(updateFormattingButtonStates, 10);
+        } else if (e.key === 'i' || e.key === 'I') {
+          setTimeout(updateFormattingButtonStates, 10);
+        } else if (e.key === 'u' || e.key === 'U') {
+          setTimeout(updateFormattingButtonStates, 10);
+        }
+      }
+    }
+  });
 });
 
 function openPostModal(event) {
+  // Prevent opening when clicking privacy dropdown
+  if (event && event.target.closest("#privacy")) {
+    return;
+  }
+  
+  // Prevent event bubbling
   event?.stopPropagation?.();
+  
   const modal = document.getElementById("post_modal");
   if (modal) {
     modal.classList.remove("hidden");
+    modal.classList.add("flex-center");
+    
+    // Clear all form data
     document.getElementById("editor").innerHTML = "";
     document.getElementById("preview_container").innerHTML = "";
     document.getElementById("media_input").value = "";
     document.getElementById("media_input_video").value = "";
+    
+    // Prevent body scrolling
+    document.body.classList.add("no-scroll");
+    
+    // Sync privacy settings
     syncPrivacyToModal();
   }
 }
 
 function closePostModal() {
-  document.getElementById("post_modal")?.classList.add("hidden");
+  const postModal = document.getElementById("post_modal");
+  if (postModal) {
+    postModal.classList.add("hidden");
+    postModal.classList.remove("flex-center");
+    
+    // Restore body scrolling
+    document.body.classList.remove("no-scroll");
+  }
 }
 
 function formatText(command) {
@@ -261,6 +316,119 @@ function handleFileInput(input, previewElement) {
     previewElement.src = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function initializeMediaUpload() {
+  const triggerImageInput = document.getElementById("trigger_media_image");
+  const triggerVideoInput = document.getElementById("trigger_media_video");
+  const modalImageInput = document.getElementById("media_input");
+  const modalVideoInput = document.getElementById("media_input_video");
+  const previewContainer = document.getElementById("preview_container");
+
+  function handleFilePreview(input, isVideo = false) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      previewContainer.innerHTML = "";
+
+      const media = document.createElement(isVideo ? "video" : "img");
+      if (isVideo) media.controls = true;
+      media.src = e.target.result;
+      media.classList.add("preview-media");
+
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("preview-item");
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "✕";
+      removeBtn.onclick = () => {
+        previewContainer.innerHTML = "";
+        input.value = "";
+      };
+
+      wrapper.appendChild(media);
+      wrapper.appendChild(removeBtn);
+      previewContainer.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Connect trigger inputs to modal inputs
+  if (triggerImageInput && modalImageInput) {
+    triggerImageInput.onchange = () => {
+      const file = triggerImageInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalImageInput.files = dt.files;
+        modalImageInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalImageInput, false);
+      }
+    };
+  }
+
+  if (triggerVideoInput && modalVideoInput) {
+    triggerVideoInput.onchange = () => {
+      const file = triggerVideoInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalVideoInput.files = dt.files;
+        modalVideoInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalVideoInput, true);
+      }
+    };
+  }
+
+  // **Add these lines for direct modal input selection**
+  if (modalImageInput) {
+    modalImageInput.onchange = () => handleFilePreview(modalImageInput, false);
+  }
+  if (modalVideoInput) {
+    modalVideoInput.onchange = () => handleFilePreview(modalVideoInput, true);
+  }
+}
+
+// Handle paste events in text editor
+function handlePaste(editor) {
+  editor.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const span = document.createElement("span");
+    span.textContent = pastedText;
+    span.style.whiteSpace = "pre-wrap";
+    
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(span);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+
+// Update formatting button states
+function updateFormattingButtonStates() {
+  const commands = {
+    bold: "B",
+    italic: "I",
+    underline: "U"
+  };
+
+  Object.entries(commands).forEach(([cmd, text]) => {
+    const button = [...document.querySelectorAll(".formatting-options button")]
+      .find(btn => btn.textContent.trim() === text);
+    if (!button) return;
+
+    const isActive = document.queryCommandState(cmd);
+    button.classList.toggle("active", isActive);
+  });
 }
 
 function saveProfileUpdates() {
