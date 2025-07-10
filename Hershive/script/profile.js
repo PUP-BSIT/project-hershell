@@ -1125,6 +1125,17 @@ function menuToggleDropdown() {
   }
 }
 
+function backToSearch() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search') || localStorage.getItem('lastSearchQuery');
+
+  if (searchQuery) {
+    window.location.href = `../html/home.html?search=${encodeURIComponent(searchQuery)}`;
+  } else {
+    window.location.href = '../html/home.html';
+  }
+}
+
 function logout() {
   window.location.href = "../php/logout.php";
 }
