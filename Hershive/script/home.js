@@ -7,6 +7,8 @@ let clickedUserId = null;
 let postToDelete = null;
 let currentPostIdForComments = null;
 let commentToDeleteId = null;
+let isCommentModalActive = false;
+let isEditingComment = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   checkUserSession(() => {
@@ -1391,7 +1393,7 @@ function loadNotifications() {
           badge.textContent = unread;
           if (unread > 0) {
             badge.classList.remove("hidden");
-          } else {
+        } else {
             badge.classList.add("hidden");
           }
         }
@@ -1477,49 +1479,69 @@ function toggleCommentModal(button) {
   currentPostIdForComments = postElement.dataset.postId;
   previewEl.innerHTML = '';
 
+  // 🔧 Freeze timestamp updates while comment modal is active
+  isCommentModalActive = true;
+
   const profilePic = postElement.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
   const username = postElement.querySelector('.post-info .username')?.textContent || 'User';
-  const timestamp = postElement.querySelector('.timestamp')?.textContent || '';
+  const timestamp = postElement.querySelector('.timestamp')?.firstChild?.textContent?.trim() || '';
+
   const contentEl = postElement.querySelector('.post-content');
+  const visibilityIconEl = postElement.querySelector('.visibility-icon');
+  const sharedIndicatorEl = postElement.querySelector('.external-share-indicator');
+
+  const visibilityCopy = visibilityIconEl ? visibilityIconEl.cloneNode(true) : null;
+  const sharedCopy = sharedIndicatorEl ? sharedIndicatorEl.cloneNode(true) : null;
+
+  const isNotSelf = username !== currentUser;
+  const isFollowing = followStatusCache[username];
+  const followBtnHTML = isNotSelf ? `
+    <button class="post-follow-btn ${isFollowing ? 'following' : ''}"
+            onclick="togglePostFollow(this, '${username}')">
+      ${isFollowing ? 'Following' : 'Follow'}
+    </button>` : '';
+
+previewEl.insertAdjacentHTML(
+  'beforeend',
+  `
+  <div class="comment-post-header">
+    <div class="post-header-left">
+      <img src="${profilePic}" alt="${username}" class="profile-pic" />
+      <div class="post-info">
+        <div class="username-container">
+          <span class="username">${username}</span>
+          ${followBtnHTML}
+        </div>
+        <span class="timestamp">
+          ${timestamp}
+          ${visibilityCopy ? visibilityCopy.outerHTML : ''}
+          ${sharedCopy ? sharedCopy.outerHTML : ''}
+        </span>
+
+      </div>
+    </div>
+  </div>
+  `
+);
+
 
   const clonedContent = contentEl?.cloneNode(true);
   clonedContent?.querySelector('.post-actions')?.remove();
 
-  previewEl.insertAdjacentHTML(
-    'beforeend',
-    `
-    <div class="comment-post-header">
-      <img
-        src="${profilePic}"
-        alt="${username}"
-        class="comment-preview-avatar"
-        onerror="this.src='../assets/temporary_pfp.png'"
-      >
-      <div class="comment-preview-user-meta">
-        <span class="comment-preview-username">${username}</span>
-        <span class="comment-preview-timestamp">${timestamp}</span>
-      </div>
-    </div>
-    `
-  );
-
   if (clonedContent) {
     previewEl.appendChild(clonedContent);
     previewEl.querySelectorAll('img').forEach(img => {
-    img.classList.add('preview-image');
+      img.classList.add('preview-image');
     });
     previewEl.querySelectorAll('video').forEach(video => {
       video.classList.add('preview-video');
     });
-
   }
 
-  // Reset scroll positions
   previewEl.scrollTop = 0;
   const scrollable = document.getElementById('commentModalScrollable');
   if (scrollable) scrollable.scrollTop = 0;
 
-  // Show modal
   overlayEl.classList.add('active');
   document.body.classList.add('modal-open');
   document.body.style.overflow = 'hidden';
@@ -1528,29 +1550,35 @@ function toggleCommentModal(button) {
   setTimeout(() => inputEl.focus(), 300);
 
   if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
-    window.commentPollingInterval = setInterval(() => {
-      loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
-    }, 5000);
+window.commentPollingInterval = setInterval(() => {
+  if (!isEditingComment) {
+    loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+  }
+}, 5000); // ⛔ prevent overwriting during active edits
 
 }
 
 
 function closeCommentModal() {
-    const overlay = document.getElementById('commentModalOverlay');
-    overlay.classList.remove('active');
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
+  const overlay = document.getElementById('commentModalOverlay');
+  if (overlay) overlay.classList.remove('active');
 
-    const commentInput = document.getElementById('commentInput');
-    if (commentInput) {
-        commentInput.value = '';
-    }
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
 
-    if (window.commentPollingInterval) {
-      clearInterval(window.commentPollingInterval);
-      window.commentPollingInterval = null;
-    }
+  const commentInput = document.getElementById('commentInput');
+  if (commentInput) commentInput.value = '';
+
+  isCommentModalActive = false; // 🔓 Allow timestamps to refresh again
+
+  updateCommentTimes(); // 🕒 Refresh timestamps once upon closing
+
+  if (window.commentPollingInterval) {
+    clearInterval(window.commentPollingInterval);
+    window.commentPollingInterval = null;
+  }
 }
+
 
 function loadComments(postId, commentListContainer) {
   fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
@@ -1559,13 +1587,20 @@ function loadComments(postId, commentListContainer) {
       if (data.success) {
         displayComments(data.comments, commentListContainer);
         updateCommentCount(postId);
+
+        // ⛔ Avoid updating timestamps if user is editing or modal is open
+        if (!isEditingComment && !isCommentModalActive) {
+          updateCommentTimes();
+        }
       } else {
         console.error(data.error);
       }
+    })
+    .catch(error => {
+      console.error("Error loading comments:", error);
     });
-    updateCommentTimes();
-
 }
+
 
 function displayComments(comments, container) {
   container.innerHTML = '';
@@ -1582,7 +1617,7 @@ function displayComments(comments, container) {
 
     const avatar = document.createElement('img');
     avatar.className = 'comment-avatar';
-    avatar.src = c.profile_picture_url || currentUserProfilePic || '../assets/temporary_pfp.png';
+    avatar.src = c.profile_picture_url || '../assets/temporary_pfp.png';
     avatar.alt = 'Avatar';
     avatar.onclick = () => {
       window.location.href = `../php/profile.php?user_id=${c.user_id}`;
@@ -1594,26 +1629,41 @@ function displayComments(comments, container) {
     const header = document.createElement('div');
     header.className = 'comment-header';
 
-    const name = document.createElement('span');
-    name.className = 'comment-username';
-    name.innerHTML = `<a href="../php/profile.php?user_id=${c.user_id}" class="comment-username-link">${c.username}</a>`;
+    // Inline meta: username time Follow
+    const metaLine = document.createElement('div');
+    metaLine.className = 'comment-meta-inline';
+
+    const name = document.createElement('a');
+    name.className = 'comment-username-link';
+    name.href = `../php/profile.php?user_id=${c.user_id}`;
+    name.textContent = c.username;
 
     const ts = document.createElement('span');
     ts.className = 'comment-timestamp';
     ts.dataset.timestamp = c.timestamp;
     ts.textContent = formatTime(c.timestamp);
 
-    header.appendChild(name);
-    header.appendChild(ts);
+    const isNotSelf = String(c.user_id) !== String(currentUserId);
+    const isFollowing = followStatusCache[c.username];
+
+    metaLine.appendChild(name);
+    metaLine.appendChild(ts);
+
+    if (isNotSelf) {
+      const followBtn = document.createElement('button');
+      followBtn.className = `comment-follow-btn ${isFollowing ? 'following' : ''}`;
+      followBtn.textContent = isFollowing ? 'Following' : 'Follow';
+      followBtn.onclick = () => togglePostFollow(followBtn, c.username);
+      metaLine.appendChild(followBtn);
+    }
+
+    header.appendChild(metaLine);
     bubble.appendChild(header);
 
     const text = document.createElement('p');
     text.className = 'comment-text';
     text.textContent = c.comment_content;
     bubble.appendChild(text);
-
-    entry.appendChild(avatar);
-    entry.appendChild(bubble);
 
     if (String(c.user_id) === String(currentUserId)) {
       const opts = document.createElement('button');
@@ -1626,12 +1676,15 @@ function displayComments(comments, container) {
       bubble.appendChild(opts);
     }
 
+    entry.appendChild(avatar);
+    entry.appendChild(bubble);
     container.appendChild(entry);
   });
 
   updateCommentTimes();
   container.scrollTop = container.scrollHeight;
 }
+
 
 function cancelCommentMenu(button) {
   const menu = button.closest('.comment-context-menu');
@@ -1795,7 +1848,12 @@ function formatTime(ts) {
 }
 
 function updateCommentTimes() {
+  if (isCommentModalActive || isEditingComment) return;
+
   document.querySelectorAll('.comment-timestamp[data-timestamp]').forEach(el => {
+    const bubble = el.closest('.comment-bubble');
+    if (bubble && bubble.querySelector('.edit-comment-wrapper')) return;
+
     const rawTimestamp = el.dataset.timestamp;
     if (rawTimestamp) {
       try {
@@ -1811,6 +1869,7 @@ function updateCommentTimes() {
   });
 }
 
+
 function editComment(commentId) {
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
 
@@ -1822,6 +1881,9 @@ function editComment(commentId) {
   const originalText = textEl.textContent;
 
   textEl.style.display = 'none';
+
+  // 🔧 Set global flag to block timestamp updates
+  isEditingComment = true;
 
   const formWrapper = document.createElement('div');
   formWrapper.className = 'edit-comment-wrapper';
@@ -1862,17 +1924,29 @@ function editComment(commentId) {
         textEl.textContent = newContent;
         textEl.style.display = '';
         formWrapper.remove();
+
+        // 🔓 Re-enable timestamp updates
+        isEditingComment = false;
       } else {
         alert('Failed to update comment');
+        isEditingComment = false; // still unlock even if failed
       }
+    })
+    .catch(err => {
+      console.error('Error editing comment:', err);
+      isEditingComment = false;
     });
   };
 
   cancelBtn.onclick = () => {
     textEl.style.display = '';
     formWrapper.remove();
+
+    // 🔓 Re-enable timestamp updates
+    isEditingComment = false;
   };
 }
+
 
 function deleteComment(commentId) {
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
