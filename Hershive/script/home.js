@@ -1277,8 +1277,21 @@ function menuToggleDropdown() {
   }
 }
 
+let allNotifications = [];
+let notificationsShown = 0;
+const INITIAL_SHOW = 6;
+const PREVIEW_COUNT = 5;
+
 setInterval(() => {
-  loadNotifications();
+  fetch('../php/get_notifications.php')
+    .then(res => res.json())
+    .then(data => {
+      const badge = document.getElementById('notification_count');
+      const unread = data.unread_count || 0;
+
+      badge.textContent = unread;
+      badge.classList.toggle("hidden", unread === 0);
+    });
 }, 3000);
 
 function toggleNotificationPanel() {
@@ -1367,24 +1380,12 @@ function loadNotifications() {
 
         if (notifications.length === 0) {
           container.innerHTML = "<p>No notifications available.</p>";
-        } else {
-          notifications.forEach(notif => {
-            const div = document.createElement('div');
-            div.className = "notification";
+          return;
+        } 
 
-            div.innerHTML = `
-              <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
-              <div class="notif-content">
-                <div class="notif-middle-content">
-                  <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
-                  <p class="time">${formatTime(notif.created_at)}</p>
-                </div>
-                ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
-              </div>
-            `;
-            container.appendChild(div);
-          });
-        }
+        allNotifications = data.notifications;
+        notificationsShown = 0;
+        appendNotifications(INITIAL_SHOW);
 
         if (badge) {
           badge.textContent = unread;
@@ -1399,8 +1400,55 @@ function loadNotifications() {
     .catch(err => showError("Failed to load notifications: " + err.message));
 }
 
-function formatTime(timestamp) {
-  return new Date(timestamp).toLocaleTimeString();
+function appendNotifications(count) {
+  const container = document.getElementById('notification_container');
+  const start = notificationsShown;
+  const end = Math.min(notificationsShown + count, allNotifications.length);
+
+  for (let i = start; i < end; i++) {
+    const notif = allNotifications[i];
+    const div = document.createElement('div');
+    div.className = "notification";
+    let html = `
+      <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
+      <div class="notif-content">
+        <div class="notif-middle-content">
+          <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
+          <p class="time">${formatTimeN(notif.created_at)}</p>
+        </div>
+        ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
+      </div>
+    `;
+    div.innerHTML = html;
+    container.appendChild(div);
+  }
+
+  notificationsShown = end;
+
+  const oldPreview = document.querySelector('.notification-preview');
+  if (oldPreview) oldPreview.remove();
+
+  if (notificationsShown < allNotifications.length) {
+    const previewDiv = document.createElement('div');
+    previewDiv.className = "notification-preview";
+    previewDiv.innerHTML = `<button id="showPreviewBtn">Show previous</button>`;
+    container.appendChild(previewDiv);
+
+    document.getElementById('showPreviewBtn').onclick = function(e) {
+      e.stopPropagation();
+      appendNotifications(PREVIEW_COUNT);
+    };
+  }
+}
+
+function formatTimeN(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return date.toLocaleDateString();
 }
 
 function toggleCommentModal(button) {
