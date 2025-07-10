@@ -72,7 +72,10 @@ $stmt->bind_param("iiii", $userId, $sourcePostId, $inputPostId, $sharedPostId);
 $stmt->execute();
 
 if ($stmt->affected_rows > 0) {
-    echo json_encode(['success' => true]);
+    echo json_encode([
+        'success' => true,
+        'post_id' => $sharedPostId
+    ]);
 } else {
     echo json_encode(['success' => false, 'error' => 'Failed to insert into share']);
 }
