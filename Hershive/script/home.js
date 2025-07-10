@@ -1479,7 +1479,6 @@ function toggleCommentModal(button) {
   currentPostIdForComments = postElement.dataset.postId;
   previewEl.innerHTML = '';
 
-  // 🔧 Freeze timestamp updates while comment modal is active
   isCommentModalActive = true;
 
   const profilePic = postElement.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
@@ -1501,29 +1500,28 @@ function toggleCommentModal(button) {
       ${isFollowing ? 'Following' : 'Follow'}
     </button>` : '';
 
-previewEl.insertAdjacentHTML(
-  'beforeend',
-  `
-  <div class="comment-post-header">
-    <div class="post-header-left">
-      <img src="${profilePic}" alt="${username}" class="profile-pic" />
-      <div class="post-info">
-        <div class="username-container">
-          <span class="username">${username}</span>
-          ${followBtnHTML}
-        </div>
-        <span class="timestamp">
-          ${timestamp}
-          ${visibilityCopy ? visibilityCopy.outerHTML : ''}
-          ${sharedCopy ? sharedCopy.outerHTML : ''}
-        </span>
+  previewEl.insertAdjacentHTML(
+    'beforeend',
+    `
+    <div class="comment-post-header">
+      <div class="post-header-left">
+        <img src="${profilePic}" alt="${username}" class="profile-pic" />
+        <div class="post-info">
+          <div class="username-container">
+            <span class="username">${username}</span>
+            ${followBtnHTML}
+          </div>
+          <span class="timestamp">
+            ${timestamp}
+            ${visibilityCopy ? visibilityCopy.outerHTML : ''}
+            ${sharedCopy ? sharedCopy.outerHTML : ''}
+          </span>
 
+        </div>
       </div>
     </div>
-  </div>
-  `
-);
-
+    `
+  );
 
   const clonedContent = contentEl?.cloneNode(true);
   clonedContent?.querySelector('.post-actions')?.remove();
@@ -1554,10 +1552,8 @@ window.commentPollingInterval = setInterval(() => {
   if (!isEditingComment) {
     loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
   }
-}, 5000); // ⛔ prevent overwriting during active edits
-
+}, 5000);
 }
-
 
 function closeCommentModal() {
   const overlay = document.getElementById('commentModalOverlay');
@@ -1569,16 +1565,15 @@ function closeCommentModal() {
   const commentInput = document.getElementById('commentInput');
   if (commentInput) commentInput.value = '';
 
-  isCommentModalActive = false; // 🔓 Allow timestamps to refresh again
+  isCommentModalActive = false;
 
-  updateCommentTimes(); // 🕒 Refresh timestamps once upon closing
+  updateCommentTimes();
 
   if (window.commentPollingInterval) {
     clearInterval(window.commentPollingInterval);
     window.commentPollingInterval = null;
   }
 }
-
 
 function loadComments(postId, commentListContainer) {
   fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
@@ -1588,7 +1583,6 @@ function loadComments(postId, commentListContainer) {
         displayComments(data.comments, commentListContainer);
         updateCommentCount(postId);
 
-        // ⛔ Avoid updating timestamps if user is editing or modal is open
         if (!isEditingComment && !isCommentModalActive) {
           updateCommentTimes();
         }
@@ -1629,7 +1623,6 @@ function displayComments(comments, container) {
     const header = document.createElement('div');
     header.className = 'comment-header';
 
-    // Inline meta: username time Follow
     const metaLine = document.createElement('div');
     metaLine.className = 'comment-meta-inline';
 
@@ -1684,7 +1677,6 @@ function displayComments(comments, container) {
   updateCommentTimes();
   container.scrollTop = container.scrollHeight;
 }
-
 
 function cancelCommentMenu(button) {
   const menu = button.closest('.comment-context-menu');
@@ -1869,7 +1861,6 @@ function updateCommentTimes() {
   });
 }
 
-
 function editComment(commentId) {
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
 
@@ -1882,7 +1873,6 @@ function editComment(commentId) {
 
   textEl.style.display = 'none';
 
-  // 🔧 Set global flag to block timestamp updates
   isEditingComment = true;
 
   const formWrapper = document.createElement('div');
@@ -1925,11 +1915,10 @@ function editComment(commentId) {
         textEl.style.display = '';
         formWrapper.remove();
 
-        // 🔓 Re-enable timestamp updates
         isEditingComment = false;
       } else {
         alert('Failed to update comment');
-        isEditingComment = false; // still unlock even if failed
+        isEditingComment = false;
       }
     })
     .catch(err => {
@@ -1942,11 +1931,9 @@ function editComment(commentId) {
     textEl.style.display = '';
     formWrapper.remove();
 
-    // 🔓 Re-enable timestamp updates
     isEditingComment = false;
   };
 }
-
 
 function deleteComment(commentId) {
   document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
