@@ -45,6 +45,11 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <body data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
+    <?php if (!$isOwnProfile): ?>
+          <?php if ($fromSearch): ?>
+            <button class="back-btn" onclick="backToSearch()">← Back</button>
+          <?php endif; ?>
+        <?php endif; ?>
     <div class="search-bar">
       <input type="text" placeholder="Search">
       <button class="search-button"><img src="../assets/search_icon.png"
@@ -54,7 +59,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       <button class="profile-tab-btn" onclick="scrollToProfile()">
         <span class="profile-tab-circle"><?php echo $username; ?></span>
       </button>
-      <a href="../html/home.html"><button><img src="../assets/home_icon.png"
+      <a href="/project-hershell/Hershive/html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
       <button onclick="toggleNotificationPanel()">
         <img src="../assets/notification_icon.png" alt="notification"/>
@@ -71,8 +76,8 @@ $bio = htmlspecialchars($user['bio'] ?? '');
   </div>
 
     <div id="menu_dropdown" class="hidden">
-      <a href="../php/settings.php" class="menu-dropdown-item">
-        <img src="../assets/settings_icon.png" alt="settings"/>
+      <a href="/project-hershell/Hershive/php/settings.php" class="menu-dropdown-item">
+        <img src="/project-hershell/Hershive/assets/settings_icon.png" alt="settings"/>
         Settings
       </a>
       <div onclick="toggleLogout()" class="menu-dropdown-item">
@@ -101,6 +106,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
             <button class="back-btn" onclick="history.back()">← Back</button>
           <?php endif; ?>
         <?php endif; ?>
+
         <?php if ($isOwnProfile): ?>
           <div class="more-option">
             <img src="../assets/more_icon.png"
@@ -121,9 +127,16 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </div>
 
       <div class="profile-info">
-        <h3><?php echo $fullName; ?></h3>
+        <div class="profile-name-section">
+          <h3><?php echo $fullName; ?></h3>
+          <?php if (!$isOwnProfile): ?>
+            <button class="follow-btn" id="follow_btn"
+                onclick="toggleMainProfileFollow('<?php echo $username; ?>', this)">
+              Follow
+            </button>
+          <?php endif; ?>
+        </div>
         <p>@<?php echo $username; ?></p>
-
         <div class="bio-section">
           <p><?php echo $bio; ?></p>
         </div>
@@ -151,9 +164,15 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 
       <div class="container">
         <div class="post-section-toggle" id="tabs">
-          <div class="tab active" data-tab="post">Post</div>
-          <div class="tab" data-tab="followers">Followers</div>
-          <div class="tab" data-tab="following">Following</div>
+          <div class="tab active" data-tab="post">
+            <strong id="postCount">0</strong>
+          Post</div>
+          <div class="tab" data-tab="followers">
+            <strong id="followerCount">0</strong>
+          Followers</div>
+          <div class="tab" data-tab="following">
+            <strong id="followingCount">0</strong>
+          Following</div>
         </div>
       </div>
 
@@ -365,6 +384,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
     </div>
   </div>
 
-  <script src="/project-hershell/Hershive/script/profile.js?v=4"></script>
+  <script src="../script/profile.js?v=4"></script>
 </body>
 </html>
