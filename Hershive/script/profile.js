@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
   initializeTabs();
   loadInitialData();
+  initializeMediaUpload();    // Initialize media upload functionality
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
@@ -30,13 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById("media_input")?.addEventListener("change", function () {
-    handleCreatePostFileInput(this, false);
-  });
-  document.getElementById("media_input_video")?.addEventListener("change", function () {
-    handleCreatePostFileInput(this, true);
-  });
-
   document.getElementById("privacy")?.addEventListener("change", syncPrivacyToModal);
   document.getElementById("privacy_setting")?.addEventListener("change", syncPrivacyToMini);
 
@@ -52,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById('media_input')?.addEventListener('change', function() {
+  document.getElementById('profile_media_input')?.addEventListener('change', function() {
     handleFileInput(this, document.getElementById("profile_img_preview"));
   });
   document.getElementById('cover_media_input')?.addEventListener('change', function() {
@@ -76,9 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
     .catch(error => {
       console.error("Failed to load user stats:", error);
     });
-
-  // Initialize media upload functionality
-  initializeMediaUpload();
   
   // Initialize paste handling for text editor
   const editor = document.getElementById("editor");
@@ -159,7 +150,7 @@ function scrollToProfile() {
 }
 window.scrollToProfile = scrollToProfile;
 
-function handleCreatePostFileInput(input, isVideo = false) {
+function handleCreatePostFileInput(input, isVideo = false) { //dupliiiii
   const previewContainer = document.getElementById("preview_container");
   previewContainer.innerHTML = "";
   const file = input.files[0];
@@ -432,7 +423,7 @@ function updateFormattingButtonStates() {
 }
 
 function saveProfileUpdates() {
-  const profileInput = document.getElementById("media_input").files[0];
+  const profileInput = document.getElementById("profile_media_input").files[0];
   const coverInput = document.getElementById("cover_media_input").files[0];
   const bioText = document.getElementById("bio_textarea").value;
 
@@ -451,19 +442,33 @@ function saveProfileUpdates() {
         const bioDisplay = document.querySelector(".bio-section p");
         if (bioDisplay) bioDisplay.innerText = bioText;
 
-        // If backend returned a new profile picture URL, use it
         if (data.profile_picture_url) {
-          const profileImgs = document.querySelectorAll(".profile-img, .profile-img-preview");
-          profileImgs.forEach(img => {
+          document.querySelectorAll(
+            ".profile-img, .profile-img-preview, .modal-profile-pic, .main-create-post .profile-pic"
+          ).forEach(img => {
+            img.src = data.profile_picture_url + "?v=" + Date.now();
+          });
+
+          document.querySelectorAll('.user-post .profile-pic').forEach(img => {
             img.src = data.profile_picture_url + "?v=" + Date.now();
           });
         }
 
-        // If backend returned a new cover photo URL, use it
         if (data.cover_photo_url) {
-          const coverImgs = document.querySelectorAll(".cover-img, .cover-img-preview");
-          coverImgs.forEach(img => {
+          document.querySelectorAll(
+            ".cover-img, .cover-img-preview"
+          ).forEach(img => {
             img.src = data.cover_photo_url + "?v=" + Date.now();
+          });
+        }
+
+        if (data.display_name) {
+          const displayNameElem = document.getElementById("display_name");
+          if (displayNameElem) displayNameElem.textContent = data.display_name;
+        }
+        if (data.username) {
+          document.querySelectorAll(".username").forEach(el => {
+            el.textContent = data.username;
           });
         }
 
@@ -951,7 +956,7 @@ function formatTime(timestamp) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return date.toLocaleDateString();
-}
+}   
 
 document.addEventListener('click', function (e) {
   const panel = document.getElementById("notification_panel");
