@@ -704,17 +704,9 @@ function editPost(button) {
   const formatting = createFormatting(editor);
   const { uploadControls, fileInputImage,
       fileInputVideo, visibilitySelect } = createUploadControls();
-  const currentVisibility = visibilityIcon ? visibilityIcon.alt : 'public';
-  const iconMap = {
-    public: '../assets/public_icon.png',
-    followers: '../assets/followers_icon.png',
-    private: '../assets/private_icon.png'
-  };
-  visibilitySelect.value = currentVisibility;
-  const editPrivacyIcon = uploadControls.querySelector('.edit-privacy-icon');
-  if (editPrivacyIcon) {
-    editPrivacyIcon.src = iconMap[currentVisibility] || iconMap.public;}
-  
+      console.log("Adding upload controls for post", postId);
+      console.log("Appending to:", contentDiv);
+      console.log("Upload controls added:", uploadControls);
   const saveBtn = createSaveButton();
   const cancelBtn = createCancelButton(() => {
     [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
