@@ -113,5 +113,5 @@ function togglePassword(fieldId, iconId) {
 
     const isHidden = input.type === 'password';
     input.type = isHidden ? 'text' : 'password';
-    icon.src = isHidden ? '../assets/eye_open.png' : '../assets/closed_eye.png';
+    icon.src = isHidden ? '../assets/eye_open.png' : '../assets/eye_closed.png';
 }
