@@ -2160,9 +2160,34 @@ function renderTopUserResult(user) {
 }
 
 function redirectToUserProfile(userId) {
-  window.location.href = `../php/profile.php?user_id=${userId}`;
+    const searchInput = document.getElementById("search_input");
+  if (searchInput && searchInput.value.trim()) {
+    localStorage.setItem('lastSearchQuery', searchInput.value.trim());
+  }
+
+  const currentPage = window.location.pathname;
+  const isFromSearch = currentPage.includes('home.html') || currentPage.includes('search');
+
+  if (isFromSearch && searchInput && searchInput.value.trim()) {
+    window.location.href = `../php/profile.php?user_id=${userId}
+        &from=search&search=${encodeURIComponent(searchInput.value.trim())}`;
+  } else {
+    window.location.href = `../php/profile.php?user_id=${userId}`;
+  }
 }
 
+window.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search');
+
+  if (searchQuery) {
+    const searchInput = document.getElementById("search_input");
+    if (searchInput) {
+      searchInput.value = searchQuery;
+      performSearch();
+    }
+  }
+});
 
 function renderMorePeople(users) {
   const morePeopleList = document.getElementById("more_people_list");
