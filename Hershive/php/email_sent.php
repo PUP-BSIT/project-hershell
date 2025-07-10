@@ -13,22 +13,23 @@ $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your email'
 <body>
   <div class="overlay">
     <div class="modal">
-      <button class="close-btn" onclick="window.location.href='login.php'">×</button>
-
       <div class="modal-content">
-        <div class="icon"><img src="../assets/email_icon.png" alt="Email Icon"></div>
-        <h2>Email Sent</h2>
-
-        <p class="message">
-          We have sent you an email at <strong><?= $email ?></strong>.
+        <div class="header-row">
+          <div class="icon">
+            <img src="../assets/email_icon.png" alt="Email Icon" />
+          </div>
+          <div class="text-block">
+            <h2>Email Sent</h2>
+            <p class="subtitle">
+              We have sent you an email at <strong><?= $email ?></strong>.<br />
+            </p>
+          </div>
+        </div>
+        <p class="link-text">
+          Did not receive the email? <a href="forgot_password.php">Resend Email</a>
         </p>
-
-        <p class="link-text">Did not receive the email?
-          <a href="forgot_password.php">Resend Email</a>
-        </p>
-
-        <p class="link-text">Wrong email address?
-          <a href="forgot_password.php">Change Email Address</a>
+        <p class="link-text">
+          Wrong email address? <a href="forgot_password.php">Change Email Address</a>
         </p>
       </div>
     </div>
