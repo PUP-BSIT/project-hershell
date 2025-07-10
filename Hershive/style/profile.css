@@ -363,7 +363,7 @@ body {
   width: 100%;
   max-width: 900px;
   height: 1px;
-  background-color: black;
+  background-color: #ad7943;
   margin: 20px auto 10px auto;
 }
 
@@ -1030,7 +1030,7 @@ body {
 
 .tab.active {
   color: black;
-  border-bottom-color: gray;
+  border-bottom-color: #ad7943;
 }
 
 .tab:hover {
@@ -1054,7 +1054,7 @@ body {
   border-radius: 20px;
   background-color: #f8f5ea;
   cursor: pointer;
-  width: 85%;
+  width: 75%;
   margin: 0 auto;
 }
 

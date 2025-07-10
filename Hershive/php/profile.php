@@ -38,7 +38,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=3"/>
+  <link rel="stylesheet" href="../style/profile.css?v=3"/>
   <title>Profile Page</title>
   <link rel="icon" href="../assets/logo.png"/>
 </head>
@@ -127,33 +127,21 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <div class="bio-section">
           <p><?php echo $bio; ?></p>
         </div>
-
-        <div class="profile-stats">
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">
-            <strong id="postCount">0</strong>
-            <p>Posts</p>
-          </div>
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">
-            <strong id="followerCount">0</strong>
-            <p>Followers</p>
-          </div>
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">
-            <strong id="followingCount">0</strong>
-            <p>Following</p>
-          </div>
-        </div>
       </div>
 
       <div class="post-divider"></div>
 
       <div class="container">
         <div class="post-section-toggle" id="tabs">
-          <div class="tab active" data-tab="post">Post</div>
-          <div class="tab" data-tab="followers">Followers</div>
-          <div class="tab" data-tab="following">Following</div>
+          <div class="tab active" data-tab="post">
+            <strong id="postCount">0</strong>
+          Post</div>
+          <div class="tab" data-tab="followers">
+            <strong id="followerCount">0</strong>
+          Followers</div>
+          <div class="tab" data-tab="following">
+            <strong id="followingCount">0</strong>
+          Following</div>
         </div>
       </div>
 
@@ -365,6 +353,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
     </div>
   </div>
 
-  <script src="/project-hershell/Hershive/script/profile.js?v=4"></script>
+  <script src="../script/profile.js?v=4"></script>
 </body>
 </html>
