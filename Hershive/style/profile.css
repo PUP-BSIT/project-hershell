@@ -1352,7 +1352,6 @@ body.no-scroll {
 
 /* Notification Panel */
 .notification-panel {
-  display: none;
   position: absolute;
   top: 60px;
   right: 20px;
@@ -1360,15 +1359,11 @@ body.no-scroll {
   background-color: #f8f5ea;
   border: 1px solid #000000;
   border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  z-index: 1000;
-  padding: 18px 18px 12px 18px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 15px;
   height: 450px;
-  overflow: hidden;
-}
-
-.notification-panel.active {
-  display: block;
+  z-index: 1000;
+  overflow-y: auto;
 }
 
 .notification-header {
@@ -1378,7 +1373,7 @@ body.no-scroll {
   margin-bottom: 10px;
 }
 
-.notification-header h4 {
+.notification-panel h4 {
   margin: 0;
   font-size: 18px;
 }
@@ -1392,8 +1387,6 @@ body.no-scroll {
 }
 
 #notification_container {
-  max-height: 450px;
-  overflow-y: auto;
   padding-bottom: 10px;
 }
 
@@ -1412,7 +1405,10 @@ body.no-scroll {
 }
 
 .notif-content {
-  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .notif-content .notif-middle-content {
@@ -1420,7 +1416,7 @@ body.no-scroll {
   flex-direction: column;
 }
 
-.notif-content .time {
+.notification .time {
   color: #888;
   font-size: 12px;
 }
@@ -1433,9 +1429,10 @@ body.no-scroll {
 }
 
 .notification-preview {
-  padding: 8px 0 0 0;
+  padding: 10px 0;
   text-align: center;
 }
+
 .notification-preview button {
   font-size: 14px;
   color: #222;
@@ -1446,6 +1443,7 @@ body.no-scroll {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .notification-preview button:hover {
   background: #d2b075;
 }

@@ -102,6 +102,20 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+/** Notification polling for badge update **/
+setInterval(() => {
+  fetch('../php/get_notifications.php')
+    .then(res => res.json())
+    .then(data => {
+      const badge = document.getElementById('notification_count');
+      const unread = data.unread_count || 0;
+      if (badge) {
+        badge.textContent = unread;
+        badge.classList.toggle("hidden", unread === 0);
+      }
+    });
+}, 3000);
+
 function openPostModal(event) {
   // Prevent opening when clicking privacy dropdown
   if (event && event.target.closest("#privacy")) {
@@ -1075,15 +1089,41 @@ document.addEventListener("keydown", function (e) {
 
 function toggleNotificationPanel() {
   const panel = document.getElementById("notification_panel");
+  const badge = document.getElementById("notification_count");
+
   if (panel) {
-    const isActive = panel.classList.contains("active");
-    document.querySelectorAll('.notification-panel').forEach(p => p.classList.remove('active'));
-    if (!isActive) {
-      panel.classList.add("active");
+    panel.classList.toggle("hidden");
+
+    if (!panel.classList.contains("hidden")) {
+      // Mark notifications as read
+      fetch('../php/mark_notifications_read.php', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          // Optionally handle errors
+        });
+
+      if (badge) badge.classList.add("hidden");
       loadNotifications();
     }
   }
 }
+window.toggleNotificationPanel = toggleNotificationPanel;
+
+// Click outside to close notification panel
+// (place after DOMContentLoaded or at end of file)
+document.addEventListener('click', function(event) {
+  const panel = document.getElementById("notification_panel");
+  const button = document.querySelector(".notification-wrapper");
+
+  if (!panel || !button) return;
+
+  const clickedInsidePanel = panel.contains(event.target);
+  const clickedButton = button.contains(event.target);
+
+  if (!clickedInsidePanel && !clickedButton && !panel.classList.contains("hidden")) {
+    panel.classList.add("hidden");
+  }
+});
 
 let allNotifications = [];
 let notificationsShown = 0;
@@ -1095,17 +1135,30 @@ function loadNotifications() {
     .then(res => res.json())
     .then(data => {
       const container = document.getElementById('notification_container');
-      if (!container) return;
+      const badge = document.getElementById('notification_count');
+      const notifications = data.notifications || [];
+      const unread = data.unread_count || 0;
+
       container.innerHTML = "";
 
-      if (!data.success || !data.notifications || data.notifications.length === 0) {
+      if (notifications.length === 0) {
         container.innerHTML = "<p>No notifications available.</p>";
+        if (badge) badge.classList.add("hidden");
         return;
       }
 
       allNotifications = data.notifications;
       notificationsShown = 0;
       appendNotifications(INITIAL_SHOW);
+
+      if (badge) {
+        badge.textContent = unread;
+        if (unread > 0) {
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
     });
 }
 
@@ -1134,9 +1187,11 @@ function appendNotifications(count) {
 
   notificationsShown = end;
 
+  // Remove old preview button if present
   const oldPreview = document.querySelector('.notification-preview');
   if (oldPreview) oldPreview.remove();
 
+  // If there are more notifications to show, add the "Show previous" button
   if (notificationsShown < allNotifications.length) {
     const previewDiv = document.createElement('div');
     previewDiv.className = "notification-preview";
@@ -1149,6 +1204,7 @@ function appendNotifications(count) {
     };
   }
 }
+
 
 function formatTime(timestamp) {
   const date = new Date(timestamp);

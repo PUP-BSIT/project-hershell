@@ -61,16 +61,21 @@ $bio = htmlspecialchars($user['bio'] ?? '');
       </button>
       <a href="/project-hershell/Hershive/html/home.html"><button><img src="../assets/home_icon.png"
           alt="home"></button></a>
-      <button onclick="toggleNotificationPanel()">
-        <img src="../assets/notification_icon.png" alt="notification"/>
-      </button>
-
-      <div class="notification-panel" id="notification_panel">
-        <div class="notification-header">
-          <h4>Notification</h4>
+          
+        <button onclick="toggleNotificationPanel()" class="notification-wrapper">
+          <div class="notification-icon-container">
+            <img src="../assets/notification_icon.png" alt="notification"/>
+            <span id="notification_count" class="notification-count hidden">0</span>
+          </div>
+        </button>
+    
+        <div class="notification-panel hidden" id="notification_panel">
+          <div class="notification-header">
+            <h4>Notification</h4>
+          </div>
+          <div id="notification_container"></div>
         </div>
-        <div id="notification_container"></div>
-      </div>
+        
         <button class="menu-button" onclick="menuToggleDropdown()">☰</button>
     </div>
   </div>
@@ -140,24 +145,6 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <div class="bio-section">
           <p><?php echo $bio; ?></p>
         </div>
-
-        <!--<div class="profile-stats">-->
-        <!--  <div onclick="window.location.href=-->
-        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">-->
-        <!--    <strong id="postCount">0</strong>-->
-        <!--    <p>Posts</p>-->
-        <!--  </div>-->
-        <!--  <div onclick="window.location.href=-->
-        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">-->
-        <!--    <strong id="followerCount">0</strong>-->
-        <!--    <p>Followers</p>-->
-        <!--  </div>-->
-        <!--  <div onclick="window.location.href=-->
-        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">-->
-        <!--    <strong id="followingCount">0</strong>-->
-        <!--    <p>Following</p>-->
-        <!--  </div>-->
-        <!--</div>-->
       </div>
 
     <div class="post-divider"></div>
