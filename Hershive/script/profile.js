@@ -961,27 +961,38 @@ function updatePostContent(container, newContent, sharedCard, paragraph,
 }
 
 function deletePost(button) {
-  const post = button.closest('.user-post');
-  const postId = post.dataset.postId;
+  postToDelete = button.closest('.user-post');
+  document.getElementById('delete_post_modal').classList.remove('hidden');
+  document.body.classList.add('no-scroll');
+}
 
-  if (confirm('Are you sure you want to delete this post?')) {
-    fetch('../php/delete_post.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        post.remove();
-      } else {
-        alert(data.error || 'Failed to delete post');
-      }
-    })
-    .catch(error => {
-      console.error('Error deleting post:', error);
-    });
-  }
+function closeDeletePostModal() {
+  document.getElementById('delete_post_modal').classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+  const postId = postToDelete.dataset.postId;
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      postToDelete.remove();
+      closeDeletePostModal();
+    } else {
+      alert(data.error || 'Failed to delete post');
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting post:', error);
+    alert('Error deleting post');
+  });
 }
 
 function toggleShareModal(postElement) {
