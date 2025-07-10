@@ -36,11 +36,11 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=3"/>
-  <title>Profile Page</title>
-  <link rel="icon" href="../assets/logo.png"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="stylesheet" href="/project-hershell/Hershive/style/profile.css?v=3"/>
+<title>Profile Page</title>
+<link rel="icon" href="../assets/logo.png"/>
 </head>
 <body data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
@@ -119,12 +119,12 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         <?php endif; ?>
       </div>
 
-      <div class="profile-banner">
-        <img src="<?php echo $coverPhoto; ?>"
-            alt="Cover Photo" class="cover-img">
-        <img src="<?php echo $profilePic; ?>"
-            alt="Profile Picture" class="profile-img">
-      </div>
+    <div class="profile-banner">
+      <img src="<?php echo $coverPhoto; ?>"
+          alt="Cover Photo" class="cover-img">
+      <img src="<?php echo $profilePic; ?>"
+          alt="Profile Picture" class="profile-img">
+    </div>
 
       <div class="profile-info">
         <div class="profile-name-section">
@@ -160,7 +160,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         </div>
       </div>
 
-      <div class="post-divider"></div>
+    <div class="post-divider"></div>
 
       <div class="container">
         <div class="post-section-toggle" id="tabs">
@@ -222,21 +222,21 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <div id="post-container" class="post-container"></div>
         </div>
 
-        <!-- Following Tab Content -->
-        <div class="tab-content" id="following-tab">
-          <div class="loading" id="following-loading">Loading following...</div>
-          <div id="following-list" class="user-list"></div>
-        </div>
-
-        <!-- Followers Tab Content -->
-        <div class="tab-content" id="followers-tab">
-          <div class="loading" id="followers-loading">Loading followers...</div>
-          <div id="followers-list" class="user-list"></div>
-        </div>
+      <!-- Following Tab Content -->
+      <div class="tab-content" id="following-tab">
+        <div class="loading" id="following-loading">Loading following...</div>
+        <div id="following-list" class="user-list"></div>
       </div>
 
-      <span id="profile_user_id"
-          style="display:none;"><?php echo $userId; ?></span>
+      <!-- Followers Tab Content -->
+      <div class="tab-content" id="followers-tab">
+        <div class="loading" id="followers-loading">Loading followers...</div>
+        <div id="followers-list" class="user-list"></div>
+      </div>
+    </div>
+
+    <span id="profile_user_id"
+        style="display:none;"><?php echo $userId; ?></span>
 
       <?php if ($isOwnProfile): ?>
         <!-- Edit Modal -->
@@ -244,18 +244,18 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <div class="modal-content">
             <h2>Edit Profile</h2>
 
-            <div class="edit-section">
-              <label>Profile Picture</label>
-              <div class="preview-circle">
-                <img id="profile_img_preview"
-                    src="<?php echo $profilePic; ?>"
-                    alt="Image Preview" class="profile-img-preview">
-                <label class="profile-icon-button">
-                  <img src="../assets/camera_icon.png" alt="Image Icon">
-                  <input type="file" id="media_input" accept="image/*" hidden>
-                </label>
-              </div>
+          <div class="edit-section">
+            <label>Profile Picture</label>
+            <div class="preview-circle">
+              <img id="profile_img_preview"
+                  src="<?php echo $profilePic; ?>"
+                  alt="Image Preview" class="profile-img-preview">
+              <label class="profile-icon-button">
+                <img src="../assets/camera_icon.png" alt="Image Icon">
+                <input type="file" id="profile_media_input" accept="image/*" hidden>
+              </label>
             </div>
+          </div>
 
             <div class="edit-section">
               <label>Cover Photo</label>
@@ -328,62 +328,71 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           </div>
         </div>
 
-        <!-- Post Modal -->
-        <div class="modal-overlay hidden" id="post_modal">
-          <div class="create-post-modal">
-            <div class="modal-header">
-              <h2>Create Post</h2>
-              <button class="close-button" onclick="closePostModal()">×</button>
-            </div>
+      <!-- Post Modal -->
+      <div class="modal-overlay hidden" id="post_modal">
+        <div class="create-post-modal">
+          <div class="modal-header">
+            <h2>Create Post</h2>
+            <button class="close-button" onclick="closePostModal()">×</button>
+          </div>
+          <div class="user-info-box">
+            <img src="<?php echo $profilePic; ?>"
+                alt="user profile" class="modal-profile-pic" />
             <span class="username"><?php echo $username; ?></span>
-            <div
-              class="text-editor"
-              id="editor"
-              contenteditable="true"
+          </div>
+          <div class="text-editor" id="editor" contenteditable="true"
               placeholder="Share something..."></div>
-
-            <div class="preview" id="preview_container"></div>
-
-            <div class="formatting-options">
-              <button onclick="formatText('bold')">B</button>
-              <button onclick="formatText('italic')">I</button>
-              <button onclick="formatText('underline')">U</button>
+          <div class="preview" id="preview_container"></div>
+          <div class="formatting-options">
+            <button onclick="formatText('bold')">B</button>
+            <button onclick="formatText('italic')">I</button>
+            <button onclick="formatText('underline')">U</button>
+          </div>
+          <div class="upload-controls">
+            <label class="icon-button">
+              <img src="../assets/camera_icon.png" alt="Image Icon"/>
+              <input type="file" id="media_input" accept="image/*" hidden />
+              <span>Image</span>
+            </label>
+            <label class="icon-button">
+              <img src="../assets/video_icon.png" alt="Video Icon"/>
+              <input type="file" id="media_input_video" accept="video/*" hidden/>
+              <span>Video</span>
+            </label>
+            <div class="privacy-select">
+              <img id="modal_privacy_icon" src="../assets/public_icon.png"
+                  alt="Privacy Icon" />
+              <select id="privacy_setting">
+                <option value="public">Public</option>
+                <option value="followers">Followers</option>
+                <option value="private">Private</option>
+              </select>
             </div>
-
-            <div class="upload-controls">
-              <label class="icon-button">
-                <img src="../assets/camera_icon.png" alt="Image Icon"/>
-                <input type="file" id="media_input" accept="image/*" hidden />
-                <span>Image</span>
-              </label>
-              <label class="icon-button">
-                <img src="../assets/video_icon.png" alt="Video Icon"/>
-                <input type="file" id="media_input_video" accept="video/*" hidden/>
-                <span>Video</span>
-              </label>
-              <div class="privacy-select">
-                <img id="modal_privacy_icon" src="../assets/public_icon.png"
-                    alt="Privacy Icon" />
-                <select id="privacy_setting">
-                  <option value="public">Public</option>
-                  <option value="followers">Followers</option>
-                  <option value="private">Private</option>
-                </select>
-              </div>
-            </div>
-
-            <button
-              class="submit-button"
-              id="submit_post_button"
-              onclick="submitPost()">
-              Post
-            </button>
+          </div>
+          <button class="submit-button" id="submit_post_button"
+              onclick="submitPost()">Post</button>
+        </div>
+      </div>
+      
+      <div class="delete-post-modal-overlay hidden" id="delete_post_modal">
+        <div class="delete-post-modal">
+          <div class="delete-post-modal-header">
+            <h3>Delete Post</h3>
+            <button class="delete-post-close-btn" onclick="closeDeletePostModal()">&times;</button>
+          </div>
+          <div class="delete-post-modal-content">
+            <p>Are you sure you want to delete this post?</p>
+            <div class="delete-post-button-holder">
+            <button class="delete-post-cancel-btn" onclick="closeDeletePostModal()">Cancel</button>
+            <button class="delete-post-confirm-btn" onclick="confirmDeletePost()">Delete</button>
+          </div>
           </div>
         </div>
-      <?php endif; ?>
-    </div>
+      </div>
+    <?php endif; ?>
   </div>
+</div>
 
-  <script src="../script/profile.js?v=4"></script>
+<script src="/project-hershell/Hershive/script/profile.js?v=4"></script>
 </body>
 </html>

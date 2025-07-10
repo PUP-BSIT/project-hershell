@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
   initializeTabs();
   loadInitialData();
+  initializeMediaUpload();
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
@@ -23,18 +24,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   }
 
-    window.addEventListener("click", function (e) {
-      const logoutModal = document.getElementById("logout_modal");
-      if (e.target === logoutModal) {
-        hideLogout();
-      }
-    });
-
-  document.getElementById("media_input")?.addEventListener("change", function () {
-    handleCreatePostFileInput(this, false);
-  });
-  document.getElementById("media_input_video")?.addEventListener("change", function () {
-    handleCreatePostFileInput(this, true);
+  window.addEventListener("click", function (e) {
+    const logoutModal = document.getElementById("logout_modal");
+    if (e.target === logoutModal) {
+      hideLogout();
+    }
   });
 
   document.getElementById("privacy")?.addEventListener("change", syncPrivacyToModal);
@@ -52,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById('media_input')?.addEventListener('change', function() {
+  document.getElementById('profile_media_input')?.addEventListener('change', function() {
     handleFileInput(this, document.getElementById("profile_img_preview"));
   });
   document.getElementById('cover_media_input')?.addEventListener('change', function() {
@@ -76,23 +70,75 @@ document.addEventListener("DOMContentLoaded", function () {
     .catch(error => {
       console.error("Failed to load user stats:", error);
     });
+  
+  // Initialize paste handling for text editor
+  const editor = document.getElementById("editor");
+  if (editor) {
+    handlePaste(editor);
+  }
+  
+  // Add formatting button state updates
+  document.addEventListener("selectionchange", () => {
+    const editor = document.getElementById("editor");
+    if (document.activeElement === editor || editor.contains(document.activeElement)) {
+      updateFormattingButtonStates();
+    }
+  });
+  
+  // Add keyboard shortcuts for text formatting
+  document.addEventListener("keydown", (e) => {
+    const editor = document.getElementById("editor");
+    if (document.activeElement === editor || editor.contains(document.activeElement)) {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b' || e.key === 'B') {
+          setTimeout(updateFormattingButtonStates, 10);
+        } else if (e.key === 'i' || e.key === 'I') {
+          setTimeout(updateFormattingButtonStates, 10);
+        } else if (e.key === 'u' || e.key === 'U') {
+          setTimeout(updateFormattingButtonStates, 10);
+        }
+      }
+    }
+  });
 });
 
 function openPostModal(event) {
+  // Prevent opening when clicking privacy dropdown
+  if (event && event.target.closest("#privacy")) {
+    return;
+  }
+  
+  // Prevent event bubbling
   event?.stopPropagation?.();
+  
   const modal = document.getElementById("post_modal");
   if (modal) {
     modal.classList.remove("hidden");
+    modal.classList.add("flex-center");
+    
+    // Clear all form data
     document.getElementById("editor").innerHTML = "";
     document.getElementById("preview_container").innerHTML = "";
     document.getElementById("media_input").value = "";
     document.getElementById("media_input_video").value = "";
+    
+    // Prevent body scrolling
+    document.body.classList.add("no-scroll");
+    
+    // Sync privacy settings
     syncPrivacyToModal();
   }
 }
 
 function closePostModal() {
-  document.getElementById("post_modal")?.classList.add("hidden");
+  const postModal = document.getElementById("post_modal");
+  if (postModal) {
+    postModal.classList.add("hidden");
+    postModal.classList.remove("flex-center");
+    
+    // Restore body scrolling
+    document.body.classList.remove("no-scroll");
+  }
 }
 
 function formatText(command) {
@@ -104,7 +150,7 @@ function scrollToProfile() {
 }
 window.scrollToProfile = scrollToProfile;
 
-function handleCreatePostFileInput(input, isVideo = false) {
+function handleCreatePostFileInput(input, isVideo = false) { //dupliiiii
   const previewContainer = document.getElementById("preview_container");
   previewContainer.innerHTML = "";
   const file = input.files[0];
@@ -263,8 +309,121 @@ function handleFileInput(input, previewElement) {
   reader.readAsDataURL(file);
 }
 
+function initializeMediaUpload() {
+  const triggerImageInput = document.getElementById("trigger_media_image");
+  const triggerVideoInput = document.getElementById("trigger_media_video");
+  const modalImageInput = document.getElementById("media_input");
+  const modalVideoInput = document.getElementById("media_input_video");
+  const previewContainer = document.getElementById("preview_container");
+
+  function handleFilePreview(input, isVideo = false) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      previewContainer.innerHTML = "";
+
+      const media = document.createElement(isVideo ? "video" : "img");
+      if (isVideo) media.controls = true;
+      media.src = e.target.result;
+      media.classList.add("preview-media");
+
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("preview-item");
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "✕";
+      removeBtn.onclick = () => {
+        previewContainer.innerHTML = "";
+        input.value = "";
+      };
+
+      wrapper.appendChild(media);
+      wrapper.appendChild(removeBtn);
+      previewContainer.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Connect trigger inputs to modal inputs
+  if (triggerImageInput && modalImageInput) {
+    triggerImageInput.onchange = () => {
+      const file = triggerImageInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalImageInput.files = dt.files;
+        modalImageInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalImageInput, false);
+      }
+    };
+  }
+
+  if (triggerVideoInput && modalVideoInput) {
+    triggerVideoInput.onchange = () => {
+      const file = triggerVideoInput.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        modalVideoInput.files = dt.files;
+        modalVideoInput.dispatchEvent(new Event("change"));
+        handleFilePreview(modalVideoInput, true);
+      }
+    };
+  }
+
+  // **Add these lines for direct modal input selection**
+  if (modalImageInput) {
+    modalImageInput.onchange = () => handleFilePreview(modalImageInput, false);
+  }
+  if (modalVideoInput) {
+    modalVideoInput.onchange = () => handleFilePreview(modalVideoInput, true);
+  }
+}
+
+// Handle paste events in text editor
+function handlePaste(editor) {
+  editor.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const span = document.createElement("span");
+    span.textContent = pastedText;
+    span.style.whiteSpace = "pre-wrap";
+    
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(span);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+
+// Update formatting button states
+function updateFormattingButtonStates() {
+  const commands = {
+    bold: "B",
+    italic: "I",
+    underline: "U"
+  };
+
+  Object.entries(commands).forEach(([cmd, text]) => {
+    const button = [...document.querySelectorAll(".formatting-options button")]
+      .find(btn => btn.textContent.trim() === text);
+    if (!button) return;
+
+    const isActive = document.queryCommandState(cmd);
+    button.classList.toggle("active", isActive);
+  });
+}
+
 function saveProfileUpdates() {
-  const profileInput = document.getElementById("media_input").files[0];
+  const profileInput = document.getElementById("profile_media_input").files[0];
   const coverInput = document.getElementById("cover_media_input").files[0];
   const bioText = document.getElementById("bio_textarea").value;
 
@@ -283,19 +442,33 @@ function saveProfileUpdates() {
         const bioDisplay = document.querySelector(".bio-section p");
         if (bioDisplay) bioDisplay.innerText = bioText;
 
-        // If backend returned a new profile picture URL, use it
         if (data.profile_picture_url) {
-          const profileImgs = document.querySelectorAll(".profile-img, .profile-img-preview");
-          profileImgs.forEach(img => {
+          document.querySelectorAll(
+            ".profile-img, .profile-img-preview, .modal-profile-pic, .main-create-post .profile-pic"
+          ).forEach(img => {
+            img.src = data.profile_picture_url + "?v=" + Date.now();
+          });
+
+          document.querySelectorAll('.user-post .profile-pic').forEach(img => {
             img.src = data.profile_picture_url + "?v=" + Date.now();
           });
         }
 
-        // If backend returned a new cover photo URL, use it
         if (data.cover_photo_url) {
-          const coverImgs = document.querySelectorAll(".cover-img, .cover-img-preview");
-          coverImgs.forEach(img => {
+          document.querySelectorAll(
+            ".cover-img, .cover-img-preview"
+          ).forEach(img => {
             img.src = data.cover_photo_url + "?v=" + Date.now();
+          });
+        }
+
+        if (data.display_name) {
+          const displayNameElem = document.getElementById("display_name");
+          if (displayNameElem) displayNameElem.textContent = data.display_name;
+        }
+        if (data.username) {
+          document.querySelectorAll(".username").forEach(el => {
+            el.textContent = data.username;
           });
         }
 
@@ -503,121 +676,323 @@ function toggleLike(button, postId) {
 function editPost(button) {
   const post = button.closest('.user-post');
   const postId = post.dataset.postId;
-
   const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('p');
-  const image = contentDiv.querySelector('img');
-  const video = contentDiv.querySelector('video');
+  const paragraph = contentDiv.querySelector('.post-text');
+  const sharedCard = contentDiv.querySelector('.shared-card');
+  const existingImage = contentDiv.querySelector('img:not(.shared-card img)');
+  const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
+  const postActions = post.querySelector('.post-actions');
+  const visibilityIcon = post.querySelector('.visibility-icon');
 
   if (contentDiv.querySelector('.edit-editor')) return;
 
-  const editorDiv = document.createElement('div');
-  editorDiv.className = 'edit-editor';
-  editorDiv.contentEditable = true;
-  editorDiv.innerHTML = paragraph.innerHTML;
+  const editor = createEditor(paragraph?.innerHTML || '');
+  const formatting = createFormatting(editor);
+  const { uploadControls, fileInputImage,
+      fileInputVideo, visibilitySelect } = createUploadControls();
+      console.log("Adding upload controls for post", postId);
+      console.log("Appending to:", contentDiv);
+      console.log("Upload controls added:", uploadControls);
+  const saveBtn = createSaveButton();
+  const cancelBtn = createCancelButton(() => {
+    [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
+    if (paragraph) paragraph.classList.remove('hidden');
+    if (postActions) postActions.classList.remove('hidden');
+  });
 
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*,video/*';
-  fileInput.className = 'edit-media-input';
+  const buttonWrapper = document.createElement('div');
+  buttonWrapper.className = 'edit-button-wrapper';
+  buttonWrapper.append(cancelBtn, saveBtn);
 
-  const saveButton = document.createElement('button');
-  saveButton.innerText = 'Save';
-  saveButton.className = 'save-edit-button';
+  if (paragraph) paragraph.classList.add('hidden');
+  if (postActions) postActions.classList.add('hidden');
 
-  saveButton.onclick = () => {
-    const updatedContent = editorDiv.innerHTML.trim();
+  saveBtn.onclick = () => {
+    const content = editor.innerHTML.trim();
+    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    const hasText = plainText !== '';
+    const hasNewImage = fileInputImage.files.length > 0;
+    const hasNewVideo = fileInputVideo.files.length > 0;
+    const hasExistingMedia = existingImage || existingVideo;
+    const hasShared = !!sharedCard;
 
-    if (!updatedContent || updatedContent === '<br>') {
-      alert('Post content cannot be empty');
+    if (!hasText && !hasNewImage && !hasNewVideo && !hasExistingMedia && !hasShared) {
+      alert('Post must contain text or media.');
+      return;
+    }
+
+    if (hasNewImage && hasNewVideo) {
+      alert('You can only upload one media type.');
       return;
     }
 
     const formData = new FormData();
     formData.append('post_id', postId);
-    formData.append('content', updatedContent);
+    formData.append('content', hasText ? content : '');
+    formData.append('visibility', visibilitySelect.value);
 
-    if (fileInput.files.length > 0) {
-      formData.append('media', fileInput.files[0]);
+    if (hasNewImage) {
+      formData.append('media', fileInputImage.files[0]);
+      formData.append('media_type', 'image');
+    } else if (hasNewVideo) {
+      formData.append('media', fileInputVideo.files[0]);
+      formData.append('media_type', 'video');
     }
 
-    fetch('../php/edit_post.php', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        paragraph.innerHTML = updatedContent;
-        paragraph.classList.remove('hidden');
-
-        if (fileInput.files.length > 0) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            if (video) {
-              video.src = e.target.result;
-            } else if (image) {
-              image.src = e.target.result;
-            } else {
-              const mediaType = fileInput.files[0].type;
-              if (mediaType.startsWith('video')) {
-                const newVideo = document.createElement('video');
-                newVideo.controls = true;
-                newVideo.src = e.target.result;
-                contentDiv.appendChild(newVideo);
-              } else if (mediaType.startsWith('image')) {
-                const newImg = document.createElement('img');
-                newImg.src = e.target.result;
-                newImg.alt = 'Post media';
-                newImg.className = 'preview-image';
-                contentDiv.appendChild(newImg);
-              }
-            }
-          };
-          reader.readAsDataURL(fileInput.files[0]);
+    fetch('../php/edit_post.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          alert(data.error || 'Failed to update post');
+          return;
         }
 
-        editorDiv.remove();
-        fileInput.remove();
-        saveButton.remove();
-      } else {
-        alert(data.error || 'Failed to update post');
-      }
-    })
-    .catch(error => {
-      console.error('Error updating post:', error);
-      alert('Error updating post');
-    });
+        updatePostContent(contentDiv, content, sharedCard, paragraph,
+            fileInputImage, fileInputVideo, existingImage, existingVideo);
+        [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
+        if (postActions) postActions.classList.remove('hidden');
+
+        const iconMap = {
+          public: '../assets/public_icon.png',
+          followers: '../assets/followers_icon.png',
+          private: '../assets/private_icon.png'
+        };
+        if (visibilityIcon) {
+          visibilityIcon.src = iconMap[visibilitySelect.value] || iconMap.public;
+          visibilityIcon.alt = visibilitySelect.value;
+        }
+      })
+      .catch(err => {
+        console.error('Edit error:', err);
+        alert('Error updating post');
+      });
   };
 
-  paragraph.classList.add('hidden');
-  contentDiv.insertBefore(editorDiv, paragraph);
-  contentDiv.insertBefore(fileInput, paragraph);
-  contentDiv.insertBefore(saveButton, paragraph);
+  [editor, formatting, uploadControls, buttonWrapper].reverse().forEach(el => {
+    contentDiv.insertBefore(el, contentDiv.firstChild);
+  });
+}
+
+function createEditor(initialHTML) {
+  const div = document.createElement('div');
+  div.className = 'edit-editor';
+  div.contentEditable = true;
+  div.innerHTML = initialHTML;
+  return div;
+}
+
+function createFormatting(editor) {
+  const container = document.createElement('div');
+  container.className = 'formatting-options';
+  ['bold', 'italic', 'underline'].forEach(cmd => {
+    const btn = document.createElement('button');
+    btn.textContent = cmd[0].toUpperCase();
+    btn.onclick = () => {
+      editor.focus();
+      document.execCommand(cmd, false, null);
+    };
+    container.appendChild(btn);
+  });
+  return container;
+}
+
+function createUploadControls() {
+  const container = document.createElement('div');
+  container.className = 'upload-controls';
+
+  const fileInputImage = document.createElement('input');
+  fileInputImage.type = 'file';
+  fileInputImage.accept = 'image/*';
+  fileInputImage.hidden = true;
+
+  const imageLabel = document.createElement('label');
+  imageLabel.className = 'icon-button';
+  imageLabel.innerHTML = `
+    <img src="../assets/camera_icon.png" alt="Image Icon" />
+    <span>Image</span>
+  `;
+  imageLabel.appendChild(fileInputImage);
+
+  const fileInputVideo = document.createElement('input');
+  fileInputVideo.type = 'file';
+  fileInputVideo.accept = 'video/*';
+  fileInputVideo.hidden = true;
+
+  const videoLabel = document.createElement('label');
+  videoLabel.className = 'icon-button';
+  videoLabel.innerHTML = `
+    <img src="../assets/video_icon.png" alt="Video Icon" />
+    <span>Video</span>
+  `;
+  videoLabel.appendChild(fileInputVideo);
+
+  const visibility = document.createElement('div');
+  visibility.className = 'privacy-select';
+  visibility.innerHTML = `
+    <img class="edit-privacy-icon" src="../assets/public_icon.png" alt="Privacy Icon" />
+    <select class="edit-privacy-select">
+      <option value="public">Public</option>
+      <option value="followers">Followers</option>
+      <option value="private">Private</option>
+    </select>
+  `;
+
+  const visibilitySelect = visibility.querySelector('select');
+  const visibilityIcon = visibility.querySelector('img');
+
+  visibilitySelect.addEventListener('change', () => {
+    const value = visibilitySelect.value;
+    const iconMap = {
+      public: '../assets/public_icon.png',
+      followers: '../assets/followers_icon.png',
+      private: '../assets/private_icon.png'
+    };
+    visibilityIcon.src = iconMap[value] || iconMap.public;
+  });
+
+  const miniPrivacy = document.getElementById('privacy');
+  if (miniPrivacy) {
+    visibilitySelect.value = miniPrivacy.value;
+    const iconMap = {
+      public: '../assets/public_icon.png',
+      followers: '../assets/followers_icon.png',
+      private: '../assets/private_icon.png'
+    };
+    visibilityIcon.src = iconMap[miniPrivacy.value] || iconMap.public;
+  }
+
+  const previewMedia = (file, isVideo) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const media = document.createElement(isVideo ? 'video' : 'img');
+      media.src = e.target.result;
+      media.className = isVideo ? 'preview-video' : 'preview-image';
+      if (isVideo) media.controls = true;
+
+      const existing = container.querySelector('.preview-image, .preview-video');
+      if (existing) existing.remove();
+
+      container.appendChild(media);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  fileInputImage.addEventListener('change', () => {
+    if (fileInputImage.files.length > 0) {
+      fileInputVideo.value = '';
+      previewMedia(fileInputImage.files[0], false);
+    }
+  });
+
+  fileInputVideo.addEventListener('change', () => {
+    if (fileInputVideo.files.length > 0) {
+      fileInputImage.value = '';
+      previewMedia(fileInputVideo.files[0], true);
+    }
+  });
+
+  container.append(imageLabel, videoLabel, visibility);
+  return {
+    uploadControls: container,
+    fileInputImage,
+    fileInputVideo,
+    visibilitySelect
+  };
+}
+
+function createSaveButton() {
+  const btn = document.createElement('button');
+  btn.className = 'save-edit-button';
+  btn.textContent = 'Save';
+  return btn;
+}
+
+function createCancelButton(onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'cancel-edit-button';
+  btn.textContent = 'Cancel';
+  btn.onclick = onClick;
+  return btn;
+}
+
+function updatePostContent(container, newContent, sharedCard, paragraph,
+    fileInputImage, fileInputVideo, oldImg, oldVid) {
+  const hasText = newContent.replace(/<[^>]*>/g, '').trim() !== '';
+
+  if (paragraph) {
+    if (hasText) {
+      paragraph.innerHTML = newContent;
+      paragraph.classList.remove('hidden');
+    } else {
+      paragraph.remove();
+    }
+  } else if (hasText) {
+    const newText = document.createElement('div');
+    newText.className = 'post-text';
+    newText.innerHTML = newContent;
+    if (sharedCard) {
+      container.insertBefore(newText, sharedCard);
+    } else {
+      container.insertBefore(newText, container.firstChild);
+    }
+  }
+
+  const file = fileInputImage.files[0] || fileInputVideo.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const isVideo = file.type.startsWith('video');
+    const media = document.createElement(isVideo ? 'video' : 'img');
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+    media.className = isVideo ? 'preview-video' : 'preview-image';
+
+    if (oldImg) oldImg.remove();
+    if (oldVid) oldVid.remove();
+
+    if (sharedCard) {
+      container.insertBefore(media, sharedCard);
+    } else {
+      container.appendChild(media);
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 function deletePost(button) {
-  const post = button.closest('.user-post');
-  const postId = post.dataset.postId;
+  postToDelete = button.closest('.user-post');
+  document.getElementById('delete_post_modal').classList.remove('hidden');
+  document.body.classList.add('no-scroll');
+}
 
-  if (confirm('Are you sure you want to delete this post?')) {
-    fetch('../php/delete_post.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        post.remove();
-      } else {
-        alert(data.error || 'Failed to delete post');
-      }
-    })
-    .catch(error => {
-      console.error('Error deleting post:', error);
-    });
-  }
+function closeDeletePostModal() {
+  document.getElementById('delete_post_modal').classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+  const postId = postToDelete.dataset.postId;
+  fetch('../php/delete_post.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      postToDelete.remove();
+      closeDeletePostModal();
+    } else {
+      alert(data.error || 'Failed to delete post');
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting post:', error);
+    alert('Error deleting post');
+  });
 }
 
 function toggleShareModal(postElement) {
@@ -783,7 +1158,7 @@ function formatTime(timestamp) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return date.toLocaleDateString();
-}
+}   
 
 document.addEventListener('click', function (e) {
   const panel = document.getElementById("notification_panel");
