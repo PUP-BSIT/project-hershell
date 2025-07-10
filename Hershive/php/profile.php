@@ -141,23 +141,23 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <p><?php echo $bio; ?></p>
         </div>
 
-        <div class="profile-stats">
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">
-            <strong id="postCount">0</strong>
-            <p>Posts</p>
-          </div>
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">
-            <strong id="followerCount">0</strong>
-            <p>Followers</p>
-          </div>
-          <div onclick="window.location.href=
-              '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">
-            <strong id="followingCount">0</strong>
-            <p>Following</p>
-          </div>
-        </div>
+        <!--<div class="profile-stats">-->
+        <!--  <div onclick="window.location.href=-->
+        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=post#tabs'">-->
+        <!--    <strong id="postCount">0</strong>-->
+        <!--    <p>Posts</p>-->
+        <!--  </div>-->
+        <!--  <div onclick="window.location.href=-->
+        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=followers#tabs'">-->
+        <!--    <strong id="followerCount">0</strong>-->
+        <!--    <p>Followers</p>-->
+        <!--  </div>-->
+        <!--  <div onclick="window.location.href=-->
+        <!--      '../php/profile.php?user_id=<?php echo $userId; ?>&tab=following#tabs'">-->
+        <!--    <strong id="followingCount">0</strong>-->
+        <!--    <p>Following</p>-->
+        <!--  </div>-->
+        <!--</div>-->
       </div>
 
     <div class="post-divider"></div>
@@ -290,37 +290,38 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <div class="share-modal">
             <div class="share-modal-header">
               <h3>Share Post</h3>
-              <button class="close-btn"
-                  onclick="closeShareModal()">&times;</button>
+              <button class="close-btn" onclick="closeShareModal()">&times;</button>
             </div>
-
+        
             <textarea id="share_message" class="share-textarea"
-                placeholder="Say something about this...">
-            </textarea>
-
-            <div class="shared-post-preview" id="shared_post_preview">
-            </div>
-
-            <input type="hidden" id="shared_post_id">
-
-            <button class="submit-share-btn"
-                onclick="submitShare()">Share</button>
-
-            <div class="share-icons">
-              <a href="#" title="DevhiveSpace"
-                ><img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/></a>
-              <a href="#" title="Heybleepi"
-                ><img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/></a>
-            </div>
-
+                placeholder="Say something about this..."></textarea>
+        
+            <div class="shared-post-preview" id="shared_post_preview"></div>
+        
+            <button class="submit-share-btn" onclick="submitShare()">Share</button>
+        
+            <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+              <p><strong>Share To:</strong></p>
+              <input type="hidden" name="shared_post_id" id="shared_post_id">
+              <div class="share-icons">
+                <button type="submit" name="share_to" value="devhive" id="share_to">
+                  <img src="../assets/devhive_logo.jpg" alt="devhive"/>
+                </button>
+                <button type="submit" name="share_to" value="heybleepi"
+                        id="share_to" title="Share to heybleepi">
+                  <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+                </button>
+              </div>
+            </form>
+        
             <div class="share-link-section">
-              <label>Page link</label>
+              <p><strong>Page link</strong></p>
               <div class="link-box">
                 <input
                   type="text"
                   id="share_link"
                   readonly>
-                <button id="copy_link" onclick="copyLink(this)">
+                <button id="copy_link" onclick="copyLink(this)" title="Copy link">
                   <img src="../assets/copy_icon.png" alt="Copy"/>
                 </button>
               </div>
