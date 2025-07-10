@@ -735,6 +735,14 @@ body {
   box-shadow: 0 0 0 4px rgba(185, 141, 91, 0.2);
 }
 
+.shared-card {
+  border: 1px solid #8b6A47;
+  background-color: #f0e8dd;
+  border-left: 4px solid #8b6A47;
+  padding: 10px;
+  border-radius: 10px;
+}
+
 /* --- Create Post Box & Modal --- */
 .create-post {
   border-radius: 20px;
