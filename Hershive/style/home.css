@@ -3593,3 +3593,9 @@ body.modal-open {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   margin-top: 170px;
 }
+
+#post_count:hover,
+#following_count:hover,
+#follower_count:hover {
+  color: #333;
+}

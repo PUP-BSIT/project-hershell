@@ -34,6 +34,19 @@ function checkUserSession(callback) {
         currentUserId = data.user_id;
         currentUserProfilePic = data.profile_picture_url || '../assets/temporary_pfp.png';
 
+        fetch('../php/get_user_stats.php')
+          .then((res) => res.json())
+          .then((stats) => {
+            if (!stats.error) {
+              document.getElementById('post_count').textContent = stats.posts;
+              document.getElementById('follower_count').textContent = stats.followers;
+              document.getElementById('following_count').textContent = stats.following;
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load user stats:", err);
+          });
+
         const inputAvatar = document.querySelector('.comment-input-avatar');
         if (inputAvatar) {
           inputAvatar.src = currentUserProfilePic;
@@ -124,6 +137,20 @@ function checkUserSession(callback) {
     });
 }
 
+function updatePostCount() {
+  const postCountElement = document.getElementById("post_count");
+  const allPosts = document.querySelectorAll(".sample-post");
+
+  if (postCountElement && allPosts) {
+    const userPosts = Array.from(allPosts).filter(post => {
+      const username = post.querySelector(".username")?.textContent?.trim();
+      return username === currentUser;
+    });
+
+    postCountElement.textContent = userPosts.length;
+  }
+}
+
 function loadPosts() {
   const urlParams = new URLSearchParams(window.location.search);
   const search = urlParams.get('search') || '';
@@ -156,10 +183,11 @@ function displayPosts(posts) {
   existingPosts.forEach(post => post.remove());
 
   posts.forEach(post => {
-    console.log('post.source_platform =', post.source_platform, 'post:', post);
     const postElement = createPostElement(post);
     leftContent.appendChild(postElement);
   });
+
+  updatePostCount();
 
   setTimeout(() => {
     initializeFollowStatus();
@@ -854,40 +882,6 @@ function confirmDeletePost() {
   if (!postToDelete) return;
 
   const postId = postToDelete.dataset.postId;
-  if (!postId) {
-    alert("Post ID missing.");
-    return;
-  }
-
-  fetch("../php/delete_post.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ post_id: postId }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (!data.success) throw new Error(data.error || "Failed to delete post.");
-      postToDelete.remove();
-    })
-    .catch((err) => {
-      console.error("Delete post error:", err.message);
-      alert("There was a problem deleting the post.");
-    })
-    .finally(() => {
-      closeDeletePostModal();
-    });
-}
-
-function closeDeletePostModal() {
-  const modal = document.getElementById('delete_post_modal');
-  if (modal) modal.classList.add('hidden');
-  postToDelete = null;
-}
-
-function confirmDeletePost() {
-  if (!postToDelete) return;
-
-  const postId = postToDelete.dataset.postId;
 
   fetch('../php/delete_post.php', {
     method: 'POST',
@@ -898,6 +892,7 @@ function confirmDeletePost() {
     .then(data => {
       if (data.success) {
         postToDelete.remove();
+        updatePostCount();
       } else {
         alert(data.error || 'Failed to delete post');
       }
@@ -2366,23 +2361,6 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Href:', this.href);
     });
   }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    fetch('../php/get_user_stats.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                return;
-            }
-            document.getElementById('post_count').textContent = data.posts;
-            document.getElementById('follower_count').textContent = data.followers;
-            document.getElementById('following_count').textContent = data.following;
-        })
-        .catch(error => {
-            console.error("Failed to load user stats:", error);
-        });
 });
 
 document.getElementById("search_input").addEventListener("keydown", function (e) {
