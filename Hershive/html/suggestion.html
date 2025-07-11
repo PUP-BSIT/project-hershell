@@ -68,7 +68,287 @@
       </div>
     </div>
 
+    <div id="error_popup" class="error-popup hidden"></div>
+
     <div class="main-container">
+      <div class="sample-post hidden" data-post-id="POST_ID_HERE">
+        <div class="post-header">
+          <div class="post-header-left">
+            <img
+              src="../assets/temporary_pfp.png"
+              alt="user profile"
+              class="profile-pic"/>
+
+            <div class="post-info">
+              <span class="username">Jane Dee</span>
+              <span class="timestamp">May 20 at 6:00PM</span>
+            </div>
+          </div>
+          <div class="more-option">
+            <img
+              src="../assets/more_icon.png"
+              alt="more"
+              onclick="toggleDropdown(this)"/>
+            <div class="dropdown-menu">
+              <button onclick="editPost(this)">Edit</button>
+              <button onclick="deletePost(this)">Delete</button>
+              <button onclick="cancelDropdown(this)">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="post-content">
+          <div class="content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <img src="../assets/sample-post.png" alt="post image"/>
+          </div>
+
+          <div class="post-actions">
+            <div class="comment-modal hidden" id="comment-list">
+              <div class="modal-content">
+                <span class="close-comment-modal">×</span>
+                <h3>Comments</h3>
+                <div class="comment-list"></div>
+                <div class="comment-input">
+                  <input type="text" placeholder="Write a comment..."/>
+                  <button class="send-comment" onclick="submitComment(this)">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-button">
+              <button class="like-btn" onclick="toggleLike(this)">
+                <img
+                  src="../assets/heart_icon.png"
+                  class="heart-icon outline"/>
+                <img
+                  src="../assets/red_heart_icon.png"
+                  class="heart-icon filled hidden"/>
+              </button>
+              <span class="like-count"></span>
+            </div>
+
+            <div class="action-button">
+              <button
+                class="comment-btn"
+                onclick="toggleCommentModal(this.closest('.sample-post'))">
+                <img src="../assets/comment_icon.png" alt="Comment"/>
+              </button>
+              <span class="comment-count"></span>
+            </div>
+
+            <div class="action-button">
+              <button class="share-btn" onclick="toggleShareModal()">
+                <img src="../assets/share_icon.png" alt="Share" >
+              </button>
+              <span class="share-count"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="edit_post_modal">
+        <div class="create-post-modal">
+          <div class="modal-header">
+            <h2>Edit Post</h2>
+            <button class="close-button" onclick="closeEditPostModal()">
+              ×
+            </button>
+          </div>
+
+          <div class="user-info-box">
+            <img src="../assets/temporary_pfp.png"
+                class="modal-profile-pic"
+                id="edit_modal_profile_pic">
+            <span class="username" id="edit_modal_username">
+              Loading...
+            </span>
+          </div>
+
+          <div class="text-editor" 
+              id="edit_editor" 
+              contenteditable="true">
+          </div>
+
+          <div class="preview" id="edit_preview_container"></div>
+
+          <div class="edit-formatting-options">
+            <button onclick="formatTextEditor('bold', 'edit_editor')" 
+                    id="edit-bold-btn">B
+            </button>
+            <button onclick="formatTextEditor('italic', 'edit_editor')" 
+                    id="edit-italic-btn">I
+            </button>
+            <button onclick="formatTextEditor('underline', 'edit_editor')" 
+                    id="edit-underline-btn">U
+            </button>
+          </div>
+
+          <div class="upload-controls">
+            <label class="icon-button">
+              <img src="../assets/camera_icon.png" />
+              <input type="file" 
+                    id="edit_media_input" 
+                    accept="image/*" 
+                    hidden />
+              <span>Image</span>
+            </label>
+
+            <label class="icon-button">
+              <img src="../assets/video_icon.png" />
+              <input type="file" 
+                    id="edit_media_input_video" 
+                    accept="video/*" 
+                    hidden />
+              <span>Video</span>
+            </label>
+
+            <div class="privacy-select">
+              <img id="edit_modal_privacy_icon" 
+                  src="../assets/public_icon.png" />
+              <select id="edit_privacy_setting">
+                <option value="public">Public</option>
+                <option value="followers">Followers</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="submit-button" onclick="submitEditedPost()">
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" 
+          id="unsaved_changes_modal" 
+          onclick="event.stopPropagation()">
+        <div class="edit-post-modal" onclick="event.stopPropagation()">
+          <div class="custom-modal-header">
+            <h3>Unsaved Changes</h3>
+          </div>
+
+          <div class="custom-content-area">
+            <p>Changes you made will not be saved.</p>
+            <div class="button-holder">
+              <button class="comment-cancel-btn" onclick="keepEditing()">
+                Keep Editing
+              </button>
+              <button class="confirm-button" onclick="discardChanges()">
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="delete-post-modal-overlay hidden" id="delete_post_modal"
+            onclick="closeDeletePostModal()">
+        <div class="delete-post-modal" onclick="event.stopPropagation()">
+          <div class="delete-post-modal-header">
+            <h3>Delete Post</h3>
+          </div>
+          <div class="delete-post-modal-content">
+            <p>Are you sure you want to permanently remove this post?</p>
+            <div class="delete-post-button-holder">
+              <button class="delete-post-cancel-btn"
+                    onclick="closeDeletePostModal()">Cancel</button>
+              <button class="delete-post-confirm-btn"
+                    onclick="confirmDeletePost()">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comment-modal-overlay" id="commentModalOverlay">
+        <div class="comment-modal" id="commentModal">
+          <div class="comment-modal-header">
+            <h3 id="preview_header">Comments</h3>
+            <button class="close-comment-modal" onclick="closeCommentModal()">×</button>
+          </div>
+          <div class="comment-modal-scrollable" id="commentModalScrollable">
+            <div class="scroll-wrapper">
+              <div class="comment-post-preview" id="commentPostPreview"></div>
+              <div class="comment-list-container" id="commentListContainer"></div>
+            </div>
+          </div>
+          <div class="comment-input-container">
+            <img src="../assets/temporary_pfp.png" alt="Your Avatar"
+                class="comment-input-avatar" />
+            <div class="comment-input-wrapper">
+              <input type="text" class="comment-input"
+                    placeholder="Write a comment..." id="commentInput" />
+              <button class="send-comment-btn" onclick="submitComment()">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-overlay hidden" id="delete_comment_modal">
+        <div class="custom-modal">
+          <div class="custom-modal-header">
+            <h3>Delete Comment</h3>
+          </div>
+          <div class="custom-content-area">
+            <p>Are you sure you want to permanently remove this comment?</p>
+            <div class="button-holder">
+              <button class="comment-cancel-btn" onclick="closeMyNewModal()">Cancel</button>
+              <button class="confirm-button" onclick="confirmMyAction()">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="share_modal">
+        <div class="share-modal">
+          <div class="share-modal-header">
+            <h3>Share Post</h3>
+            <button class="close-btn" onclick="closeShareModal()">&times;</button>
+          </div>
+
+          <textarea id="share_message" class="share-textarea"
+              placeholder="Say something about this..."></textarea>
+
+          <div class="shared-post-preview" id="shared_post_preview">
+          </div>
+
+          <button class="submit-share-btn" onclick="submitShare()">Share</button>
+
+          <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+            <p><strong>Share To:</strong></p>
+            <input type="hidden" name="shared_post_id" id="shared_post_id">
+            <div class="share-icons">
+              <button type="submit" name="share_to" value="devhive" id="share_to"
+                ><img src="../assets/devhive_logo.jpg" alt="devhive"/>
+              </button>
+              <button type="submit" name="share_to" value="heybleepi"
+                      id="share_to" title="Share to heybleepi">
+                <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+              </button>
+            </div>
+          </form>
+
+          <div class="share-link-section">
+            <p><strong>Page link</strong></p>
+            <div class="link-box">
+              <input
+                type="text"
+                id="share_link"
+                readonly>
+              <button id="copy_link" onclick="copyLink(this)" title="Copy link">
+                <img src="../assets/copy_icon.png" alt="Copy"/>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="left-contents">
         <h2>Suggestions For You</h2>
         <div id="suggested_users_container">
