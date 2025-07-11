@@ -174,10 +174,13 @@ function createPostElement(post, forModal = false) {
     <div class="post-header">
       <div class="post-header-left">
         <img src="${profilePicUrl}" alt="user profile"
-             class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'">
-        <div class="post-info">
-          <div class="username-container">
-            <span class="username">${post.sharer_username || post.username}</span>
+          class="profile-pic" onerror="this.src='../assets/temporary_pfp.png'"
+          onclick="redirectToUserProfile('${post.sharer_id || post.user_id}')">
+      <div class="post-info">
+        <div class="username-container">
+          <span class="username" onclick="redirectToUserProfile('${post.sharer_id || post.user_id}')">
+            ${post.sharer_username || post.username}
+          </span>
             ${!isOwner ? `
               <button class="post-follow-btn" onclick="togglePostFollow(this,
                   '${post.sharer_username || post.username}')">
