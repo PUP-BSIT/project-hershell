@@ -455,120 +455,131 @@ function submitPost() {
 
 function submitEditedPost() {
   const modal = document.getElementById("edit_post_modal");
+  if (!modal) return;
+
   const postId = modal.dataset.postId;
-  const content = document.getElementById("edit_editor").innerHTML.trim();
+  const content = document.getElementById("edit_editor")?.innerHTML.trim() || "";
   const imageInput = document.getElementById("edit_media_input");
   const videoInput = document.getElementById("edit_media_input_video");
-  const privacy = document.getElementById("edit_privacy_setting").value;
+  const privacy = document.getElementById("edit_privacy_setting")?.value || "public";
+
+  if (!postId || !content) {
+    alert("Missing post ID or content.");
+    return;
+  }
+
+  const imageFile = imageInput?.files[0];
+  const videoFile = videoInput?.files[0];
+
+  if (imageFile && videoFile) {
+    alert("Only one media type (image or video) can be uploaded.");
+    return;
+  }
 
   const formData = new FormData();
   formData.append("post_id", postId);
   formData.append("content", content);
   formData.append("visibility", privacy);
 
-  if (imageInput.files.length > 0 && videoInput.files.length > 0) {
-    alert("Only one media type (image or video) is allowed.");
-    return;
-  }
-
-  if (imageInput.files.length > 0) {
-    formData.append("media", imageInput.files[0]);
-  } else if (videoInput.files.length > 0) {
-    formData.append("media", videoInput.files[0]);
+  if (imageFile) {
+    formData.append("media", imageFile);
+    formData.append("media_type", "image");
+  } else if (videoFile) {
+    formData.append("media", videoFile);
+    formData.append("media_type", "video");
   }
 
   fetch("../php/edit_post.php", {
     method: "POST",
     body: formData,
   })
-    .then(res => {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) throw new Error(data.error || "Failed to update post.");
+      resetEditPostModal();
+      loadPosts();
     })
-    .then(data => {
-      console.log("Server response:", data);
-      if (data.success) {
-        resetEditPostModal();
-        loadPosts();
-      } else {
-        alert((data.error || "Failed to update post"));
-      }
-    })
-    .catch(err => {
-      console.error("Edit post failed:", err);
-      alert("Network or server error while updating post.");
+    .catch((err) => {
+      console.error("Error updating post:", err.message);
+      alert("There was a problem saving your changes.");
     });
 }
 
-
 function editPost(button) {
+  const post = button.closest(".sample-post");
+  if (!post) return console.warn("Edit post failed: No post element found.");
 
-  const post = button.closest('.sample-post');
   const postId = post.dataset.postId;
-  const contentDiv = post.querySelector('.content');
-  const paragraph = contentDiv.querySelector('.post-text');
-  const sharedCard = contentDiv.querySelector('.shared-card');
-  const existingImage = contentDiv.querySelector('img:not(.shared-card img)');
-  const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
-  const visibilityIcon = post.querySelector('.visibility-icon');
+  if (!postId) return console.warn("Post ID missing.");
 
   const modal = document.getElementById("edit_post_modal");
-  console.log("Modal found?", !!modal);
+  const editor = document.getElementById("edit_editor");
+  const privacySelect = document.getElementById("edit_privacy_setting");
+  const preview = document.getElementById("edit_preview_container");
+  const visibilityIcon = post.querySelector(".visibility-icon");
+  const paragraph = post.querySelector(".post-text");
+  const image = post.querySelector("img.preview-image");
+  const video = post.querySelector("video.preview-video");
+  const sharedCard = post.querySelector(".shared-card");
 
-  if (!modal) {
-    alert("Edit modal is missing in the HTML!");
-    return;
-  }
   modal.classList.remove("hidden");
   modal.classList.add("flex-center");
   document.body.classList.add("no-scroll");
 
-  document.getElementById("edit_editor").innerHTML = paragraph?.innerHTML || '';
-  document.getElementById("edit_privacy_setting").value = visibilityIcon?.alt || 'public';
+  editor.innerHTML = paragraph?.innerHTML || "";
 
-  updatePrivacyIcons(document.getElementById("edit_privacy_setting").value);
+  const newPrivacyValue = visibilityIcon?.alt || "public";
+  privacySelect.value = newPrivacyValue;
+
+  const iconMap = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png"
+  };
+  const editIcon = document.getElementById("edit_modal_privacy_icon");
+  if (editIcon) {
+    editIcon.src = iconMap[newPrivacyValue] || "../assets/public_icon.png";
+  }
 
   modal.dataset.postId = postId;
-  modal.dataset.originalText = paragraph?.innerHTML || '';
-  modal.dataset.mediaType = existingImage ? 'image' : existingVideo ? 'video' : '';
-  modal.dataset.shared = !!sharedCard;
+  modal.dataset.originalText = editor.innerHTML;
+  modal.dataset.shared = Boolean(sharedCard);
+  modal.dataset.mediaType = image ? "image" : video ? "video" : "";
 
-  const preview = document.getElementById("edit_preview_container");
-  preview.innerHTML = '';
-  if (existingImage) {
-    preview.appendChild(existingImage.cloneNode(true));
-  } else if (existingVideo) {
-    preview.appendChild(existingVideo.cloneNode(true));
+  preview.innerHTML = "";
+  const mediaToClone = image || video;
+  if (mediaToClone) {
+    preview.appendChild(mediaToClone.cloneNode(true));
   }
 }
 
 function closeEditPostModal() {
   const modal = document.getElementById("edit_post_modal");
-  const previewContainer = document.getElementById("edit_preview_container");
   const editor = document.getElementById("edit_editor");
+  const previewContainer = document.getElementById("edit_preview_container");
   const imageInput = document.getElementById("edit_media_input");
   const videoInput = document.getElementById("edit_media_input_video");
 
-  if (!modal || !editor || !previewContainer || !imageInput || !videoInput) return;
+  if (!modal || !editor || !previewContainer || !imageInput || !videoInput) {
+    console.warn("Close modal aborted: Missing DOM elements.");
+    return;
+  }
 
-  const originalText = modal.dataset.originalText?.trim() || '';
+  const originalText = modal.dataset.originalText?.trim() || "";
   const editorContent = editor.innerHTML.trim();
+  const mediaChanged = imageInput.files.length > 0 || videoInput.files.length > 0;
 
-  const hasEditorChanged = editorContent !== originalText;
+  const wasMediaPresent = modal.dataset.mediaType !== "";
+  const previewRemoved = wasMediaPresent && previewContainer.children.length === 0;
+  const contentChanged = editorContent !== originalText;
 
-  const hasImage = imageInput.files.length > 0;
-  const hasVideo = videoInput.files.length > 0;
+  const unsavedChanges = contentChanged || mediaChanged || previewRemoved;
 
-  const originalHadMedia = modal.dataset.mediaType !== "";
-  const previewCleared = originalHadMedia && previewContainer.children.length === 0;
-
-  const hasUnsavedChanges = hasEditorChanged || hasImage || hasVideo || previewCleared;
-
-  if (hasUnsavedChanges) {
+  if (unsavedChanges) {
     const warningModal = document.getElementById("unsaved_changes_modal");
     if (warningModal) {
-      warningModal.style.display = "flex";
       warningModal.classList.remove("hidden");
+      warningModal.style.display = "flex";
     }
     document.body.classList.add("no-scroll");
   } else {
@@ -585,14 +596,36 @@ function hideUnsavedChangesModal() {
 
 function resetEditPostModal() {
   const modal = document.getElementById("edit_post_modal");
+  if (!modal) return;
+
+  const fields = {
+    editor: document.getElementById("edit_editor"),
+    preview: document.getElementById("edit_preview_container"),
+    imageInput: document.getElementById("edit_media_input"),
+    videoInput: document.getElementById("edit_media_input_video")
+  };
+
+  const missing = Object.entries(fields).filter(([_, el]) => !el).map(([key]) => key);
+  if (missing.length) {
+    console.warn(`resetEditPostModal: Missing fields - ${missing.join(", ")}`);
+    return;
+  }
+
+  fields.editor.innerHTML = "";
+  fields.preview.innerHTML = "";
+  fields.imageInput.value = "";
+  fields.videoInput.value = "";
+
   modal.classList.add("hidden");
   modal.classList.remove("flex-center");
   document.body.classList.remove("no-scroll");
 
-  document.getElementById("edit_editor").innerHTML = '';
-  document.getElementById("edit_preview_container").innerHTML = '';
-  document.getElementById("edit_media_input").value = '';
-  document.getElementById("edit_media_input_video").value = '';
+  delete modal.dataset.postId;
+  delete modal.dataset.originalText;
+  delete modal.dataset.mediaType;
+  delete modal.dataset.shared;
+
+  console.log("Edit modal has been fully reset.");
 }
 
 function discardChanges() {
@@ -744,22 +777,24 @@ function confirmDeletePost() {
   if (!postToDelete) return;
 
   const postId = postToDelete.dataset.postId;
+  if (!postId) {
+    alert("Post ID missing.");
+    return;
+  }
 
-  fetch('../php/delete_post.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ post_id: postId })
+  fetch("../php/delete_post.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ post_id: postId }),
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        postToDelete.remove();
-      } else {
-        alert(data.error || 'Failed to delete post');
-      }
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) throw new Error(data.error || "Failed to delete post.");
+      postToDelete.remove();
     })
-    .catch(error => {
-      console.error('Error deleting post:', error);
+    .catch((err) => {
+      console.error("Delete post error:", err.message);
+      alert("There was a problem deleting the post.");
     })
     .finally(() => {
       closeDeletePostModal();
@@ -936,8 +971,6 @@ function resetEditPostModal() {
   document.getElementById("edit_media_input_video").value = '';
 }
 
-
-
 window.addEventListener("click", function (e) {
   const postModal = document.getElementById("post_modal");
   const shareModal = document.getElementById("share_modal");
@@ -950,7 +983,6 @@ window.addEventListener("click", function (e) {
     hideLogout();
   }
 });
-
 
 function cancelDropdown(button) {
   const parent = button.closest(".more-option");
