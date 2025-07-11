@@ -162,6 +162,7 @@ function handlePasswordUpdate($conn, $user_id, $data) {
         exit;
     }
 
+    // Fetch current hashed password
     $stmt = $conn->prepare(
         "SELECT `password` FROM `user` 
          WHERE `user_id` = ? AND `deleted_account` = 0"
@@ -171,6 +172,7 @@ function handlePasswordUpdate($conn, $user_id, $data) {
     $user = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
+    // Validate current password
     if (!$user || !password_verify($currentPassword, $user['password'])) {
         echo json_encode([
             'status' => 'error',
@@ -179,6 +181,16 @@ function handlePasswordUpdate($conn, $user_id, $data) {
         exit;
     }
 
+    //prevent reusing the same password
+    if (password_verify($newPassword, $user['password'])) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'New password must be different from your current password.'
+        ]);
+        exit;
+    }
+
+    // Hash and update new password
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
     $stmt = $conn->prepare(
         "UPDATE `user` SET `password` = ?, `updated_at` = NOW() 
@@ -630,6 +642,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             <div id="password" class="hidden settings-panel">
                 <form id="password_form" onsubmit="updatePassword(event)">
+                    <div id="settings_reuse_warning" class="password-warning-top hidden">
+                      New password must be different from your current password.
+                    </div>
+                    
                     <div class="form-group">
                         <label>Current Password</label>
                         <div class="password-input-wrapper">
@@ -753,7 +769,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 </html>
 <?php
 }
-
 if (isset($conn)) {
     $conn->close();
 }
