@@ -1,4 +1,8 @@
 let followStatusCache = {};
+let currentPostIdForComments = null;
+let commentToDeleteId = null;
+let isCommentModalActive = false;
+let isEditingComment = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   loadProfilePosts();
@@ -2043,3 +2047,569 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// Comment functionality
+function toggleCommentModal(postElement) {
+  const overlayEl = document.getElementById('commentModalOverlay');
+  const previewEl = document.getElementById('commentPostPreview');
+  const inputEl = document.getElementById('commentInput');
+  const commentListEl = document.getElementById('commentListContainer');
+
+  if (!overlayEl || !previewEl || !inputEl || !commentListEl) {
+    console.warn('Modal elements missing:', {
+      overlay: overlayEl,
+      preview: previewEl,
+      commentInput: inputEl,
+      commentListContainer: commentListEl
+    });
+    return;
+  }
+
+  currentPostIdForComments = postElement.dataset.postId;
+  previewEl.innerHTML = '';
+
+  isCommentModalActive = true;
+
+  const profilePic = postElement.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
+  const username = postElement.querySelector('.post-info .username')?.textContent || 'User';
+  const timestamp = postElement.querySelector('.timestamp')?.firstChild?.textContent?.trim() || '';
+
+  const contentEl = postElement.querySelector('.post-content');
+  const visibilityIconEl = postElement.querySelector('.visibility-icon');
+  const sharedIndicatorEl = postElement.querySelector('.external-share-indicator');
+
+  const visibilityCopy = visibilityIconEl ? visibilityIconEl.cloneNode(true) : null;
+  const sharedCopy = sharedIndicatorEl ? sharedIndicatorEl.cloneNode(true) : null;
+
+  const isNotSelf = username !== currentUser;
+  const isFollowing = followStatusCache[username];
+  const followBtnHTML = isNotSelf ? `
+    <button class="post-follow-btn ${isFollowing ? 'following' : ''}"
+            onclick="togglePostFollow(this, '${username}')">
+      ${isFollowing ? 'Following' : 'Follow'}
+    </button>` : '';
+
+  previewEl.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div class="comment-post-header">
+        <img src="${profilePic}" alt="${username}" class="comment-preview-avatar" />
+        <div class="post-info">
+          <div class="username-container">
+            <span class="username">${username}</span>
+            ${followBtnHTML}
+          </div>
+          <span class="timestamp">
+            ${timestamp}
+            ${visibilityCopy ? visibilityCopy.outerHTML : ''}
+            ${sharedCopy ? sharedCopy.outerHTML : ''}
+          </span>   
+        </div>
+      </div>
+    `
+  );
+
+  const clonedContent = contentEl?.cloneNode(true);
+  clonedContent?.querySelector('.post-actions')?.remove();
+
+  if (clonedContent) {
+    previewEl.appendChild(clonedContent);
+    previewEl.querySelectorAll('img').forEach(img => {
+      img.classList.add('preview-image');
+    });
+    previewEl.querySelectorAll('video').forEach(video => {
+      video.classList.add('preview-video');
+    });
+  }
+
+  previewEl.scrollTop = 0;
+  const scrollable = document.getElementById('commentModalScrollable');
+  if (scrollable) scrollable.scrollTop = 0;
+
+  overlayEl.classList.add('active');
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
+
+  loadComments(currentPostIdForComments, commentListEl);
+  setTimeout(() => inputEl.focus(), 300);
+
+  if (window.commentPollingInterval) clearInterval(window.commentPollingInterval);
+  window.commentPollingInterval = setInterval(() => {
+    if (!isEditingComment) {
+      loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+    }
+  }, 5000);
+}
+
+function closeCommentModal() {
+  const overlay = document.getElementById('commentModalOverlay');
+  if (overlay) overlay.classList.remove('active');
+
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+
+  const commentInput = document.getElementById('commentInput');
+  if (commentInput) commentInput.value = '';
+
+  isCommentModalActive = false;
+
+  updateCommentTimes();
+
+  if (window.commentPollingInterval) {
+    clearInterval(window.commentPollingInterval);
+    window.commentPollingInterval = null;
+  }
+}
+
+function loadComments(postId, commentListContainer) {
+  fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        displayComments(data.comments, commentListContainer);
+        updateCommentCount(postId);
+
+        if (!isEditingComment && !isCommentModalActive) {
+          updateCommentTimes();
+        }
+      } else {
+        console.error(data.error);
+      }
+    })
+    .catch(error => {
+      console.error("Error loading comments:", error);
+    });
+}
+
+function displayComments(comments, container) {
+  container.innerHTML = '';
+
+  if (!comments || comments.length === 0) {
+    container.innerHTML = `<p class="no-comments-text">No comments yet.</p>`;
+    return;
+  }
+
+  comments.forEach(c => {
+    const entry = document.createElement('div');
+    entry.className = 'comment-entry';
+    entry.dataset.id = c.comment_id;
+
+    const avatar = document.createElement('img');
+    avatar.className = 'comment-avatar';
+    avatar.src = c.profile_picture_url || '../assets/temporary_pfp.png';
+    avatar.alt = 'Avatar';
+    avatar.onclick = () => {
+      window.location.href = `../php/profile.php?user_id=${c.user_id}`;
+    };
+
+    const bubble = document.createElement('div');
+    bubble.className = 'comment-bubble';
+
+    const header = document.createElement('div');
+    header.className = 'comment-header';
+
+    const metaLine = document.createElement('div');
+    metaLine.className = 'comment-meta-inline';
+
+    const name = document.createElement('a');
+    name.className = 'comment-username-link';
+    name.href = `../php/profile.php?user_id=${c.user_id}`;
+    name.textContent = c.username;
+
+    const ts = document.createElement('span');
+    ts.className = 'comment-timestamp';
+    ts.dataset.timestamp = c.timestamp;
+    ts.textContent = formatTime(c.timestamp);
+
+    const isNotSelf = String(c.user_id) !== String(currentUserId);
+    const isFollowing = followStatusCache[c.username];
+
+    metaLine.appendChild(name);
+    metaLine.appendChild(ts);
+
+    if (isNotSelf) {
+      const followBtn = document.createElement('button');
+      followBtn.className = `comment-follow-btn ${isFollowing ? 'following' : ''}`;
+      followBtn.textContent = isFollowing ? 'Following' : 'Follow';
+      followBtn.onclick = () => togglePostFollow(followBtn, c.username);
+      metaLine.appendChild(followBtn);
+    }
+
+    header.appendChild(metaLine);
+    bubble.appendChild(header);
+
+    const text = document.createElement('p');
+    text.className = 'comment-text';
+    text.textContent = c.comment_content;
+    bubble.appendChild(text);
+
+    if (String(c.user_id) === String(currentUserId)) {
+      const opts = document.createElement('button');
+      opts.className = 'comment-options';
+      opts.innerHTML = '&#8942;';
+      opts.onclick = e => {
+        e.stopPropagation();
+        showCommentOptionsMenu(e, c.comment_id, c.user_id);
+      };
+      bubble.appendChild(opts);
+    }
+
+    entry.appendChild(avatar);
+    entry.appendChild(bubble);
+    container.appendChild(entry);
+  });
+
+  updateCommentTimes();
+  container.scrollTop = container.scrollHeight;
+}
+
+function submitComment() {
+  const inp = document.getElementById('commentInput');
+  const content = inp.value.trim();
+  if (!content || !currentPostIdForComments) return;
+
+  fetch('../php/comment_crud.php?action=add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      post_id: currentPostIdForComments,
+      content
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.success) {
+      return alert('Error: ' + (data.error || 'Unknown'));
+    }
+
+    inp.value = '';
+
+    loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+    updateCommentCount(currentPostIdForComments);
+
+    if (typeof sendNotification === 'function') {
+      sendNotification('comment', currentPostIdForComments, 'commented on your post.');
+    }
+
+    setTimeout(() => {
+      inp.focus();
+    }, 300);
+  })
+  .catch(err => console.error('Comment error:', err));
+}
+
+function updateCommentCount(postId) {
+  fetch(`../php/comment_crud.php?action=get&post_id=${postId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const post = document.querySelector(`.user-post[data-post-id='${postId}']`);
+        if (!post) return;
+
+        const countElem = post.querySelector('.comment-count');
+        if (countElem) {
+          countElem.textContent = data.count;
+        }
+      }
+    });
+}
+
+function formatTime(ts) {
+  const commentTime = new Date(ts);
+  const now = new Date();
+
+  const commentUTC = new Date(commentTime.getTime() - commentTime.getTimezoneOffset() * 60000);
+  const nowUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
+  const diffInMs = nowUTC - commentUTC;
+  const diffInSeconds = Math.floor(diffInMs / 1000);
+
+  if (isNaN(diffInSeconds) || diffInSeconds < 0) return 'just now';
+
+  if (diffInSeconds < 10) return 'just now';
+  if (diffInSeconds < 60) return `${diffInSeconds}s`;
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d`;
+
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) return `${diffInWeeks}w`;
+
+  const isThisYear = commentTime.getFullYear() === now.getFullYear();
+  return commentTime.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    ...(isThisYear ? {} : { year: 'numeric' })
+  });
+}
+
+function updateCommentTimes() {
+  if (isCommentModalActive || isEditingComment) return;
+
+  document.querySelectorAll('.comment-timestamp[data-timestamp]').forEach(el => {
+    const bubble = el.closest('.comment-bubble');
+    if (bubble && bubble.querySelector('.edit-comment-wrapper')) return;
+
+    const rawTimestamp = el.dataset.timestamp;
+    if (rawTimestamp) {
+      try {
+        const newTimeText = formatTime(rawTimestamp);
+        if (el.textContent !== newTimeText) {
+          el.textContent = newTimeText;
+        }
+      } catch (err) {
+        console.error('Invalid timestamp:', rawTimestamp, err);
+        el.textContent = 'just now';
+      }
+    }
+  });
+}
+
+function showCommentOptionsMenu(e, commentId, commentUserId) {
+  e.stopPropagation();
+
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
+
+  const button = e.currentTarget;
+  const rect = button.getBoundingClientRect();
+
+  const menu = document.createElement('div');
+  menu.className = 'comment-context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+  menu.style.left = `${rect.left + window.scrollX}px`;
+  menu.style.zIndex = '9999';
+
+  menu.innerHTML = `
+    <button onclick="editComment(${commentId})">Edit</button>
+    <button onclick="deleteComment(${commentId})">Delete</button>
+    <button onclick="this.closest('.comment-context-menu')?.remove()">Cancel</button>
+  `;
+
+  document.body.appendChild(menu);
+
+  document.removeEventListener('mousedown', window._commentOutsideClickHandler);
+
+  window._commentOutsideClickHandler = function(event) {
+    const isClickInsideMenu = menu.contains(event.target);
+    const isClickOnButton = button.contains(event.target);
+    const isClickOnCommentInput = event.target.closest('.comment-input-container');
+
+    if (!isClickInsideMenu && !isClickOnButton && !isClickOnCommentInput) {
+      menu.remove();
+      document.removeEventListener('mousedown', window._commentOutsideClickHandler);
+    }
+  };
+
+  setTimeout(() => {
+    document.addEventListener('mousedown', window._commentOutsideClickHandler);
+  }, 0);
+}
+
+function editComment(commentId) {
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
+
+  const commentDiv = document.querySelector(`.comment-entry[data-id='${commentId}']`);
+  if (!commentDiv) return;
+
+  const bubble = commentDiv.querySelector('.comment-bubble');
+  const textEl = bubble.querySelector('.comment-text');
+  const originalText = textEl.textContent;
+
+  textEl.style.display = 'none';
+
+  isEditingComment = true;
+
+  const formWrapper = document.createElement('div');
+  formWrapper.className = 'edit-comment-wrapper';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'edit-comment-input';
+  input.value = originalText;
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.className = 'edit-comment-save-btn';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'edit-comment-cancel-btn';
+
+  formWrapper.appendChild(input);
+  formWrapper.appendChild(saveBtn);
+  formWrapper.appendChild(cancelBtn);
+  bubble.appendChild(formWrapper);
+
+  saveBtn.onclick = () => {
+    const newContent = input.value.trim();
+    if (!newContent) return;
+
+    fetch('../php/comment_crud.php?action=edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        comment_id: commentId,
+        content: newContent
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        textEl.textContent = newContent;
+        textEl.style.display = '';
+        formWrapper.remove();
+
+        isEditingComment = false;
+      } else {
+        alert('Failed to update comment');
+        isEditingComment = false;
+      }
+    })
+    .catch(err => {
+      console.error('Error editing comment:', err);
+      isEditingComment = false;
+    });
+  };
+
+  cancelBtn.onclick = () => {
+    textEl.style.display = '';
+    formWrapper.remove();
+
+    isEditingComment = false;
+  };
+}
+
+function deleteComment(commentId) {
+  document.querySelectorAll('.comment-context-menu').forEach(menu => menu.remove());
+
+  commentToDeleteId = commentId;
+
+  const modal = document.getElementById('delete_comment_modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
+
+    const confirmBtn = modal.querySelector('.submit-button');
+    const cancelBtn = modal.querySelector('.cancel-btn');
+
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+      fetch('../php/comment_crud.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ comment_id: commentToDeleteId })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+            updateCommentCount(currentPostIdForComments);
+          } else {
+            alert(data.error || 'Failed to delete comment');
+          }
+        })
+        .catch(() => alert('Error deleting comment'))
+        .finally(() => {
+          closeMyNewModal();
+          commentToDeleteId = null;
+        });
+    });
+
+    cancelBtn.onclick = () => {
+      closeMyNewModal();
+    };
+  }
+}
+
+function closeMyNewModal() {
+  const modal = document.getElementById('delete_comment_modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.classList.add('hidden');
+  }
+}
+
+function confirmMyAction() {
+  if (!commentToDeleteId) return;
+
+  fetch('../php/comment_crud.php?action=delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ comment_id: commentToDeleteId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
+        updateCommentCount(currentPostIdForComments);
+      } else {
+        alert(data.error || 'Failed to delete comment');
+      }
+    })
+    .catch(() => alert('Error deleting comment'))
+    .finally(() => {
+      closeMyNewModal();
+      commentToDeleteId = null;
+    });
+}
+
+// Initialize comment functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('commentModalOverlay');
+  const modal = document.getElementById('commentModal');
+
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeCommentModal();
+      }
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (overlay && overlay.classList.contains('active')) {
+        closeCommentModal();
+      }
+    }
+  });
+
+  // Add comment input event listener
+  const commentInput = document.getElementById('commentInput');
+  if (commentInput) {
+    commentInput.addEventListener('keydown', function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        submitComment();
+      }
+    });
+  }
+
+  // Initialize comment time updates
+  updateCommentTimes();
+  setInterval(updateCommentTimes, 60000);
+});
+
+// Make comment functions available globally
+window.toggleCommentModal = toggleCommentModal;
+window.closeCommentModal = closeCommentModal;
+window.submitComment = submitComment;
+window.editComment = editComment;
+window.deleteComment = deleteComment;
+window.closeMyNewModal = closeMyNewModal;
+window.confirmMyAction = confirmMyAction;
