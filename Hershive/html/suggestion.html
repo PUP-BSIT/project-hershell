@@ -373,23 +373,15 @@
           </div>
 
           <div class="profile-info">
-            <h3 class="profile-fullname"></h3>
+            <div class="profile-name-section">
+              <h3 class="profile-fullname"></h3>
+              <button class="follow-btn" id="follow_btn"></button>
+            </div>
+            
             <p class="profile-username"></p>
 
             <div class="bio-section">
               <p class="profile-bio"></p>
-            </div>
-
-            <div class="profile-stats">
-              <div onclick="switchTab('post')">
-                <strong id="postCount">0</strong><p>Posts</p>
-              </div>
-              <div onclick="switchTab('followers')">
-                <strong id="followerCount">0</strong><p>Followers</p>
-              </div>
-              <div onclick="switchTab('following')">
-                <strong id="followingCount">0</strong><p>Following</p>
-              </div>
             </div>
           </div>
           
@@ -397,9 +389,18 @@
           
           <div class="container">
             <div class="post-section-toggle" id="tabs">
-              <div class="tab active" data-tab="post">Post</div>
-              <div class="tab" data-tab="followers">Followers</div>
-              <div class="tab" data-tab="following">Following</div>
+              <div class="tab active" data-tab="post">
+                <strong id="postCount">0</strong>
+                Post
+              </div>
+              <div class="tab" data-tab="followers">
+                <strong id="followerCount">0</strong>
+                Followers
+              </div>
+              <div class="tab" data-tab="following">
+                <strong id="followingCount">0</strong>
+                Following
+              </div>
             </div>
           </div>
 
@@ -447,14 +448,19 @@
               <button class="submit-share-btn"
                   onclick="submitShare()">Share</button>
 
-              <div class="share-icons">
-                <a href="#" title="DevhiveSpace">
-                  <img src="../assets/devhive_logo.jpg" alt="DevhiveSpace"/>
-                </a>
-                <a href="#" title="Heybleepi">
-                  <img src="../assets/heybleepi_logo.png" alt="HeyBleepi"/>
-                </a>
-              </div>
+              <form action="/project-hershell/Hershive/php/create-post.php" method="POST">
+                <p><strong>Share To:</strong></p>
+                <input type="hidden" name="shared_post_id" id="shared_post_id">
+                <div class="share-icons">
+                  <button type="submit" name="share_to" value="devhive" id="share_to">
+                    <img src="../assets/devhive_logo.jpg" alt="devhive"/>
+                  </button>
+                  <button type="submit" name="share_to" value="heybleepi"
+                          id="share_to" title="Share to heybleepi">
+                    <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+                  </button>
+                </div>
+              </form>
 
               <div class="share-link-section">
                 <label>Page link</label>
