@@ -211,7 +211,7 @@ select {
   top: 80px;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
-  height: calc(100vh - 90px);
+  height: calc(120vh - 0);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
