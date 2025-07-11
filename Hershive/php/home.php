@@ -35,10 +35,18 @@ if ($result && $row = $result->fetch_assoc()) {
     'user_id' => $user_id,
     'username' => $row['username'],
     'display_name' => $display_name,
-    'profile_picture_url' => $row['profile_picture_url'] ??
-        '../assets/temporary_pfp.png',
-    'background_picture_url' => $row['background_picture_url'] ??
-        '../assets/cover_photo.png'
+    'profile_picture_url' => $row['profile_picture_url'] ?? '../assets/temporary_pfp.png',
+    'background_picture_url' => $row['background_picture_url'] ?? '../assets/cover_photo.png',
+    'oauth' => [
+      'devhive' => [
+        'token' => $_SESSION['oauth_token_devhive'] ?? '',
+        'allowed' => (($_SESSION['isAllowed'] ?? '') === 'allowed_to_share')
+      ],
+      'heybleepi' => [
+        'token' => $_SESSION['oauth_token_heybleepi'] ?? '',
+        'allowed' => (($_SESSION['isAllowed'] ?? '') === 'allowed_to_share')
+      ]
+    ]
   ]);
 } else {
   echo json_encode(['success' => false, 'error' => 'User not found']);

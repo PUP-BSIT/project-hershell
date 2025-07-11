@@ -887,6 +887,17 @@ body.modal-open {
   display: none;
 }
 
+/* Share button enabled/disabled states */
+.share-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-btn-enabled {
+  opacity: 1;
+  cursor: pointer;
+}
+
 /* Editable content div */
 .edit-editor {
   border: 1px solid #ccc;
