@@ -81,10 +81,10 @@ function checkUserSession(callback) {
             this.src = "../assets/temporary_pfp.png";
           };
         }
-        
+
         const editUsername = document.getElementById("edit_modal_username");
         if (editUsername) editUsername.textContent = data.username;
-        
+
         const editProfilePic = document.getElementById("edit_modal_profile_pic");
         if (editProfilePic) {
           editProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
@@ -137,13 +137,14 @@ function displayPosts(posts) {
   existingPosts.forEach(post => post.remove());
 
   posts.forEach(post => {
-    console.log('post.source_platform =', post.source_platform, 'post:', post); 
+    console.log('post.source_platform =', post.source_platform, 'post:', post);
     const postElement = createPostElement(post);
     leftContent.appendChild(postElement);
   });
 
   setTimeout(() => {
     initializeFollowStatus();
+    handleSeeMoreVisibility();
   }, 100);
 }
 
@@ -209,7 +210,12 @@ function createPostElement(post, forModal = false) {
 
     <div class="post-content">
       <div class="content">
-        ${post.content ? `<div class="post-text">${post.content}</div>` : ""}
+        ${post.content ? `
+          <div class="post-text-wrapper" data-detect="true">
+            <div class="post-text">${post.content}</div>
+            <span class="see-more" onclick="toggleSeeMore(this)">...see more</span>
+          </div>
+        ` : ""}
 
         ${isShared ? `
           <div class="shared-card">
@@ -289,6 +295,41 @@ function createPostElement(post, forModal = false) {
   `;
 
   return postDiv;
+}
+
+function toggleSeeMore(button) {
+  const textDiv = button.previousElementSibling;
+  const isExpanded = textDiv.classList.toggle('expanded');
+
+  button.textContent = isExpanded ? 'See less' : '...see more';
+
+  if (!isExpanded) {
+    const postDiv = button.closest('.sample-post');
+    const postTop = postDiv.getBoundingClientRect().top + window.pageYOffset;
+
+    window.scrollTo({
+      top: postTop,
+      behavior: 'smooth'
+    });
+  }
+}
+
+function handleSeeMoreVisibility() {
+  document.querySelectorAll('[data-detect="true"]').forEach(wrapper => {
+    const textDiv = wrapper.querySelector('.post-text');
+    const seeMoreBtn = wrapper.querySelector('.see-more');
+
+    const lineHeight = parseFloat(getComputedStyle(textDiv).lineHeight);
+    const maxVisibleHeight = lineHeight * 5;
+
+    requestAnimationFrame(() => {
+      if (textDiv.scrollHeight <= maxVisibleHeight + 1) {
+        seeMoreBtn.style.display = 'none';
+      } else {
+        seeMoreBtn.style.display = 'inline-block';
+      }
+    });
+  });
 }
 
 function handlePaste(editor) {
@@ -2870,7 +2911,7 @@ function createMoreUserElement(user) {
 
 function resetWall() {
   document.getElementById("search_input").value = "";
-  
+
   const currentUrl = new URL(window.location);
   currentUrl.search = "";
   window.history.replaceState({}, '', currentUrl);
