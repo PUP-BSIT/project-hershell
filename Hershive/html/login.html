@@ -67,9 +67,16 @@
               <input type="text" id="username" placeholder="Enter your username/email" required>
             </div>
 
-            <div class="input-group">
+           <div class="input-group password-group">
               <label for="password">Password</label>
-              <input type="password" id="password" placeholder="Enter your password" required>
+              <div class="password-wrapper">
+                <input type="password" id="password" placeholder="Enter your password" required>
+                <img src="../assets/eye_closed.png"
+                     id="togglePassword"
+                     alt="Toggle Password"
+                     class="eye-icon"
+                     onclick="togglePasswordVisibility(this)">
+              </div>
             </div>
 
             <a href="/project-hershell/Hershive/php/forgot_password.php" class="forgot-link">Forgot password?</a>
@@ -103,5 +110,4 @@
     </main>
     <script src="../script/login.js"></script>
   </body>
-
 </html>
