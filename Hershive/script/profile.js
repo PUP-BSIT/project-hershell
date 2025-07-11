@@ -1266,7 +1266,7 @@ let followingLoaded = false;
 
 function loadInitialData() {
   targetUserId = getProfileUserId();
-  currentUserId = document.body.dataset.userId || document.body.dataset.username;
+    currentUserId = String(document.body.dataset.userId);
 }
 
 function initializeTabs() {
