@@ -350,44 +350,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <img src="../assets/home_icon.png" alt="home" />
       </button>
       
-      <button onclick="toggleNotificationPanel()">
-        <img src="../assets/notification_icon.png" alt="notification"/>
-      </button>
-      
-      <div class="notification-panel hidden" id="notification_panel">
-        <h4>Notification</h4>
-        <div class="notification">
-          <img src="../assets/temporary_pfp.png" alt="user" 
-             class="notif-pfp"/>
-          <p>
-            <strong>John Doe</strong> Started following you.
-            <span class="time">1m</span>
-          </p>
-          <a href="#">Follow</a>
-        </div>
-        <div class="notification">
-          <img src="../assets/temporary_pfp.png" alt="user" 
-             class="notif-pfp"/>
-          <p>
-            <strong>John Doe</strong> Liked your photo.
-            <span class="time">30m</span>
-          </p>
-          <img src="../assets/sample-post.png" alt="thumbnail" 
-             class="notif-thumbnail"/>
-        </div>
-        <h4>Yesterday</h4>
-        <div class="notification">
-          <img src="../assets/temporary_pfp.png" alt="user" 
-             class="notif-pfp"/>
-          <p>
-            <strong>John Dy</strong> Liked your photo.
-            <span class="time">1d</span>
-          </p>
-          <img src="../assets/sample-post.png" alt="thumbnail" 
-             class="notif-thumbnail"/>
-        </div>
-      </div>
-      
       <button class="menu-button" onclick="menuToggleDropdown()">
         ☰
       </button>
@@ -466,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
           
           <div class="settings-section" 
              onclick="showEditForm('birth')">
-            <h4>Birth Date</h4>
+            <h4>Birthdate</h4>
             <p id="birth_display">
               <?php
                 if (!empty($userData['birthday'])) {
@@ -584,7 +546,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                  value="<?php 
                  if (!empty($userData['birthday'])) {
                    echo htmlspecialchars(
-                   date('d-m-Y', strtotime($userData['birthday']))
+                   date('Y-m-d', strtotime($userData['birthday']))
                    );
                  }
                  ?>" 
