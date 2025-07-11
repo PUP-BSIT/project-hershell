@@ -37,6 +37,19 @@ function checkUserSession() {
             this.src = '../assets/temporary_pfp.png';
           };
         }
+
+        const modalUsername = document.querySelector(".create-post-modal .username");
+        if (modalUsername) {
+          modalUsername.textContent = data.username;
+        }
+
+        const modalProfilePic = document.querySelector(".create-post-modal .modal-profile-pic");
+        if (modalProfilePic) {
+          modalProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          modalProfilePic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
       }
     })
     .catch(() => {
@@ -417,12 +430,13 @@ function toggleLike(button, postId) {
       if (isLiked) {
         outlineIcon.classList.remove("hidden");
         filledIcon.classList.add("hidden");
-        likeCountSpan.textContent = 
-            Math.max(0, parseInt(likeCountSpan.textContent) - 1);
+        likeCountSpan.textContent = Math.max(0, parseInt(likeCountSpan.textContent) - 1);
       } else {
         outlineIcon.classList.add("hidden");
         filledIcon.classList.remove("hidden");
         likeCountSpan.textContent = parseInt(likeCountSpan.textContent) + 1;
+
+        sendNotification('like', postId, 'liked your post.');
       }
     }
   })
@@ -470,6 +484,66 @@ function toggleFollow(button, userId) {
       syncAllFollowButtons(username, data.action === 'followed');
 
       console.log(`${data.action} ${username}`);
+    } else {
+      alert(data.error || 'Failed to update follow status');
+      button.textContent = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error updating follow status:', error);
+    alert('Network error occurred');
+    button.textContent = originalText;
+  })
+  .finally(() => {
+    button.disabled = false;
+  });
+}
+
+function togglePostFollow(button, username) {
+  const isFollowing = button.classList.contains("following");
+  const action = isFollowing ? 'unfollow' : 'follow';
+
+  button.disabled = true;
+  const originalText = button.textContent;
+  button.textContent = 'Loading...';
+
+  fetch('../php/follow.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action: action,
+      username: username
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const newFollowStatus = data.action === 'followed';
+
+      if (newFollowStatus) {
+        button.textContent = "Following";
+        button.classList.add("following");
+        const userId = data.target_user_id;
+        if (typeof sendNotification === 'function') {
+          sendNotification('follow', userId, 'started following you.');
+        }
+      } else {
+        button.textContent = "Follow";
+        button.classList.remove("following");
+      }
+
+      // Update cache and broadcast to other pages
+      followStatusCache[username] = newFollowStatus;
+      broadcastFollowUpdate(username, newFollowStatus);
+
+      updateFollowingCount(data.current_user_following);
+      broadcastFollowingCountUpdate(data.current_user_following);
+
+      // Sync all buttons on current page
+      syncAllFollowButtons(username, newFollowStatus);
+
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -760,6 +834,398 @@ function openPostModalFromNotification(postId) {
       clearFollowCache();
     })
     .catch(err => showError("Network error while loading post: " + err.message));
+}
+
+function toggleDropdown(icon) {
+  const parent = icon.parentElement;
+
+  document.querySelectorAll('.more-option.active').forEach(dropdown => {
+    if (dropdown !== parent) {
+      dropdown.classList.remove('active');
+      const post = dropdown.closest('.sample-post');
+      const contentDiv = post?.querySelector('.content');
+
+      if (contentDiv) {
+        const editorDiv = contentDiv.querySelector('.edit-editor');
+        const formatting = contentDiv.querySelector('.formatting-options');
+        const uploadControls = contentDiv.querySelector('.upload-controls');
+        const saveBtn = contentDiv.querySelector('.save-edit-button');
+        const cancelBtn = contentDiv.querySelector('.cancel-edit-button');
+        const paragraph = contentDiv.querySelector('p:not(.shared-card p)');
+
+        [editorDiv, formatting, uploadControls, saveBtn, cancelBtn].forEach(el => {
+          if (el) el.remove();
+        });
+
+        if (paragraph) paragraph.classList.remove('hidden');
+      }
+    }
+  });
+
+  parent.classList.toggle("active");
+
+  if (parent.classList.contains("active")) {
+    document.body.onclick = handleOutsideClick;
+  } else {
+    document.body.onclick = null;
+  }
+}
+
+function handleOutsideClick(event) {
+  const dropdowns = document.querySelectorAll('.more-option.active');
+  dropdowns.forEach(dropdown => {
+    if (!dropdown.contains(event.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
+}
+
+function submitEditedPost() {
+  const modal = document.getElementById("edit_post_modal");
+  if (!modal) return;
+
+  const postId = modal.dataset.postId;
+  const content = document.getElementById("edit_editor")?.innerHTML.trim() || "";
+  const imageInput = document.getElementById("edit_media_input");
+  const videoInput = document.getElementById("edit_media_input_video");
+  const privacy = document.getElementById("edit_privacy_setting")?.value || "public";
+
+  if (!postId || !content) {
+    alert("Missing post ID or content.");
+    return;
+  }
+
+  const imageFile = imageInput?.files[0];
+  const videoFile = videoInput?.files[0];
+
+  if (imageFile && videoFile) {
+    alert("Only one media type (image or video) can be uploaded.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("post_id", postId);
+  formData.append("content", content);
+  formData.append("visibility", privacy);
+
+  if (imageFile) {
+    formData.append("media", imageFile);
+    formData.append("media_type", "image");
+  } else if (videoFile) {
+    formData.append("media", videoFile);
+    formData.append("media_type", "video");
+  }
+
+  fetch("../php/edit_post.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) throw new Error(data.error || "Failed to update post.");
+      resetEditPostModal();
+      // loadProfilePosts();
+    })
+    .catch((err) => {
+      console.error("Error updating post:", err.message);
+      alert("There was a problem saving your changes.");
+    });
+}
+
+function editPost(button) {
+  const post = button.closest(".sample-post");
+  if (!post) return console.warn("Edit post failed: No post element found.");
+
+  const postId = post.dataset.postId;
+  if (!postId) return console.warn("Post ID missing.");
+
+  const modal = document.getElementById("edit_post_modal");
+  const editor = document.getElementById("edit_editor");
+  const privacySelect = document.getElementById("edit_privacy_setting");
+  const preview = document.getElementById("edit_preview_container");
+  const visibilityIcon = post.querySelector(".visibility-icon");
+  const paragraph = post.querySelector(".post-text");
+  const image = post.querySelector("img.preview-image");
+  const video = post.querySelector("video.preview-video");
+  const sharedCard = post.querySelector(".shared-card");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex-center");
+  document.body.classList.add("no-scroll");
+
+  editor.innerHTML = paragraph?.innerHTML || "";
+
+  const newPrivacyValue = visibilityIcon?.alt || "public";
+  privacySelect.value = newPrivacyValue;
+
+  const iconMap = {
+    public: "../assets/public_icon.png",
+    followers: "../assets/followers_icon.png",
+    private: "../assets/private_icon.png"
+  };
+  const editIcon = document.getElementById("edit_modal_privacy_icon");
+  if (editIcon) {
+    editIcon.src = iconMap[newPrivacyValue] || "../assets/public_icon.png";
+  }
+
+  modal.dataset.postId = postId;
+  modal.dataset.originalText = editor.innerHTML;
+  modal.dataset.shared = Boolean(sharedCard);
+  modal.dataset.mediaType = image ? "image" : video ? "video" : "";
+
+  preview.innerHTML = "";
+  const mediaToClone = image || video;
+  if (mediaToClone) {
+    preview.appendChild(mediaToClone.cloneNode(true));
+  }
+}
+
+function closeEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  const editor = document.getElementById("edit_editor");
+  const previewContainer = document.getElementById("edit_preview_container");
+  const imageInput = document.getElementById("edit_media_input");
+  const videoInput = document.getElementById("edit_media_input_video");
+
+  if (!modal || !editor || !previewContainer || !imageInput || !videoInput) {
+    console.warn("Close modal aborted: Missing DOM elements.");
+    return;
+  }
+
+  const originalText = modal.dataset.originalText?.trim() || "";
+  const editorContent = editor.innerHTML.trim();
+  const mediaChanged = imageInput.files.length > 0 || videoInput.files.length > 0;
+
+  const wasMediaPresent = modal.dataset.mediaType !== "";
+  const previewRemoved = wasMediaPresent && previewContainer.children.length === 0;
+  const contentChanged = editorContent !== originalText;
+
+  const unsavedChanges = contentChanged || mediaChanged || previewRemoved;
+
+  if (unsavedChanges) {
+    const warningModal = document.getElementById("unsaved_changes_modal");
+    if (warningModal) {
+      warningModal.classList.remove("hidden");
+      warningModal.style.display = "flex";
+    }
+    document.body.classList.add("no-scroll");
+  } else {
+    resetEditPostModal();
+  }
+}
+
+function hideUnsavedChangesModal() {
+  const modal = document.getElementById("unsaved_changes_modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+function resetEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  if (!modal) return;
+
+  const fields = {
+    editor: document.getElementById("edit_editor"),
+    preview: document.getElementById("edit_preview_container"),
+    imageInput: document.getElementById("edit_media_input"),
+    videoInput: document.getElementById("edit_media_input_video")
+  };
+
+  const missing = Object.entries(fields).filter(([_, el]) => !el).map(([key]) => key);
+  if (missing.length) {
+    console.warn(`resetEditPostModal: Missing fields - ${missing.join(", ")}`);
+    return;
+  }
+
+  fields.editor.innerHTML = "";
+  fields.preview.innerHTML = "";
+  fields.imageInput.value = "";
+  fields.videoInput.value = "";
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex-center");
+  document.body.classList.remove("no-scroll");
+
+  delete modal.dataset.postId;
+  delete modal.dataset.originalText;
+  delete modal.dataset.mediaType;
+  delete modal.dataset.shared;
+
+  console.log("Edit modal has been fully reset.");
+}
+
+function discardChanges() {
+  const unsavedModal = document.getElementById("unsaved_changes_modal");
+  const editModal = document.getElementById("edit_post_modal");
+
+  if (unsavedModal) {
+    unsavedModal.classList.add("hidden");
+    unsavedModal.classList.remove("flex", "flex-center");
+  }
+
+  if (editModal) {
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex", "flex-center");
+  }
+
+  document.body.classList.remove("no-scroll");
+
+  const editor = document.getElementById("edit_editor");
+  const preview = document.getElementById("edit_preview_container");
+  const mediaInput = document.getElementById("edit_media_input");
+  const mediaInputVideo = document.getElementById("edit_media_input_video");
+
+  if (editor) editor.innerHTML = "";
+  if (preview) preview.innerHTML = "";
+  if (mediaInput) mediaInput.value = "";
+  if (mediaInputVideo) mediaInputVideo.value = "";
+
+  console.log("🗑️ Discard clicked: Edit modal and Unsaved modal hidden.");
+}
+
+function keepEditing() {
+  document.getElementById("unsaved_changes_modal").classList.add("hidden");
+
+  const modal = document.getElementById("edit_post_modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex-center");
+  document.body.classList.add("no-scroll");
+}
+
+function formatTextEditor(command, editorId) {
+  const editor = document.getElementById(editorId);
+  if (!editor) return;
+
+  editor.focus();
+  document.execCommand(command, false, null);
+  updateEditFormattingButtonStates();
+}
+
+function updateEditFormattingButtonStates() {
+  const boldBtn = document.getElementById("edit-bold-btn");
+  const italicBtn = document.getElementById("edit-italic-btn");
+  const underlineBtn = document.getElementById("edit-underline-btn");
+
+  if (document.queryCommandState("bold")) {
+    boldBtn.classList.add("active");
+  } else {
+    boldBtn.classList.remove("active");
+  }
+
+  if (document.queryCommandState("italic")) {
+    italicBtn.classList.add("active");
+  } else {
+    italicBtn.classList.remove("active");
+  }
+
+  if (document.queryCommandState("underline")) {
+    underlineBtn.classList.add("active");
+  } else {
+    underlineBtn.classList.remove("active");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const editor = document.getElementById("edit_editor");
+  if (editor) {
+    editor.addEventListener("keyup", updateEditFormattingButtonStates);
+    editor.addEventListener("mouseup", updateEditFormattingButtonStates);
+  }
+});
+
+const editImageInput = document.getElementById("edit_media_input");
+const editVideoInput = document.getElementById("edit_media_input_video");
+const editPreviewContainer = document.getElementById("edit_preview_container");
+
+function handleEditFilePreview(input, isVideo = false) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    editPreviewContainer.innerHTML = "";
+
+    const media = document.createElement(isVideo ? "video" : "img");
+    if (isVideo) media.controls = true;
+    media.src = e.target.result;
+    media.classList.add(isVideo ? "preview-video" : "preview-image");
+
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("preview-item");
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "✕";
+    removeBtn.onclick = () => {
+      editPreviewContainer.innerHTML = "";
+      input.value = "";
+    };
+
+    wrapper.appendChild(media);
+    wrapper.appendChild(removeBtn);
+    editPreviewContainer.appendChild(wrapper);
+  };
+  reader.readAsDataURL(file);
+}
+
+if (editImageInput) {
+  editImageInput.addEventListener("change", () => {
+    if (editImageInput.files.length > 0) {
+      editVideoInput.value = "";
+      handleEditFilePreview(editImageInput, false);
+    }
+  });
+}
+
+if (editVideoInput) {
+  editVideoInput.addEventListener("change", () => {
+    if (editVideoInput.files.length > 0) {
+      editImageInput.value = "";
+      handleEditFilePreview(editVideoInput, true);
+    }
+  });
+}
+
+function deletePost(button) {
+  console.log('Delete button clicked');
+  postToDelete = button.closest('.sample-post');
+  const modal = document.getElementById('delete_post_modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeDeletePostModal() {
+  const modal = document.getElementById('delete_post_modal');
+  if (modal) modal.classList.add('hidden');
+  postToDelete = null;
+}
+
+function confirmDeletePost() {
+  if (!postToDelete) return;
+
+  const postId = postToDelete.dataset.postId;
+  if (!postId) {
+    alert("Post ID missing.");
+    return;
+  }
+
+  fetch("../php/delete_post.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ post_id: postId }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) throw new Error(data.error || "Failed to delete post.");
+      postToDelete.remove();
+    })
+    .catch((err) => {
+      console.error("Delete post error:", err.message);
+      alert("There was a problem deleting the post.");
+    })
+    .finally(() => {
+      closeDeletePostModal();
+    });
 }
 
 function toggleCommentModal(button) {
