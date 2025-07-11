@@ -15,7 +15,7 @@ if (isset($_SESSION['username'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hershive</title>
   <link rel="stylesheet" href="project-hershell/Hershive/style/homepage.css"/>
-  <link rel="icon" href="../assets/logo.png"/>
+  <link rel="icon" href="/project-hershell/Hershive/assets/logo.png"/>
 </head>
 
 <body>
