@@ -2694,7 +2694,6 @@ body.modal-open {
 .comment-post-preview img,
 .comment-post-preview video {
   max-width: 100%;
-  height: auto;
   display: block;
   margin-top: 0px;
   object-fit: cover;
