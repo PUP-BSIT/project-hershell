@@ -364,6 +364,52 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           </div>
         </div>
       </div>
+      
+     <!-- Comment Modal -->
+    <div class="comment-modal-overlay" id="commentModalOverlay">
+      <div class="comment-modal" id="commentModal">
+        <div class="comment-modal-header">
+           <h3 class="modal-title">Comments</h3>
+          <button class="close-comment-modal" onclick="closeCommentModal()">×</button>
+        </div>
+        <div class="comment-modal-scrollable" id="commentModalScrollable">
+          <div class="scroll-wrapper">
+            <div class="comment-post-preview" id="commentPostPreview"></div>
+            <div class="comment-list-container" id="commentListContainer"></div>
+          </div>
+        </div>
+        <div class="comment-input-container">
+          <img src="../assets/temporary_pfp.png" alt="Your Avatar"
+              class="comment-input-avatar" />
+          <div class="comment-input-wrapper">
+            <input type="text" class="comment-input"
+                placeholder="Write a comment..." id="commentInput" />
+            <button class="send-comment-btn" onclick="submitComment()">
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Comment Modal -->
+    <div class="custom-modal-overlay hidden" id="delete_comment_modal">
+      <div class="custom-modal">
+        <div class="custom-modal-header">
+          <h3>Delete Comment</h3>
+          <button class="custom-close-btn" onclick="closeMyNewModal()">×</button>
+        </div>
+        <div class="custom-content-area">
+          <p>Are you sure you want to permanently remove this comment?</p>
+          <div class="button-holder">
+            <button class="comment-cancel-btn" onclick="closeMyNewModal()">Cancel</button>
+            <button class="confirm-button" onclick="confirmMyAction()">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <?php endif; ?>
   </div>
 </div>
