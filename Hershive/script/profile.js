@@ -1355,12 +1355,14 @@ function loadFollowing() {
 }
 
 function createUserItem(user) {
-  const isCurrentUser = currentUserId === user.user_id;
-  const followButton = isCurrentUser ? '' : `
-      <button class="follow-button ${user.is_following ? 'following' : ''}"
-              onclick="event.stopPropagation(); toggleFollow(${user.user_id}, this)">
-          ${user.is_following ? 'Following' : 'Follow'}
-      </button>
+  const isCurrentUser = currentUserId === user.username;
+  const followButton = isCurrentUser
+  ? `<button class="follow-button invisible-placeholder"></button>`
+  : `
+    <button class="follow-button ${user.is_following ? 'following' : ''}"
+            onclick="event.stopPropagation(); toggleFollow(${user.user_id}, this)">
+        ${user.is_following ? 'Following' : 'Follow'}
+    </button>
   `;
   return `
       <div class="user-item" onclick="redirectToUserProfile(${user.user_id})">
