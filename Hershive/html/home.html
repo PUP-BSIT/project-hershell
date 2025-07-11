@@ -310,13 +310,106 @@
       </div>
     </div>
 
+    <div class="modal-overlay hidden" id="edit_post_modal">
+      <div class="create-post-modal">
+        <div class="modal-header">
+          <h2>Edit Post</h2>
+          <button class="close-button" onclick="closeEditPostModal()">
+            ×
+          </button>
+        </div>
+
+        <div class="user-info-box">
+          <img src="../assets/temporary_pfp.png"
+               class="modal-profile-pic"
+               id="edit_modal_profile_pic">
+          <span class="username" id="edit_modal_username">
+            Loading...
+          </span>
+        </div>
+
+        <div class="text-editor" 
+             id="edit_editor" 
+             contenteditable="true">
+        </div>
+
+        <div class="preview" id="edit_preview_container"></div>
+
+        <div class="edit-formatting-options">
+          <button onclick="formatTextEditor('bold', 'edit_editor')" 
+                  id="edit-bold-btn">B
+          </button>
+          <button onclick="formatTextEditor('italic', 'edit_editor')" 
+                  id="edit-italic-btn">I
+          </button>
+          <button onclick="formatTextEditor('underline', 'edit_editor')" 
+                  id="edit-underline-btn">U
+          </button>
+        </div>
+
+        <div class="upload-controls">
+          <label class="icon-button">
+            <img src="../assets/camera_icon.png" />
+            <input type="file" 
+                   id="edit_media_input" 
+                   accept="image/*" 
+                   hidden />
+            <span>Image</span>
+          </label>
+
+          <label class="icon-button">
+            <img src="../assets/video_icon.png" />
+            <input type="file" 
+                   id="edit_media_input_video" 
+                   accept="video/*" 
+                   hidden />
+            <span>Video</span>
+          </label>
+
+          <div class="privacy-select">
+            <img id="edit_modal_privacy_icon" 
+                 src="../assets/public_icon.png" />
+            <select id="edit_privacy_setting">
+              <option value="public">Public</option>
+              <option value="followers">Followers</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="submit-button" onclick="submitEditedPost()">
+          Save Changes
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" 
+         id="unsaved_changes_modal" 
+         onclick="event.stopPropagation()">
+      <div class="edit-post-modal" onclick="event.stopPropagation()">
+        <div class="custom-modal-header">
+          <h3>Unsaved Changes</h3>
+        </div>
+
+        <div class="custom-content-area">
+          <p>Changes you made will not be saved.</p>
+          <div class="button-holder">
+            <button class="comment-cancel-btn" onclick="keepEditing()">
+              Keep Editing
+            </button>
+            <button class="confirm-button" onclick="discardChanges()">
+              Discard
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="delete-post-modal-overlay hidden" id="delete_post_modal"
           onclick="closeDeletePostModal()">
       <div class="delete-post-modal" onclick="event.stopPropagation()">
         <div class="delete-post-modal-header">
           <h3>Delete Post</h3>
-          <button class="delete-post-close-btn"
-                onclick="closeDeletePostModal()">×</button>
         </div>
         <div class="delete-post-modal-content">
           <p>Are you sure you want to permanently remove this post?</p>
@@ -333,7 +426,7 @@
     <div class="comment-modal-overlay" id="commentModalOverlay">
       <div class="comment-modal" id="commentModal">
         <div class="comment-modal-header">
-          <h3 id="preview_header">Comments</h3>
+          <h3>Comments</h3>
           <button class="close-comment-modal" onclick="closeCommentModal()">×</button>
         </div>
         <div class="comment-modal-scrollable" id="commentModalScrollable">
@@ -362,7 +455,6 @@
       <div class="custom-modal">
         <div class="custom-modal-header">
           <h3>Delete Comment</h3>
-          <button class="custom-close-btn" onclick="closeMyNewModal()">×</button>
         </div>
         <div class="custom-content-area">
           <p>Are you sure you want to permanently remove this comment?</p>
