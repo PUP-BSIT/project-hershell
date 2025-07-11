@@ -75,9 +75,13 @@ function setActiveButton(activeId, inactiveIds) {
 function updatePassword(e) {
   e.preventDefault();
 
-  const current = getElement('current_password')?.value || '';
-  const newPass = getElement('new_password')?.value || '';
-  const confirm = getElement('confirm_password')?.value || '';
+  const currentInput = getElement('current_password');
+  const newInput = getElement('new_password');
+  const confirmInput = getElement('confirm_password');
+
+  const current = currentInput?.value || '';
+  const newPass = newInput?.value || '';
+  const confirm = confirmInput?.value || '';
 
   const matchWarning = getElement('settings_match_warning');
   const reuseWarning = getElement('settings_reuse_warning');
@@ -118,6 +122,11 @@ function updatePassword(e) {
             reuseWarning.textContent = res.message;
             reuseWarning.classList.remove('hidden');
           }
+
+          // Clear all password fields
+          currentInput.value = '';
+          newInput.value = '';
+          confirmInput.value = '';
         } else {
           showPopup('Password Error', res.message, 'error');
         }
@@ -164,6 +173,16 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     togglePersonalDetails();
   }
+
+  ['current_password', 'new_password', 'confirm_password'].forEach(id => {
+  const input = getElement(id);
+  if (input) {
+    input.addEventListener('input', () => {
+      const reuseWarning = getElement('settings_reuse_warning');
+      if (reuseWarning) reuseWarning.classList.add('hidden');
+    });
+  }
+});
 
   const fields = ['name', 'username', 'location'];
   fields.forEach(field => {
