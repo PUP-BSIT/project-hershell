@@ -75,34 +75,57 @@ function setActiveButton(activeId, inactiveIds) {
 function updatePassword(e) {
   e.preventDefault();
 
-  const passwords = {
-    current: getElement('current_password')?.value || '',
-    new: getElement('new_password')?.value || '',
-    confirm: getElement('confirm_password')?.value || ''
-  };
+  const current = getElement('current_password')?.value || '';
+  const newPass = getElement('new_password')?.value || '';
+  const confirm = getElement('confirm_password')?.value || '';
 
-  if (passwords.new !== passwords.confirm) {
-    showPopup('Password Error', 'New passwords do not match.', 'error');
+  const matchWarning = getElement('settings_match_warning');
+  const reuseWarning = getElement('settings_reuse_warning');
+
+  // Reset warnings
+  if (matchWarning) {
+    matchWarning.textContent = 'Passwords do not match.';
+    matchWarning.classList.add('hidden');
+  }
+  if (reuseWarning) {
+    reuseWarning.classList.add('hidden');
+  }
+
+  if (newPass !== confirm) {
+    if (matchWarning) {
+      matchWarning.textContent = 'Passwords do not match.';
+      matchWarning.classList.remove('hidden');
+    }
     return;
   }
 
   const data = {
     action: 'update_password',
-    current_password: passwords.current,
-    new_password: passwords.new
+    current_password: current,
+    new_password: newPass
   };
 
   makeApiRequest('settings.php', data)
     .then(res => {
-      showPopup('Password Update', res.message, res.status);
       if (res.status === 'success') {
+        showPopup('Password Update', res.message, 'success');
         const form = getElement('password_form');
         if (form) form.reset();
         validatePassword();
+      } else {
+        if (res.message.includes('New password must be different')) {
+          if (reuseWarning) {
+            reuseWarning.textContent = res.message;
+            reuseWarning.classList.remove('hidden');
+          }
+        } else {
+          showPopup('Password Error', res.message, 'error');
+        }
       }
     })
-    .catch(err => showPopup('Error', 
-           `An error occurred: ${err.message}`, 'error'));
+    .catch(err => {
+      showPopup('Error', `An error occurred: ${err.message}`, 'error');
+    });
 }
 
 document.addEventListener('click', function(event) {
