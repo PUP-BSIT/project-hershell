@@ -42,7 +42,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <title>Profile Page</title>
 <link rel="icon" href="../assets/logo.png"/>
 </head>
-<body data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
+<body data-user-id="<?= $_SESSION['user_id'] ?>" data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
     <?php if (!$isOwnProfile): ?>
@@ -379,8 +379,8 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           </div>
         </div>
         <div class="comment-input-container">
-          <img src="../assets/temporary_pfp.png" alt="Your Avatar"
-              class="comment-input-avatar" />
+          <img src="<?php echo $profilePic; ?>"
+               alt="Your Avatar" class="comment-input-avatar" />
           <div class="comment-input-wrapper">
             <input type="text" class="comment-input"
                 placeholder="Write a comment..." id="commentInput" />
