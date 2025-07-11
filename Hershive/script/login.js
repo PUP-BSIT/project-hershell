@@ -31,6 +31,14 @@ function validateForm() {
   return false;
 }
 
+function togglePasswordVisibility(icon) {
+  const passwordInput = document.getElementById("password");
+  const isVisible = passwordInput.type === "text";
+
+  passwordInput.type = isVisible ? "password" : "text";
+  icon.src = isVisible ? "../assets/eye_closed.png" : "../assets/eye_open.png";
+}
+
 // Mouse movement parallax effect
 window.addEventListener('mousemove', (e) => {
   const particles = document.querySelectorAll('.particle');

@@ -652,6 +652,34 @@ main {
   }
 }
 
+.login-form-container .password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-form-container .password-wrapper input[type="password"],
+.login-form-container .password-wrapper input[type="text"] {
+  flex: 1;
+  padding-right: 40px;
+  box-sizing: border-box;
+}
+
+.login-form-container .eye-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.login-form-container .eye-icon:hover {
+  opacity: 0.7;
+}
+
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
 
