@@ -720,7 +720,7 @@ function editPost(button) {
   const editPrivacyIcon = uploadControls.querySelector('.edit-privacy-icon');
   if (editPrivacyIcon) {
     editPrivacyIcon.src = iconMap[currentVisibility] || iconMap.public;}
-  
+
   const saveBtn = createSaveButton();
   const cancelBtn = createCancelButton(() => {
     [editor, formatting, uploadControls, buttonWrapper].forEach(el => el.remove());
@@ -1355,16 +1355,17 @@ function loadFollowing() {
 }
 
 function createUserItem(user) {
-  const isCurrentUser = currentUserId === user.user_id;
-  const followButton = isCurrentUser ? '' : `
-      <button class="follow-button ${user.is_following ? 'following' : ''}"
-              onclick="toggleFollow(${user.user_id}, this)">
-          ${user.is_following ? 'Following' : 'Follow'}
-      </button>
+  const isCurrentUser = currentUserId === user.username;
+  const followButton = isCurrentUser
+  ? `<button class="follow-button invisible-placeholder"></button>`
+  : `
+    <button class="follow-button ${user.is_following ? 'following' : ''}"
+            onclick="event.stopPropagation(); toggleFollow(${user.user_id}, this)">
+        ${user.is_following ? 'Following' : 'Follow'}
+    </button>
   `;
-
   return `
-      <div class="user-item">
+      <div class="user-item" onclick="redirectToUserProfile(${user.user_id})">
           <img src="${user.profile_picture_url || '../assets/temporary_pfp.png'}"
                alt="${user.username}" class="user-avatar"
                onerror="this.src='../assets/temporary_pfp.png'">
@@ -1375,6 +1376,21 @@ function createUserItem(user) {
           ${followButton}
       </div>
   `;
+}
+
+function redirectToUserProfile(userId) {
+    const searchInput = document.getElementById("search_input");
+  if (searchInput && searchInput.value.trim()) {
+    localStorage.setItem('lastSearchQuery', searchInput.value.trim());
+  }
+  const currentPage = window.location.pathname;
+  const isFromSearch = currentPage.includes('home.html') || currentPage.includes('search');
+  if (isFromSearch && searchInput && searchInput.value.trim()) {
+    window.location.href = `../php/profile.php?user_id=${userId}
+        &from=search&search=${encodeURIComponent(searchInput.value.trim())}`;
+  } else {
+    window.location.href = `../php/profile.php?user_id=${userId}`;
+  }
 }
 
 function toggleFollow(userId, button) {
@@ -2103,7 +2119,7 @@ function toggleCommentModal(postElement) {
             ${timestamp}
             ${visibilityCopy ? visibilityCopy.outerHTML : ''}
             ${sharedCopy ? sharedCopy.outerHTML : ''}
-          </span>   
+          </span>
         </div>
       </div>
     `
