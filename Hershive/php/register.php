@@ -86,28 +86,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register</title>
   <link rel="stylesheet" href="../style/register.css"/>
   <link rel="icon" href="../assets/logo.png"/>
-
 </head>
 <body>
-  <div class="wrapper">
-    <div class="left">
+  <!-- Background particles -->
+  <div class="bg-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Hexagonal hive pattern -->
+  <div class="hive-pattern">
+    <div class="hexagon hex1"></div>
+    <div class="hexagon hex2"></div>
+    <div class="hexagon hex3"></div>
+    <div class="hexagon hex4"></div>
+    <div class="hexagon hex5"></div>
+    <div class="hexagon hex6"></div>
+    <div class="hexagon hex7"></div>
+    <div class="hexagon hex8"></div>
+  </div>
+
+  <!-- Flying bees -->
+  <div class="bee-swarm">
+    <div class="bee bee1">🐝</div>
+    <div class="bee bee2">🐝</div>
+    <div class="bee bee3">🐝</div>
+  </div>
+
+  <!-- Main content -->
+  <main>
+    <div class="left-section">
       <h1>Register</h1>
       <p>Connect, Share, Explore.</p>
-      <img src="../assets/register_image.png" alt="Illustration" />
+      <div class="image-container">
+        <img src="../assets/register_image.png" alt="Register Design Image"
+            class="register-image">
+      </div>
     </div>
 
-    <div class="right">
-      <div class="form-box">
+    <div class="right-section">
+      <div class="register-form-container">
         <h2>Join us today!</h2>
         <p>Please enter your details below</p>
 
         <?php if ($errors): ?>
-          <div class="message error">
+          <div class="error-message">
             <?php foreach ($errors as $error) {
               echo htmlspecialchars($error) . "<br>";
             } ?>
@@ -115,7 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
 
         <?php if ($success): ?>
-          <div class="message success">
+          <div class="success-message">
               <?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
 
@@ -123,42 +161,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form id="registerForm"
             onsubmit="return validateForm()"
             method="post" action="">
-          <input
-              type="email" id="email" name="email" placeholder="Email"
-              value="<?php echo isset($email)
-                  ? htmlspecialchars($email) : ''; ?>" required />
-          <input type="text" id="username" name="username" placeholder="Username"
-              value="<?php echo isset($username)
-                  ? htmlspecialchars($username) : ''; ?>" required />
-
-          <div class="password-wrapper">
+          <div class="input-group">
+            <label for="email">Email Address</label>
             <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Password"
-                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                title="Must contain at least 8 characters, one uppercase,
+                type="email" id="email" name="email" placeholder="Enter your email"
+                value="<?php echo isset($email)
+                    ? htmlspecialchars($email) : ''; ?>" required />
+          </div>
+
+          <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username"
+                   value="<?php echo isset($username) ? htmlspecialchars($username) : ''; ?>" required>
+          </div>
+
+          <div class="input-group password-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                    title="Must contain at least 8 characters, one uppercase,
                     one lowercase, and one number." required/>
-
-            <button type="button" class="toggle-password"
-                onclick="toggleVisibility('password', this)">Show
-            </button>
+              <img src="../assets/eye_closed.png"
+                  id="togglePassword" alt="Toggle Password" class="eye-icon"
+                  onclick="togglePasswordVisibility(this, 'password')">
+            </div>
           </div>
 
-          <div class="password-wrapper">
-            <input
-                type="password"
-                id="confirm_password"
-                name="confirm_password"
-                placeholder="Confirm Password"
-                required/>
-            <button type="button" class="toggle-password" 
-                onclick="toggleVisibility('confirm_password', this)">Show
-            </button>
+          <div class="input-group password-group">
+            <label for="confirm_password">Confirm Password</label>
+            <div class="password-wrapper">
+              <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              placeholder="Confirm your password"
+               required/>
+              <img src="../assets/eye_closed.png" id="toggleConfirmPassword"
+                  alt="Toggle Password" class="eye-icon"
+                  onclick="togglePasswordVisibility(this, 'confirm_password')">
+            </div>
           </div>
 
-          <button type="submit">Register</button>
+          <button type="submit" class="register-btn honey-button">
+            <span>Register</span>
+          </button>
 
           <p class="login-link">
             Already have an account?
@@ -168,8 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
       </div>
     </div>
-  </div>
-
+  </main>
   <script src="../script/register.js"></script>
 </body>
 </html>
