@@ -422,16 +422,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         </div>
 
         <div class="content-area">
-            <div id="personal_details">
+            <div id="personal_details" class="hidden">
                 <!-- Default view showing current information -->
                 <div id="personal_details_view">
                     <div class="settings-section" onclick="showEditForm('name')">
                         <h4>Name</h4>
                         <p id="name_display">
-                            <?php echo htmlspecialchars(
-                                ($userData['first_name'] ?? '') . ' ' . 
-                                ($userData['last_name'] ?? '')
-                            ); ?>
+                            <?php
+                                $first = $userData['first_name'] ?? '';
+                                $middle = $userData['middle_name'] ?? '';
+                                $last = $userData['last_name'] ?? '';
+                        
+                                echo htmlspecialchars(trim(
+                                    $first . ' ' . ($middle ? $middle . ' ' : '') . $last
+                                ));
+                            ?>
                         </p>
                         <span class="edit-arrow">›</span>
                     </div>
@@ -451,9 +456,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                          onclick="showEditForm('birth')">
                         <h4>Birth Date</h4>
                         <p id="birth_display">
-                            <?php echo htmlspecialchars(
-                                $userData['birthday'] ?? ''
-                            ); ?>
+                            <?php
+                                if (!empty($userData['birthday'])) {
+                                    $formatted = date('d-m-Y', strtotime($userData['birthday']));
+                                    echo htmlspecialchars($formatted);
+                                }
+                            ?>
                         </p>
                         <span class="edit-arrow">›</span>
                     </div>
@@ -561,10 +569,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         <div class="form-group">
                             <label>Birth Date</label>
                             <input type="date" id="edit_birthday" 
-                                   value="<?php echo htmlspecialchars(
-                                       $userData['birthday'] ?? ''
-                                   ); ?>" 
-                                   oninput="validateField('birth')" />
+                               value="<?php 
+                                 if (!empty($userData['birthday'])) {
+                                   echo htmlspecialchars(
+                                     date('d-m-Y', strtotime($userData['birthday']))
+                                   );
+                                 }
+                               ?>" 
+                               oninput="validateField('birth')" />
                             <small class="help-text">
                                 Your birth date is used to calculate your age.
                             </small>
@@ -616,52 +628,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 </div>
             </div>
 
-            <div id="password" class="settings-panel">
+            <div id="password" class="hidden settings-panel">
                 <form id="password_form" onsubmit="updatePassword(event)">
                     <div class="form-group">
                         <label>Current Password</label>
-                        <input type="password" id="current_password" required />
-                        <button type="button" class="toggle-btn" 
-                                onclick="togglePassword('current_password', this)">
-                            <img src="../assets/eye_closed.png" 
-                                 alt="Toggle visibility" />
-                        </button>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="current_password" required />
+                            <button type="button" class="toggle-btn" 
+                                  onclick="togglePassword('current_password', this)">
+                                <img src="../assets/eye_closed.png" 
+                                    alt="Toggle visibility" />
+                            </button>
+                        </div>
                     </div>
                 
                     <div class="form-group">
-                        <label>New Password</label>
+                      <label>New Password</label>
+                      <div class="password-input-wrapper">
                         <input type="password" id="new_password" 
-                               oninput="validatePassword()" 
-                               onfocus="showRules()" required />
+                            oninput="validatePassword()" 
+                            onfocus="showRules()" required />
                         <button type="button" class="toggle-btn" 
-                                onclick="togglePassword('new_password', this)">
-                            <img src="../assets/eye_closed.png" 
-                                 alt="Toggle visibility" />
+                            onclick="togglePassword('new_password', this)">
+                          <img src="../assets/eye_closed.png" 
+                              alt="Toggle visibility" />
                         </button>
+                      </div>
+                            <ul id="settings_rules" class="rules">
+                                 <li id="settings_length" 
+                                    class="invalid">Minimum 8 characters
+                                </li>
+                                 <li id="settings_number" 
+                                    class="invalid">At least one number
+                                </li>
+                                 <li id="settings_uppercase" 
+                                    class="invalid">At least one uppercase letter
+                                </li>
+                                 <li id="settings_lowercase" 
+                                    class="invalid">At least one lowercase letter
+                                </li>
+                            </ul>
                     </div>
-                
-                    <ul id="rules" class="rules">
-                        <li id="length" class="invalid">Minimum 8 characters</li>
-                        <li id="number" class="invalid">At least one number</li>
-                        <li id="uppercase" class="invalid">
-                            At least one uppercase letter
-                        </li>
-                        <li id="lowercase" class="invalid">
-                            At least one lowercase letter
-                        </li>
-                    </ul>
-                
+
                     <div class="form-group">
                         <label>Confirm Password</label>
-                        <input type="password" id="confirm_password" 
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirm_password" 
                                oninput="validatePassword()" required />
-                        <button type="button" class="toggle-btn" 
+                            <button type="button" class="toggle-btn" 
                                 onclick="togglePassword('confirm_password', this)">
-                            <img src="../assets/eye_closed.png" 
+                                <img src="../assets/eye_closed.png" 
                                  alt="Toggle visibility" />
-                        </button>
+                            </button>
+                        </div>
                     </div>
-                
+                    <p id="settings_match_warning" class="warning-text hidden">
+                      Passwords do not match.
+                    </p>
                     <button type="submit" id="reset_btn" class="save-btn" 
                             disabled>
                         Save
@@ -669,7 +692,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 </form>
             </div>
 
-            <div id="delete_account" class="settings-panel">
+            <div id="delete_account" class="hidden settings-panel">
                 <h3>Delete account</h3>
                 <p>
                     Deleting your account will permanently remove all your data 
@@ -683,7 +706,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 </div>
             </div>
 
-            <div id="delete_password_modal" class="popup-overlay hidden" 
+            <div id="delete_acount_modal" class="popup-overlay hidden" 
                  onclick="closeDeletePasswordModal()">
                 <div class="popup-content delete-modal" 
                      onclick="event.stopPropagation()">
@@ -715,7 +738,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     <div id="popup_overlay" class="popup-overlay hidden" 
          onclick="closePopup()">
         <div class="popup-content" onclick="event.stopPropagation()">
-            <span class="close-btn" onclick="closePopup()">&times;</span>
             <h3 id="popup_title">Message</h3>
             <p id="popup_message">Your message here</p>
             <div class="popup-buttons">
