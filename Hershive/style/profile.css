@@ -11,18 +11,16 @@ body {
 }
 
 .top-bar {
-  position: sticky;
-  top: 0;
-  background-color: #f8f5ea;
   display: flex;
   align-items: center;
   padding: 10px 20px;
-  border-bottom: 3px solid;
-  border-image: linear-gradient(to right, #ecb06e, #ad7943) 1;
+  border-bottom: 1px solid black;
   justify-content: space-between;
   margin-bottom: 10px;
-  z-index: 9999;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  background-color: #f8f5ea;
+  z-index: 1000;
 }
 
 .logo {
@@ -33,7 +31,6 @@ body {
   display: flex;
   width: 500px;
   position: relative;
-  transform: translateX(100px);
 }
 
 .search-bar img {
@@ -59,20 +56,9 @@ body {
 
 .search-bar input {
   width: 100%;
-  padding: 10px 15px;
-  border: 1px solid transparent;
+  padding: 10px;
+  border: 1px solid black;
   border-radius: 20px;
-
-  background-image:
-    linear-gradient(white, white),
-    linear-gradient(to right, #ecb06e, #ad7943);
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-
-  box-sizing: border-box;
-  font-size: 16px;
-  color: #333;
-  outline: none;
 }
 
 .navigation-icons {
@@ -92,26 +78,6 @@ body {
 .navigation-icons img {
   width: 30px;
   height: 30px;
-}
-
-.notification-icon-container {
-  position: relative;
-  display: inline-block;
-}
-
-.notification-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: red;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 50%;
-  line-height: 1;
-  min-width: 18px;
-  text-align: center;
 }
 
 .menu-button {
@@ -247,7 +213,7 @@ body {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-right: 15px;
+  margin-right: 25px;
   position: relative;
   cursor: pointer;
 }
@@ -516,25 +482,24 @@ body {
 }
 
 .post-actions {
-  display: flex !important;
-  flex-direction: row !important;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   gap: 20px;
   padding: 8px 16px;
+  white-space: nowrap;
+  overflow-x: visible;
+  background: none;
+  border: none;
 }
 
 .action-button {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
-  margin: 0 !important;
-  float: none !important;
-  clear: none !important;
-}
-
-.post-actions {
-  white-space: nowrap;
-  overflow-x: visible;
+  margin: 0;
+  float: none;
+  clear: none;
 }
 
 .action-button button {
@@ -554,17 +519,14 @@ body {
 
 .action-button img:hover {
   transform: scale(1.1);
-  opacity: 0.8;
+  opacity: 0.8t;
 }
 
 .action-button span {
   font-size: 14px;
   color: #555;
   font-weight: 500;
-}
-
-.action-button button:active {
-  transform: scale(0.95);
+  margin-left: 6px;
 }
 
 .heart-icon {
@@ -575,13 +537,6 @@ body {
 .heart-icon.outline.hidden,
 .heart-icon.filled.hidden {
   display: none;
-}
-
-.empty-post-message {
-  text-align: center;
-  color: #888;
-  font-style: italic;
-  margin-top: 20px;
 }
 
 /* Share Modal Styling */
@@ -846,7 +801,7 @@ body {
   font-size: 1em;
 }
 
-.modal-overlay {
+.modal-overlay { 
   display: none;
   position: fixed;
   top: 0;
@@ -1598,13 +1553,6 @@ body.no-scroll {
   color: white;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  min-width: 85px;
-  height: 32px;
-}
-
-.follow-button.invisible-placeholder {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .follow-button:hover {
