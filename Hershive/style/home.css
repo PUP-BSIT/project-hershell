@@ -283,6 +283,12 @@ select {
   font-weight: bold;
   margin: 0 10px;
   cursor: pointer;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.username:hover {
+  color: #333;
+  text-decoration: underline;
 }
 
 .timestamp {
@@ -2174,6 +2180,11 @@ body.modal-open {
   object-fit: cover;
   background: #f0f0f0;
   cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.top-user-avatar:hover {
+  filter: brightness(85%);
 }
 
 .top-user-info {
@@ -2186,6 +2197,12 @@ body.modal-open {
   color: #333;
   margin: 0 0 4px 0;
   cursor: pointer;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.top-user-name:hover {
+  color: #333;
+  text-decoration: underline;
 }
 
 .top-user-handle {
@@ -2272,6 +2289,11 @@ body.modal-open {
   object-fit: cover;
   background: #f0f0f0;
   cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.more-people-avatar:hover {
+  filter: brightness(85%);
 }
 
 .more-people-info {
@@ -2284,6 +2306,12 @@ body.modal-open {
   margin: 0 0 2px 0;
   font-size: 15px;
   cursor: pointer;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.more-people-name:hover {
+  color: #333;
+  text-decoration: underline;
 }
 
 .more-people-handle {
@@ -3338,6 +3366,11 @@ body.modal-open {
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.profile-pic:hover {
+  filter: brightness(85%);
 }
 
 .post-info {

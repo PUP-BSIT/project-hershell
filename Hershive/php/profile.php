@@ -45,11 +45,9 @@ $bio = htmlspecialchars($user['bio'] ?? '');
 <body data-user-id="<?= $_SESSION['user_id'] ?>" data-username="<?php echo htmlspecialchars($_SESSION['username']); ?>">
   <div class="top-bar">
     <img src="../assets/logo.png" alt="hershive logo" class="logo">
-    <?php if (!$isOwnProfile): ?>
-          <?php if ($fromSearch): ?>
-            <button class="back-btn" onclick="backToSearch()">← Back</button>
-          <?php endif; ?>
-        <?php endif; ?>
+    <?php if ($fromSearch): ?>
+      <button class="back-btn" onclick="backToSearch()">← Back</button>
+    <?php endif; ?>
     <div class="search-bar">
       <input type="text" id="search_input" placeholder="Search">
       <button class="search-button" id="search_button">
@@ -364,7 +362,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           </div>
         </div>
       </div>
-      
+
      <!-- Comment Modal -->
     <div class="comment-modal-overlay" id="commentModalOverlay">
       <div class="comment-modal" id="commentModal">
@@ -393,7 +391,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
         </div>
       </div>
     </div>
-    
+
     <!-- Delete Comment Modal -->
     <div class="custom-modal-overlay hidden" id="delete_comment_modal">
       <div class="custom-modal">
