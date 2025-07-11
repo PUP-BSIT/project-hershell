@@ -567,14 +567,24 @@ function createPostElement(post) {
 
     <div class="post-content">
       <div class="content">
-        ${post.content ? `<div class="post-text">${post.content}</div>` : ""}
+        ${post.content ? `
+          <div class="post-text-wrapper" data-detect="true">
+            <div class="post-text">${post.content}</div>
+            <span class="see-more" onclick="toggleSeeMore(this)">...see more</span>
+          </div>
+        ` : ""}
 
         ${isShared ? `
           <div class="shared-card">
             <p class="shared-username">Originally posted by
               <strong>${post.original_post.username}</strong>
             </p>
-            <div class="shared-content">${post.original_post.content}</div>
+            <div class="shared-content">
+              <div class="post-text-wrapper" data-detect="true">
+                <div class="post-text">${post.original_post.content}</div>
+                <span class="see-more" onclick="toggleSeeMore(this)">...see more</span>
+              </div>
+            </div>
             ${post.original_post.media_url ? (
               post.original_post.media_type === "video"
                 ? `<video controls class="preview-video">
@@ -638,6 +648,42 @@ function displayPostsInContainer(posts) {
   posts.forEach(post => {
     const postElement = createPostElement(post);
     container.appendChild(postElement);
+  });
+
+  handleSeeMoreVisibility();
+}
+
+function toggleSeeMore(button) {
+  const textDiv = button.previousElementSibling;
+  const isExpanded = textDiv.classList.toggle('expanded');
+  button.textContent = isExpanded ? 'See less' : '...see more';
+
+  if (!isExpanded) {
+    const postDiv = button.closest('.user-post');
+    const postTop = postDiv.getBoundingClientRect().top + window.pageYOffset;
+
+    window.scrollTo({
+      top: postTop,
+      behavior: 'smooth'
+    });
+  }
+}
+
+function handleSeeMoreVisibility() {
+  document.querySelectorAll('[data-detect="true"]').forEach(wrapper => {
+    const textDiv = wrapper.querySelector('.post-text');
+    const seeMoreBtn = wrapper.querySelector('.see-more');
+
+    const lineHeight = parseFloat(getComputedStyle(textDiv).lineHeight);
+    const maxVisibleHeight = lineHeight * 5;
+
+    requestAnimationFrame(() => {
+      if (textDiv.scrollHeight <= maxVisibleHeight + 1) {
+        seeMoreBtn.style.display = 'none';
+      } else {
+        seeMoreBtn.style.display = 'inline-block';
+      }
+    });
   });
 }
 
