@@ -1555,6 +1555,7 @@ function openPostModalFromNotification(postId) {
           loadComments(postId, commentListEl);
         }
       }, 5000);
+      clearFollowCache()
     })
     .catch(err => showError("Network error while loading post: " + err.message));
 }
