@@ -426,7 +426,7 @@
     <div class="comment-modal-overlay" id="commentModalOverlay">
       <div class="comment-modal" id="commentModal">
         <div class="comment-modal-header">
-          <h3>Comments</h3>
+          <h3 id="preview_header">Comments</h3>
           <button class="close-comment-modal" onclick="closeCommentModal()">×</button>
         </div>
         <div class="comment-modal-scrollable" id="commentModalScrollable">
@@ -437,10 +437,10 @@
         </div>
         <div class="comment-input-container">
           <img src="../assets/temporary_pfp.png" alt="Your Avatar"
-              class="comment-input-avatar" />
+               class="comment-input-avatar" />
           <div class="comment-input-wrapper">
             <input type="text" class="comment-input"
-                placeholder="Write a comment..." id="commentInput" />
+                   placeholder="Write a comment..." id="commentInput" />
             <button class="send-comment-btn" onclick="submitComment()">
               <svg viewBox="0 0 24 24" width="24" height="24">
                 <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
