@@ -81,6 +81,17 @@ function checkUserSession(callback) {
             this.src = "../assets/temporary_pfp.png";
           };
         }
+        
+        const editUsername = document.getElementById("edit_modal_username");
+        if (editUsername) editUsername.textContent = data.username;
+        
+        const editProfilePic = document.getElementById("edit_modal_profile_pic");
+        if (editProfilePic) {
+          editProfilePic.src = data.profile_picture_url || "../assets/temporary_pfp.png";
+          editProfilePic.onerror = function () {
+            this.src = "../assets/temporary_pfp.png";
+          };
+        }
 
         if (typeof callback === "function") {
           callback();
@@ -372,63 +383,126 @@ function togglePostFollow(button, username) {
   });
 }
 
-function submitEditedPost() {
-  const modal = document.getElementById("edit_post_modal");
-  const postId = modal.dataset.postId;
-  const content = document.getElementById("edit_editor").innerHTML.trim();
-  const plainText = content.replace(/<[^>]*>/g, '').trim();
-  const hasText = plainText !== '';
-  const imageInput = document.getElementById("edit_media_input");
-  const videoInput = document.getElementById("edit_media_input_video");
+function submitPost() {
+  const editor = document.getElementById("editor");
+  let content = editor.innerHTML.trim();
+
+  const imageInput = document.getElementById("media_input");
+  const videoInput = document.getElementById("media_input_video");
+
   const hasImage = imageInput.files.length > 0;
   const hasVideo = videoInput.files.length > 0;
-  const hasShared = modal.dataset.shared === "true";
-  const visibility = document.getElementById("edit_privacy_setting").value;
 
-  if (!hasText && !hasImage && !hasVideo && !hasShared) {
-    alert("Please include some content or media.");
-    return;
-  }
+  const textOnly = content.replace(/<[^>]*>/g, '').trim();
+  const hasText = textOnly !== "" && textOnly !== "&nbsp;";
 
-  if (hasImage && hasVideo) {
-    alert("Only one media type is allowed.");
+  if (!hasText && !hasImage && !hasVideo) {
+    alert("Please write something or upload media.");
     return;
   }
 
   const formData = new FormData();
-  formData.append("post_id", postId);
-  formData.append("content", hasText ? content : '');
-  formData.append("visibility", visibility);
+
+  if (hasText) {
+    formData.append("content", content);
+  }
+
+  if (hasImage && hasVideo) {
+    alert("You can only upload one media at a time.");
+    return;
+  }
 
   if (hasImage) {
-    formData.append("media", imageInput.files[0]);
-    formData.append("media_type", "image");
+   formData.append("media", imageInput.files[0]);
+   formData.append("media_type", "image");
   } else if (hasVideo) {
     formData.append("media", videoInput.files[0]);
     formData.append("media_type", "video");
   }
 
+  const privacy = document.getElementById("privacy_setting")?.value ||
+      document.getElementById("privacy").value;
+  formData.append("visibility", privacy);
+
+  fetch("../php/create-post.php", {
+    method: "POST",
+    body: formData,
+    headers: {
+    "X-Requested-With": "XMLHttpRequest"
+    }
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        closePostModal();
+        editor.innerHTML = "";
+        imageInput.value = "";
+        videoInput.value = "";
+
+        const previewContainer = document.getElementById("preview_container");
+        if (previewContainer) previewContainer.innerHTML = "";
+
+        loadPosts();
+      } else {
+        alert("Error: " + data.error);
+      }
+    })
+    .catch((err) => {
+      alert("Post failed.");
+      console.error(err);
+    });
+}
+
+function submitEditedPost() {
+  const modal = document.getElementById("edit_post_modal");
+  const postId = modal.dataset.postId;
+  const content = document.getElementById("edit_editor").innerHTML.trim();
+  const imageInput = document.getElementById("edit_media_input");
+  const videoInput = document.getElementById("edit_media_input_video");
+  const privacy = document.getElementById("edit_privacy_setting").value;
+
+  const formData = new FormData();
+  formData.append("post_id", postId);
+  formData.append("content", content);
+  formData.append("visibility", privacy);
+
+  if (imageInput.files.length > 0 && videoInput.files.length > 0) {
+    alert("Only one media type (image or video) is allowed.");
+    return;
+  }
+
+  if (imageInput.files.length > 0) {
+    formData.append("media", imageInput.files[0]);
+  } else if (videoInput.files.length > 0) {
+    formData.append("media", videoInput.files[0]);
+  }
+
   fetch("../php/edit_post.php", {
     method: "POST",
-    body: formData
+    body: formData,
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
     .then(data => {
+      console.log("Server response:", data);
       if (data.success) {
-        closeEditPostModal();
-        loadPosts(); // Refresh wall
+        resetEditPostModal();
+        loadPosts();
       } else {
-        alert(data.error || "Failed to update post.");
+        alert((data.error || "Failed to update post"));
       }
     })
     .catch(err => {
-      console.error("Edit post error:", err);
-      alert("Post failed to update.");
+      console.error("Edit post failed:", err);
+      alert("Network or server error while updating post.");
     });
 }
 
 
 function editPost(button) {
+
   const post = button.closest('.sample-post');
   const postId = post.dataset.postId;
   const contentDiv = post.querySelector('.content');
@@ -438,41 +512,29 @@ function editPost(button) {
   const existingVideo = contentDiv.querySelector('video:not(.shared-card video)');
   const visibilityIcon = post.querySelector('.visibility-icon');
 
-
-  // Show modal
   const modal = document.getElementById("edit_post_modal");
+  console.log("Modal found?", !!modal);
+
+  if (!modal) {
+    alert("Edit modal is missing in the HTML!");
+    return;
+  }
   modal.classList.remove("hidden");
   modal.classList.add("flex-center");
   document.body.classList.add("no-scroll");
 
-  // Inject editor content
   document.getElementById("edit_editor").innerHTML = paragraph?.innerHTML || '';
   document.getElementById("edit_privacy_setting").value = visibilityIcon?.alt || 'public';
+
   updatePrivacyIcons(document.getElementById("edit_privacy_setting").value);
 
-  // Inject profile info
-  const profilePic = post.querySelector('.post-header-left .profile-pic')?.src || '../assets/temporary_pfp.png';
-  const username = post.querySelector('.post-info .username')?.textContent || 'User';
-  const modalUsernameEl = document.getElementById("edit_modal_username");
-  const modalProfilePicEl = document.getElementById("edit_modal_profile_pic");
-
-  if (modalUsernameEl) modalUsernameEl.textContent = username;
-  if (modalProfilePicEl) {
-    modalProfilePicEl.src = profilePic;
-    modalProfilePicEl.onerror = function () {
-      this.src = '../assets/temporary_pfp.png';
-    };
-  }
-
-  // Store for submission
   modal.dataset.postId = postId;
   modal.dataset.originalText = paragraph?.innerHTML || '';
   modal.dataset.mediaType = existingImage ? 'image' : existingVideo ? 'video' : '';
   modal.dataset.shared = !!sharedCard;
 
-  // Media preview
   const preview = document.getElementById("edit_preview_container");
-  preview.innerHTML = "";
+  preview.innerHTML = '';
   if (existingImage) {
     preview.appendChild(existingImage.cloneNode(true));
   } else if (existingVideo) {
@@ -480,150 +542,154 @@ function editPost(button) {
   }
 }
 
+function closeEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  const previewContainer = document.getElementById("edit_preview_container");
+  const editor = document.getElementById("edit_editor");
+  const imageInput = document.getElementById("edit_media_input");
+  const videoInput = document.getElementById("edit_media_input_video");
 
-function createEditor(initialHTML) {
-  const div = document.createElement('div');
-  div.className = 'edit-editor';
-  div.contentEditable = true;
-  div.innerHTML = initialHTML;
-  return div;
+  if (!modal || !editor || !previewContainer || !imageInput || !videoInput) return;
+
+  const originalText = modal.dataset.originalText?.trim() || '';
+  const editorContent = editor.innerHTML.trim();
+
+  const hasEditorChanged = editorContent !== originalText;
+
+  const hasImage = imageInput.files.length > 0;
+  const hasVideo = videoInput.files.length > 0;
+
+  const originalHadMedia = modal.dataset.mediaType !== "";
+  const previewCleared = originalHadMedia && previewContainer.children.length === 0;
+
+  const hasUnsavedChanges = hasEditorChanged || hasImage || hasVideo || previewCleared;
+
+  if (hasUnsavedChanges) {
+    const warningModal = document.getElementById("unsaved_changes_modal");
+    if (warningModal) {
+      warningModal.style.display = "flex";
+      warningModal.classList.remove("hidden");
+    }
+    document.body.classList.add("no-scroll");
+  } else {
+    resetEditPostModal();
+  }
 }
 
-function createFormatting(editor) {
-  const container = document.createElement('div');
-  container.className = 'formatting-options';
-  ['bold', 'italic', 'underline'].forEach(cmd => {
-    const btn = document.createElement('button');
-    btn.textContent = cmd[0].toUpperCase();
-    btn.onclick = () => {
-      editor.focus();
-      document.execCommand(cmd, false, null);
-    };
-    container.appendChild(btn);
-  });
-  return container;
+function hideUnsavedChangesModal() {
+  const modal = document.getElementById("unsaved_changes_modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
 }
 
-function createUploadControls() {
-  const container = document.createElement('div');
-  container.className = 'upload-controls';
+function resetEditPostModal() {
+  const modal = document.getElementById("edit_post_modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex-center");
+  document.body.classList.remove("no-scroll");
 
-  // Image input
-  const fileInputImage = document.createElement('input');
-  fileInputImage.type = 'file';
-  fileInputImage.accept = 'image/*';
-  fileInputImage.hidden = true;
+  document.getElementById("edit_editor").innerHTML = '';
+  document.getElementById("edit_preview_container").innerHTML = '';
+  document.getElementById("edit_media_input").value = '';
+  document.getElementById("edit_media_input_video").value = '';
+}
 
-  const imageLabel = document.createElement('label');
-  imageLabel.className = 'icon-button';
-  imageLabel.innerHTML = `
-    <img src="../assets/camera_icon.png" alt="Image Icon" />
-    <span>Image</span>
-  `;
-  imageLabel.appendChild(fileInputImage);
+function discardChanges() {
+  const unsavedModal = document.getElementById("unsaved_changes_modal");
+  const editModal = document.getElementById("edit_post_modal");
 
-  // Video input
-  const fileInputVideo = document.createElement('input');
-  fileInputVideo.type = 'file';
-  fileInputVideo.accept = 'video/*';
-  fileInputVideo.hidden = true;
-
-  const videoLabel = document.createElement('label');
-  videoLabel.className = 'icon-button';
-  videoLabel.innerHTML = `
-    <img src="../assets/video_icon.png" alt="Video Icon" />
-    <span>Video</span>
-  `;
-  videoLabel.appendChild(fileInputVideo);
-
-  // Privacy selector
-  const visibility = document.createElement('div');
-  visibility.className = 'privacy-select';
-  visibility.innerHTML = `
-    <img class="edit-privacy-icon" src="../assets/public_icon.png" alt="Privacy Icon" />
-    <select class="edit-privacy-select">
-      <option value="public">Public</option>
-      <option value="followers">Followers</option>
-      <option value="private">Private</option>
-    </select>
-  `;
-
-  const visibilitySelect = visibility.querySelector('select');
-  const visibilityIcon = visibility.querySelector('img');
-
-  // Sync icon on change
-  visibilitySelect.addEventListener('change', () => {
-    const value = visibilitySelect.value;
-    const iconMap = {
-      public: '../assets/public_icon.png',
-      followers: '../assets/followers_icon.png',
-      private: '../assets/private_icon.png'
-    };
-    visibilityIcon.src = iconMap[value] || iconMap.public;
-  });
-
-  const miniPrivacy = document.getElementById('privacy');
-  if (miniPrivacy) {
-    visibilitySelect.value = miniPrivacy.value;
-    const iconMap = {
-      public: '../assets/public_icon.png',
-      followers: '../assets/followers_icon.png',
-      private: '../assets/private_icon.png'
-    };
-    visibilityIcon.src = iconMap[miniPrivacy.value] || iconMap.public;
+  if (unsavedModal) {
+    unsavedModal.classList.add("hidden");
+    unsavedModal.classList.remove("flex", "flex-center");
   }
 
-  const previewMedia = (file, isVideo) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const media = document.createElement(isVideo ? 'video' : 'img');
-      media.src = e.target.result;
-      media.className = isVideo ? 'preview-video' : 'preview-image';
-      if (isVideo) media.controls = true;
+  if (editModal) {
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex", "flex-center");
+  }
 
-      const existing = container.querySelector('.preview-image, .preview-video');
-      if (existing) existing.remove();
+  document.body.classList.remove("no-scroll");
 
-      container.appendChild(media);
-    };
-    reader.readAsDataURL(file);
-  };
+  const editor = document.getElementById("edit_editor");
+  const preview = document.getElementById("edit_preview_container");
+  const mediaInput = document.getElementById("edit_media_input");
+  const mediaInputVideo = document.getElementById("edit_media_input_video");
 
-  fileInputImage.addEventListener('change', () => {
-    if (fileInputImage.files.length > 0) {
-      fileInputVideo.value = '';
-      previewMedia(fileInputImage.files[0], false);
-    }
-  });
+  if (editor) editor.innerHTML = "";
+  if (preview) preview.innerHTML = "";
+  if (mediaInput) mediaInput.value = "";
+  if (mediaInputVideo) mediaInputVideo.value = "";
 
-  fileInputVideo.addEventListener('change', () => {
-    if (fileInputVideo.files.length > 0) {
-      fileInputImage.value = '';
-      previewMedia(fileInputVideo.files[0], true);
-    }
-  });
-
-  container.append(imageLabel, videoLabel, visibility);
-  return {
-    uploadControls: container,
-    fileInputImage,
-    fileInputVideo,
-    visibilitySelect
-  };
+  console.log("🗑️ Discard clicked: Edit modal and Unsaved modal hidden.");
 }
 
-function handleEditFileInput(input, isVideo = false) {
+function keepEditing() {
+  document.getElementById("unsaved_changes_modal").classList.add("hidden");
+
+  const modal = document.getElementById("edit_post_modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex-center");
+  document.body.classList.add("no-scroll");
+}
+
+function formatTextEditor(command, editorId) {
+  const editor = document.getElementById(editorId);
+  if (!editor) return;
+
+  editor.focus();
+  document.execCommand(command, false, null);
+  updateEditFormattingButtonStates();
+}
+
+function updateEditFormattingButtonStates() {
+  const boldBtn = document.getElementById("edit-bold-btn");
+  const italicBtn = document.getElementById("edit-italic-btn");
+  const underlineBtn = document.getElementById("edit-underline-btn");
+
+  if (document.queryCommandState("bold")) {
+    boldBtn.classList.add("active");
+  } else {
+    boldBtn.classList.remove("active");
+  }
+
+  if (document.queryCommandState("italic")) {
+    italicBtn.classList.add("active");
+  } else {
+    italicBtn.classList.remove("active");
+  }
+
+  if (document.queryCommandState("underline")) {
+    underlineBtn.classList.add("active");
+  } else {
+    underlineBtn.classList.remove("active");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const editor = document.getElementById("edit_editor");
+  if (editor) {
+    editor.addEventListener("keyup", updateEditFormattingButtonStates);
+    editor.addEventListener("mouseup", updateEditFormattingButtonStates);
+  }
+});
+
+const editImageInput = document.getElementById("edit_media_input");
+const editVideoInput = document.getElementById("edit_media_input_video");
+const editPreviewContainer = document.getElementById("edit_preview_container");
+
+function handleEditFilePreview(input, isVideo = false) {
   const file = input.files[0];
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = function (e) {
-    const previewContainer = document.getElementById("edit_preview_container");
-    previewContainer.innerHTML = "";
+    editPreviewContainer.innerHTML = "";
 
     const media = document.createElement(isVideo ? "video" : "img");
     if (isVideo) media.controls = true;
     media.src = e.target.result;
+    media.classList.add(isVideo ? "preview-video" : "preview-image");
 
     const wrapper = document.createElement("div");
     wrapper.classList.add("preview-item");
@@ -632,92 +698,33 @@ function handleEditFileInput(input, isVideo = false) {
     removeBtn.className = "remove-btn";
     removeBtn.textContent = "✕";
     removeBtn.onclick = () => {
-      previewContainer.innerHTML = "";
+      editPreviewContainer.innerHTML = "";
       input.value = "";
     };
 
     wrapper.appendChild(media);
     wrapper.appendChild(removeBtn);
-    previewContainer.appendChild(wrapper);
+    editPreviewContainer.appendChild(wrapper);
   };
   reader.readAsDataURL(file);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const editImageInput = document.getElementById("edit_media_input");
-  const editVideoInput = document.getElementById("edit_media_input_video");
-
-  if (editImageInput) {
-    editImageInput.addEventListener("change", () =>
-      handleEditFileInput(editImageInput, false)
-    );
-  }
-
-  if (editVideoInput) {
-    editVideoInput.addEventListener("change", () =>
-      handleEditFileInput(editVideoInput, true)
-    );
-  }
-});
-
-
-function createSaveButton() {
-  const btn = document.createElement('button');
-  btn.className = 'save-edit-button';
-  btn.textContent = 'Save';
-  return btn;
+if (editImageInput) {
+  editImageInput.addEventListener("change", () => {
+    if (editImageInput.files.length > 0) {
+      editVideoInput.value = "";
+      handleEditFilePreview(editImageInput, false);
+    }
+  });
 }
 
-function createCancelButton(onClick) {
-  const btn = document.createElement('button');
-  btn.className = 'cancel-edit-button';
-  btn.textContent = 'Cancel';
-  btn.onclick = onClick;
-  return btn;
-}
-
-function updatePostContent(container, newContent, sharedCard, paragraph, fileInputImage, fileInputVideo, oldImg, oldVid) {
-  const hasText = newContent.replace(/<[^>]*>/g, '').trim() !== '';
-
-  if (paragraph) {
-    if (hasText) {
-      paragraph.innerHTML = newContent;
-      paragraph.classList.remove('hidden');
-    } else {
-      paragraph.remove();
+if (editVideoInput) {
+  editVideoInput.addEventListener("change", () => {
+    if (editVideoInput.files.length > 0) {
+      editImageInput.value = "";
+      handleEditFilePreview(editVideoInput, true);
     }
-  } else if (hasText) {
-    const newText = document.createElement('div');
-    newText.className = 'post-text';
-    newText.innerHTML = newContent;
-    if (sharedCard) {
-      container.insertBefore(newText, sharedCard);
-    } else {
-      container.insertBefore(newText, container.firstChild);
-    }
-  }
-
-  const file = fileInputImage.files[0] || fileInputVideo.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    const isVideo = file.type.startsWith('video');
-    const media = document.createElement(isVideo ? 'video' : 'img');
-    if (isVideo) media.controls = true;
-    media.src = e.target.result;
-    media.className = isVideo ? 'preview-video' : 'preview-image';
-
-    if (oldImg) oldImg.remove();
-    if (oldVid) oldVid.remove();
-
-    if (sharedCard) {
-      container.insertBefore(media, sharedCard);
-    } else {
-      container.appendChild(media);
-    }
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function deletePost(button) {
@@ -903,24 +910,6 @@ function openPostModal(event) {
   document.body.classList.add("no-scroll");
 
   syncPrivacyToModal();
-}
-
-function closeEditPostModal() {
-  const modal = document.getElementById("edit_post_modal");
-  const editorContent = document.getElementById("edit_editor").innerHTML.trim();
-  const originalContent = modal.dataset.originalText?.trim() || '';
-
-  const hasUnsavedChanges = editorContent !== originalContent ||
-    document.getElementById("edit_media_input").files.length > 0 ||
-    document.getElementById("edit_media_input_video").files.length > 0;
-
-  if (hasUnsavedChanges) {
-    document.getElementById("unsaved_changes_modal").classList.remove("hidden");
-    return;
-  }
-
-  // Proceed with reset if no changes
-  resetEditPostModal();
 }
 
 function keepEditing() {
