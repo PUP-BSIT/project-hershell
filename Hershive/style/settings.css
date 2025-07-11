@@ -193,6 +193,7 @@ button:disabled {
   height: 20px;
   object-fit: contain;
   display: block;
+  margin-bottom: px;
 }
 
 .toggle-password {
@@ -200,12 +201,10 @@ button:disabled {
 }
 
 .rules {
-  display: none;
   text-align: left;
   font-size: 12px;
   margin-top: 10px;
   padding-left: 20px;
-  list-style: disc;
 }
 
 .rules.active {
@@ -346,10 +345,6 @@ button:disabled {
 
 .popup-buttons button:hover {
   opacity: 0.8;
-}
-
-.hidden {
-  display: none !important;
 }
 
 .settings-section {
@@ -615,7 +610,7 @@ button:disabled {
   background-color: #cc0000;
 }
 
-#delete_password_modal.popup-overlay {
+#delete_acount_modal.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -628,7 +623,7 @@ button:disabled {
   z-index: 1000;
 }
 
-#delete_password_modal .popup-content.delete-modal {
+#delete_acount_modal .popup-content.delete-modal {
   background: #fff;
   padding: 30px 40px;
   border-radius: 12px;
@@ -639,34 +634,25 @@ button:disabled {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-#delete_password_modal h3 {
+#delete_acount_modal h3 {
   margin-top: 0;
   font-size: 20px;
   font-weight: bold;
   color: #333;
 }
 
-#delete_password_modal p {
+#delete_acount_modal p {
   font-size: 14px;
   color: #555;
   margin-bottom: 20px;
 }
 
-#delete_password_modal .form-group {
+#delete_acount_modal .form-group {
   position: relative;
   margin-bottom: 20px;
 }
 
-#delete_password_modal input[type="password"] {
-  width: 100%;
-  padding: 10px 40px 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f8f5ea;
-  font-size: 14px;
-}
-
-#delete_password_modal .toggle-btn {
+#delete_acount_modal .toggle-btn {
   position: absolute;
   top: 50%;
   right: 12px;
@@ -676,30 +662,30 @@ button:disabled {
   cursor: pointer;
 }
 
-#delete_password_modal .toggle-btn img {
+#delete_acount_modal .toggle-btn img {
   width: 20px;
   height: 20px;
 }
 
-#delete_password_modal .popup-buttons {
+#delete_acount_modal .popup-buttons {
   display: flex;
   justify-content: center;
   gap: 10px;
   margin-top: 20px;
 }
 
-#delete_password_modal .popup-buttons .delete-btn:hover {
+#delete_acount_modal .popup-buttons .delete-btn:hover {
   background-color: #cc0000;
 }
 
-#delete_password_modal .popup-buttons {
+#delete_acount_modal .popup-buttons {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   margin-top: 20px;
 }
 
-#delete_password_modal .popup-buttons button {
+#delete_acount_modal .popup-buttons button {
   flex: 1;
   padding: 12px 0;
   font-size: 14px;
@@ -712,20 +698,148 @@ button:disabled {
   height: 45px;
 }
 
-#delete_password_modal .popup-buttons .cancel-btn {
+#delete_acount_modal .popup-buttons .cancel-btn {
   background-color: white;
   color: #000;
   border-color: #ccc;
 }
 
 
-#delete_password_modal .popup-buttons .delete-btn {
+#delete_acount_modal .popup-buttons .delete-btn {
   background-color: #ff4444;
   color: white;
   border-color: #ff4444;
 }
 
-#delete_password_modal .popup-buttons .delete-btn:hover {
+#delete_acount_modal .popup-buttons .delete-btn:hover {
   background-color: #cc0000;
   border-color: #cc0000;
+}
+
+.rules {
+  font-size: 13px;
+  margin-bottom: 10px;
+  list-style: none;
+  display: none;
+}
+
+.rules.active {
+  display: block;
+}
+
+.rules li {
+  margin-bottom: 5px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.rules li::before {
+  content: "\2716";
+  position: absolute;
+  left: 0;
+  color: red;
+  font-weight: bold;
+}
+
+.rules li.valid::before {
+  content: "\2713";
+  color: green;
+}
+
+.rules li.invalid {
+  color: #dc3545;
+}
+
+.rules li.valid {
+  color: #28a745;
+}
+
+.strength-meter {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+#settings_strength_bar {
+  height: 100%;
+  width: 0%;
+  background: red;
+  transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  border-radius: 3px;
+}
+
+.warning-text {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input[type="password"] {
+  width: 100%;
+  padding-right: 40px;
+  box-sizing: border-box;
+}
+
+.password-input-wrapper .toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.popup-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.password-warning-top {
+  background-color: #ffe6e6;
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 15px;
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.password-warning-top.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
