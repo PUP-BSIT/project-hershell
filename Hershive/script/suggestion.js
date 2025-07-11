@@ -178,6 +178,9 @@ function handleUserClick(event) {
     document.querySelector(".profile-username").textContent = "@" + data.username;
     document.querySelector(".profile-bio").textContent = data.bio;
 
+    const followBtn = document.getElementById("follow_btn");
+    followBtn.setAttribute("onclick", `toggleMainProfileFollow('${data.username}', this)`);
+
     getClickedUserStats();
 
     currentUser = data.current_session_username;
@@ -190,6 +193,7 @@ function handleUserClick(event) {
     loadProfilePosts();
     loadFollowers();
     loadFollowing();
+    initializeFollowStatus();
   })
   .catch(error => {
     console.error("Fetch error:", error);
@@ -484,6 +488,66 @@ function toggleFollow(button, userId) {
       syncAllFollowButtons(username, data.action === 'followed');
 
       console.log(`${data.action} ${username}`);
+    } else {
+      alert(data.error || 'Failed to update follow status');
+      button.textContent = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error updating follow status:', error);
+    alert('Network error occurred');
+    button.textContent = originalText;
+  })
+  .finally(() => {
+    button.disabled = false;
+  });
+}
+
+function toggleMainProfileFollow(username, button) {
+  const isFollowing = button.classList.contains("following");
+  const action = isFollowing ? 'unfollow' : 'follow';
+
+  button.disabled = true;
+  const originalText = button.textContent;
+  button.textContent = 'Loading...';
+
+  fetch('../php/follow.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action: action,
+      username: username
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const newFollowStatus = data.action === 'followed';
+
+      if (newFollowStatus) {
+        button.textContent = "Following";
+        button.classList.add("following");
+        const userId = data.target_user_id;
+        if (typeof sendNotification === 'function') {
+          sendNotification('follow', userId, 'started following you.');
+        }
+      } else {
+        button.textContent = "Follow";
+        button.classList.remove("following");
+      }
+
+      // Update cache and broadcast to other pages
+      followStatusCache[username] = newFollowStatus;
+      broadcastFollowUpdate(username, newFollowStatus);
+
+      updateFollowingCount(data.current_user_following);
+      broadcastFollowingCountUpdate(data.current_user_following);
+
+      // Sync all buttons on current page
+      syncAllFollowButtons(username, newFollowStatus);
+
     } else {
       alert(data.error || 'Failed to update follow status');
       button.textContent = originalText;
@@ -1362,8 +1426,10 @@ function loadComments(postId, commentListContainer) {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        let username = data.comments[0].username;
-        usernames.push(username);
+        if (data.comments[0] && data.comments[0].username) {
+          let username = data.comments[0].username;
+          usernames.push(username);
+        }
         displayComments(data.comments, commentListContainer);
         initializeFollowStatus();
         updateCommentCount(postId);
@@ -1902,7 +1968,6 @@ function submitShare() {
         const postWrapperId = data.post_id;
         alert("Post shared successfully!");
         closeShareModal();
-        loadPosts();
         sendNotification('share', postWrapperId, 'shared your post.');
       } else {
         alert(data.error || "Error sharing post");
@@ -1925,8 +1990,11 @@ function copyLink(button) {
 
 window.addEventListener("click", function (e) {
   const logoutModal = document.getElementById("logout_modal");
+  const shareModal = document.getElementById("share_modal");
   if (e.target === logoutModal) {
     hideLogout();
+  } else if (e.target === shareModal) {
+    closeShareModal();
   }
 });
 
