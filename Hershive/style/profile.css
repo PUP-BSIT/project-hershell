@@ -11,16 +11,18 @@ body {
 }
 
 .top-bar {
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid black;
-  justify-content: space-between;
-  margin-bottom: 10px;
   position: sticky;
   top: 0;
   background-color: #f8f5ea;
-  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(to right, #ecb06e, #ad7943) 1;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .logo {
@@ -56,9 +58,20 @@ body {
 
 .search-bar input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid black;
+  padding: 10px 15px;
+  border: 1px solid transparent;
   border-radius: 20px;
+
+  background-image:
+    linear-gradient(white, white),
+    linear-gradient(to right, #ecb06e, #ad7943);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #333;
+  outline: none;
 }
 
 .navigation-icons {
@@ -78,6 +91,11 @@ body {
 .navigation-icons img {
   width: 30px;
   height: 30px;
+}
+
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
 }
 
 .menu-button {
@@ -1439,8 +1457,8 @@ body.no-scroll {
 
 .notification-count {
   position: absolute;
-  top: 7px;
-  right: 55px;
+  top: -5px;
+  right: -5px;
   background: red;
   color: white;
   font-size: 12px;
@@ -1451,6 +1469,7 @@ body.no-scroll {
   min-width: 18px;
   text-align: center;
 }
+
 .hidden {
   display: none !important;
 }
