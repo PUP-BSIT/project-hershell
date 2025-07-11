@@ -106,6 +106,29 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+
+  fetch("../php/home.php")
+    .then(res => res.json())
+    .then(data => {
+      if (data.oauth) {
+        ['devhive', 'heybleepi'].forEach(function (provider) {
+          const btn = document.getElementById('share_to_' + provider);
+          if (!btn) return;
+          const hasToken = data.oauth[provider] && data.oauth[provider].token;
+          const isAllowed = data.oauth[provider] && data.oauth[provider].allowed;
+          btn.classList.remove('share-btn-disabled', 'share-btn-enabled');
+          if (!hasToken || !isAllowed) {
+            btn.disabled = true;
+            btn.title = "You are not authorized to share to " + provider;
+            btn.classList.add('share-btn-disabled');
+          } else {
+            btn.disabled = false;
+            btn.title = "Share to " + provider;
+            btn.classList.add('share-btn-enabled');
+          }
+        });
+      }
+    });
 });
 
 /** Notification polling for badge update **/
