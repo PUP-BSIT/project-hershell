@@ -6,29 +6,39 @@ const getElement = (id) => document.getElementById(id);
 const getElements = (selector) => document.querySelectorAll(selector);
 
 function togglePersonalDetails() {
+  localStorage.setItem('settingsTab', 'personal');
+
   setElementVisibility({
     personal_details: false,
     password: true,
     delete_account: true
   });
-  
+
   setActiveButton('personal_details_btn', [
     'password_btn',
     'delete_button'
   ]);
+
+  const passwordForm = document.getElementById('password_form');
+  if (passwordForm) passwordForm.reset();
 }
 
 function togglePasswordReset() {
+  localStorage.setItem('settingsTab', 'password');
+
   setElementVisibility({
     personal_details: true,
     password: false,
     delete_account: true
   });
-  
+
   setActiveButton('password_btn', [
     'personal_details_btn',
     'delete_button'
   ]);
+
+  const passwordForm = document.getElementById('password_form');
+  if (passwordForm) passwordForm.reset();
 }
 
 function setElementVisibility(elements) {
@@ -122,7 +132,15 @@ document.addEventListener('click', function(event) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-  togglePersonalDetails();
+  const activeTab = localStorage.getItem('settingsTab') || 'personal';
+
+  if (activeTab === 'password') {
+    togglePasswordReset();
+  } else if (activeTab === 'delete') {
+    confirmDelete();
+  } else {
+    togglePersonalDetails();
+  }
 
   const fields = ['name', 'username', 'location'];
   fields.forEach(field => {
@@ -235,10 +253,8 @@ function setButtonLoadingState(button, text, loading) {
 }
 
 function clearStorageAndRedirect() {
-  if (typeof(Storage) !== "undefined") {
-    localStorage.clear();
-    sessionStorage.clear();
-  }
+  localStorage.clear();
+  sessionStorage.clear();
   window.location.replace('../html/login.html');
 }
 
@@ -302,21 +318,27 @@ function togglePassword(inputId, btn) {
 }
 
 function showRules() {
-  const rules = document.getElementById("rules");
+  const rules = document.getElementById("settings_rules");
   if (rules) rules.classList.add("active");
 }
 
 function hideRules() {
   setTimeout(() => {
-    const rules = document.getElementById("rules");
-    if (rules) rules.classList.remove("active");
-  }, 300);
+    const rules = document.getElementById("settings_rules");
+    const active = document.activeElement;
+    const newPasswordInput = document.getElementById("new_password");
+
+    if (rules && newPasswordInput && active !== newPasswordInput) {
+      rules.classList.remove("active");
+    }
+  }, 50);
 }
 
 function validatePassword() {
-  const newPass = getElement("new_password")?.value || '';
-  const confirmPass = getElement("confirm_password")?.value || '';
-  
+  const newPass = document.getElementById("new_password")?.value || '';
+  const confirmPassInput = document.getElementById("confirm_password");
+  const confirmPass = confirmPassInput?.value || '';
+
   const rules = {
     length: newPass.length >= 8,
     number: /\d/.test(newPass),
@@ -324,18 +346,35 @@ function validatePassword() {
     lowercase: /[a-z]/.test(newPass),
   };
 
-  let valid = true;
+  const ruleMap = {
+    length: "settings_length",
+    number: "settings_number",
+    uppercase: "settings_uppercase",
+    lowercase: "settings_lowercase"
+  };
+
+  let allValid = true;
+
   Object.entries(rules).forEach(([rule, isValid]) => {
-    const element = getElement(rule);
+    const element = document.getElementById(ruleMap[rule]);
     if (element) {
       element.className = isValid ? "valid" : "invalid";
     }
-    if (!isValid) valid = false;
+    if (!isValid) allValid = false;
   });
 
-  const match = newPass === confirmPass && newPass.length > 0;
-  const resetBtn = getElement("reset_btn");
-  if (resetBtn) resetBtn.disabled = !(valid && match);
+  const matchWarning = document.getElementById("settings_match_warning");
+  const hasTypedConfirm = confirmPass.length > 0;
+  const match = newPass === confirmPass;
+
+  if (matchWarning) {
+    matchWarning.classList.toggle("hidden", match || !hasTypedConfirm);
+  }
+
+  const resetBtn = document.getElementById("reset_btn");
+  if (resetBtn) {
+    resetBtn.disabled = !(allValid && match);
+  }
 }
 
 function checkUserSession() {
@@ -545,7 +584,6 @@ function validateField(field) {
   updateCharacterCounts(field);
 }
 
-
 function updateCharacterCounts(field) {
   const updateCount = (inputId, countId, max) => {
     const input = document.getElementById(inputId);
@@ -575,23 +613,18 @@ function saveField(field) {
 
   switch (field) {
     case 'name':
-      data.first_name = document.getElementById('edit_first_name')
-        ?.value.trim() || '';
-      data.middle_name = document.getElementById('edit_middle_name')
-        ?.value.trim() || '';
-      data.last_name = document.getElementById('edit_last_name')
-        ?.value.trim() || '';
+      data.first_name = document.getElementById('edit_first_name')?.value.trim() || '';
+      data.middle_name = document.getElementById('edit_middle_name')?.value.trim() || '';
+      data.last_name = document.getElementById('edit_last_name')?.value.trim() || '';
       break;
     case 'username':
-      data.username = document.getElementById('edit_username_input')
-        ?.value.trim() || '';
+      data.username = document.getElementById('edit_username_input')?.value.trim() || '';
       break;
     case 'birth':
       data.birthday = document.getElementById('edit_birthday')?.value || '';
       break;
     case 'location':
-      data.country = document.getElementById('edit_country')
-        ?.value.trim() || '';
+      data.country = document.getElementById('edit_country')?.value.trim() || '';
       data.city = document.getElementById('edit_city')?.value.trim() || '';
       break;
   }
@@ -600,6 +633,7 @@ function saveField(field) {
     .then(res => {
       if (res.status === 'success') {
         updateDisplay(field);
+        storeOriginalValues(field);
         hideEditForm(field);
         showPopup('Success', 'Information updated successfully', 'success');
       } else {
@@ -617,13 +651,17 @@ function saveField(field) {
     });
 }
 
+
 function updateDisplay(field) {
   switch(field) {
     case 'name':
       const firstName = document.getElementById('edit_first_name').value;
       const lastName = document.getElementById('edit_last_name').value;
-      document.getElementById('name_display').textContent = 
-        `${firstName} ${lastName}`;
+      const middleName = document.getElementById('edit_middle_name').value.trim();
+      document.getElementById('name_display').textContent =
+        middleName
+          ? `${firstName} ${middleName} ${lastName}`
+          : `${firstName} ${lastName}`;
       break;
     case 'username':
       const username = document.getElementById('edit_username_input').value;
@@ -644,25 +682,27 @@ function updateDisplay(field) {
 }
 
 function confirmDelete() {
+  localStorage.setItem('settingsTab', 'delete');
+
   setElementVisibility({
-      personal_details: true,
-      password: true,
-      delete_account: false
+    personal_details: true,
+    password: true,
+    delete_account: false
   });
-  
+
   setActiveButton('delete_button', [
-      'personal_details_btn',
-      'password_btn'
+    'personal_details_btn',
+    'password_btn'
   ]);
 }
 
 function showDeletePasswordModal() {
-  document.getElementById('delete_password_modal').classList.remove('hidden');
+  document.getElementById('delete_acount_modal').classList.remove('hidden');
   document.getElementById('delete_confirm_password').focus();
 }
 
 function closeDeletePasswordModal() {
-  document.getElementById('delete_password_modal').classList.add('hidden');
+  document.getElementById('delete_acount_modal').classList.add('hidden');
   document.getElementById('delete_confirm_password').value = '';
 }
 
@@ -713,36 +753,35 @@ function executeAccountDeletion(password) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Server did not return JSON response');
-    }
-
     return response.json();
   })
   .then(data => {
+    closeDeletePasswordModal();
+
     if (data.status === 'success') {
-      closeDeletePasswordModal();
-      const successMessage = 'Your account has been successfully deleted. ' +
-        'You will now be redirected to the login page.';
       showPopup(
-        'Account Deleted', 
-        successMessage, 
-        'success', 
+        'Account Deleted',
+        'Your account has been successfully deleted. You will now be redirected to the login page.',
+        'success',
         () => {
           clearStorageAndRedirect();
         }
       );
+
+      setTimeout(() => {
+        clearStorageAndRedirect();
+      }, 3000);
     } else {
-      showPopup('Error', data.message || 'Failed to delete account.', 
-        'error');
+      showPopup('Error', data.message || 'Failed to delete account.', 'error');
     }
   })
   .catch(error => {
     console.error('Delete account error:', error);
-    const errorMessage = 'An error occurred while deleting your account. ' +
-      'Please try again.';
-    showPopup('Error', errorMessage, 'error');
+    showPopup(
+      'Error',
+      'An error occurred while deleting your account. Please try again.',
+      'error'
+    );
   })
   .finally(() => {
     deleteBtn.disabled = false;
