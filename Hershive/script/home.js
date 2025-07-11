@@ -2002,8 +2002,6 @@ function editComment(commentId) {
   const textEl = bubble.querySelector('.comment-text');
   const originalText = textEl.textContent;
 
-  textEl.style.display = 'none';
-
   isEditingComment = true;
 
   const formWrapper = document.createElement('div');
@@ -2072,42 +2070,53 @@ function deleteComment(commentId) {
   commentToDeleteId = commentId;
 
   const modal = document.getElementById('delete_comment_modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('active');
-
-    const confirmBtn = modal.querySelector('.submit-button');
-    const cancelBtn = modal.querySelector('.cancel-btn');
-
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-    newConfirmBtn.addEventListener('click', () => {
-      fetch('../php/comment_crud.php?action=delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ comment_id: commentToDeleteId })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
-            updateCommentCount(currentPostIdForComments);
-          } else {
-            alert(data.error || 'Failed to delete comment');
-          }
-        })
-        .catch(() => alert('Error deleting comment'))
-        .finally(() => {
-          closeMyNewModal();
-          commentToDeleteId = null;
-        });
-    });
-
-    cancelBtn.onclick = () => {
-      closeMyNewModal();
-    };
+  if (!modal) {
+    console.warn("Modal not found: #delete_comment_modal");
+    return;
   }
+
+  modal.classList.remove('hidden');
+  modal.classList.add('active');
+
+  const confirmButton = modal.querySelector('.confirm-button');
+  const cancelButton = modal.querySelector('.comment-cancel-btn');
+
+  if (!confirmButton || !cancelButton) {
+    console.warn("Confirm or cancel button not found inside the modal.");
+    return;
+  }
+
+  confirmButton.onclick = null;
+  cancelButton.onclick = null;
+
+  confirmButton.onclick = function () {
+    fetch('../php/comment_crud.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ comment_id: commentToDeleteId })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const list = document.getElementById('commentListContainer');
+          loadComments(currentPostIdForComments, list);
+          updateCommentCount(currentPostIdForComments);
+        } else {
+          alert(data.error || 'Failed to delete comment');
+        }
+      })
+      .catch(() => {
+        alert('Error deleting comment');
+      })
+      .finally(() => {
+        closeMyNewModal();
+        commentToDeleteId = null;
+      });
+  };
+
+  cancelButton.onclick = function () {
+    closeMyNewModal();
+  };
 }
 
 function closeMyNewModal() {
