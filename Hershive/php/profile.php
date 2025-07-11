@@ -405,7 +405,7 @@ $bio = htmlspecialchars($user['bio'] ?? '');
           <p>Are you sure you want to permanently remove this comment?</p>
           <div class="button-holder">
             <button class="comment-cancel-btn" onclick="closeMyNewModal()">Cancel</button>
-            <button class="confirm-button" onclick="confirmMyAction()">Confirm</button>
+            <button class="confirm-button">Confirm</button>
           </div>
         </div>
       </div>
