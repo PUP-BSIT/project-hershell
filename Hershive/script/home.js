@@ -222,7 +222,12 @@ function createPostElement(post, forModal = false) {
             <p class="shared-username">Originally posted by
               <strong>${post.original_post.username}</strong>
             </p>
-            <div class="shared-content">${post.original_post.content}</div>
+            <div class="shared-content">
+              <div class="post-text-wrapper" data-detect="true">
+                <div class="post-text">${post.original_post.content}</div>
+                <span class="see-more" onclick="toggleSeeMore(this)">...see more</span>
+              </div>
+            </div>
             ${post.original_post.media_url ? (
               post.original_post.media_type === "video"
                 ? `<video controls class="preview-video">
@@ -304,7 +309,7 @@ function toggleSeeMore(button) {
   button.textContent = isExpanded ? 'See less' : '...see more';
 
   if (!isExpanded) {
-    const postDiv = button.closest('.sample-post');
+    const postDiv = button.closest('.post-user-name');
     const postTop = postDiv.getBoundingClientRect().top + window.pageYOffset;
 
     window.scrollTo({
