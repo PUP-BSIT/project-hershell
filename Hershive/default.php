@@ -82,7 +82,7 @@ if (isset($_SESSION['username'])) {
 
   <footer>
     <p>©2025 Hershive. All Rights Reserved.</p>
-    <a href="mailto:support@hershive.com">support@hershive.com</a>
+    <a href="mailto:hershell.dit@gmail.com">hershell.dit@gmail.com</a>
   </footer>
 
   <script src="project-hershell/Hershive/js/homepage.js"></script>
