@@ -553,6 +553,15 @@ function editPost(button) {
   }
 }
 
+function closePostModal() {
+  const postModal = document.getElementById("post_modal");
+  if (postModal) {
+    postModal.classList.add("hidden");
+    postModal.classList.remove("flex-center");
+  }
+  document.body.classList.remove("no-scroll");
+}
+
 function closeEditPostModal() {
   const modal = document.getElementById("edit_post_modal");
   const editor = document.getElementById("edit_editor");
