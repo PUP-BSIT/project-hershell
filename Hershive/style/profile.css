@@ -1594,7 +1594,13 @@ body.no-scroll {
   color: white;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  min-width: 85px;
+    height: 32px;
+  }
 
+.follow-button.invisible-placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .follow-button:hover {

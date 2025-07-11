@@ -1401,7 +1401,7 @@ function loadFollowing() {
 }
 
 function createUserItem(user) {
-  const isCurrentUser = currentUserId === user.username;
+  const isCurrentUser = currentUser === user.username;
   const followButton = isCurrentUser
   ? `<button class="follow-button invisible-placeholder"></button>`
   : `
