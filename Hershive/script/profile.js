@@ -2512,37 +2512,44 @@ function deleteComment(commentId) {
     modal.classList.remove('hidden');
     modal.classList.add('active');
 
-    const confirmBtn = modal.querySelector('.submit-button');
-    const cancelBtn = modal.querySelector('.cancel-btn');
+    const confirmBtn = modal.querySelector('.confirm-button');
+    const cancelBtn = modal.querySelector('.comment-cancel-btn');
 
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    if (confirmBtn) {
+      const newConfirmBtn = confirmBtn.cloneNode(true);
+      confirmBtn.replaceWith(newConfirmBtn);
 
-    newConfirmBtn.addEventListener('click', () => {
-      fetch('../php/comment_crud.php?action=delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ comment_id: commentToDeleteId })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
-            updateCommentCount(currentPostIdForComments);
-          } else {
-            alert(data.error || 'Failed to delete comment');
-          }
+      newConfirmBtn.addEventListener('click', () => {
+        fetch('../php/comment_crud.php?action=delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ comment_id: commentToDeleteId })
         })
-        .catch(() => alert('Error deleting comment'))
-        .finally(() => {
-          closeMyNewModal();
-          commentToDeleteId = null;
-        });
-    });
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadComments(currentPostIdForComments, 
+                  document.getElementById('commentListContainer'));
+              updateCommentCount(currentPostIdForComments);
+            } else {
+              alert(data.error || 'Failed to delete comment');
+            }
+          })
+          .catch(error => {
+            alert('Error deleting comment');
+          })
+          .finally(() => {
+            closeMyNewModal();
+            commentToDeleteId = null;
+          });
+      });
+    }
 
-    cancelBtn.onclick = () => {
-      closeMyNewModal();
-    };
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        closeMyNewModal();
+      };
+    }
   }
 }
 
