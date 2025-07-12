@@ -131,20 +131,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-/** Notification polling for badge update **/
-setInterval(() => {
-  fetch('../php/get_notifications.php')
-    .then(res => res.json())
-    .then(data => {
-      const badge = document.getElementById('notification_count');
-      const unread = data.unread_count || 0;
-      if (badge) {
-        badge.textContent = unread;
-        badge.classList.toggle("hidden", unread === 0);
-      }
-    });
-}, 3000);
-
 function openPostModal(event) {
   // Prevent opening when clicking privacy dropdown
   if (event && event.target.closest("#privacy")) {
@@ -1170,146 +1156,6 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
-function toggleNotificationPanel() {
-  const panel = document.getElementById("notification_panel");
-  const badge = document.getElementById("notification_count");
-
-  if (panel) {
-    panel.classList.toggle("hidden");
-
-    if (!panel.classList.contains("hidden")) {
-      // Mark notifications as read
-      fetch('../php/mark_notifications_read.php', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          // Optionally handle errors
-        });
-
-      if (badge) badge.classList.add("hidden");
-      loadNotifications();
-    }
-  }
-}
-window.toggleNotificationPanel = toggleNotificationPanel;
-
-// Click outside to close notification panel
-// (place after DOMContentLoaded or at end of file)
-document.addEventListener('click', function(event) {
-  const panel = document.getElementById("notification_panel");
-  const button = document.querySelector(".notification-wrapper");
-
-  if (!panel || !button) return;
-
-  const clickedInsidePanel = panel.contains(event.target);
-  const clickedButton = button.contains(event.target);
-
-  if (!clickedInsidePanel && !clickedButton && !panel.classList.contains("hidden")) {
-    panel.classList.add("hidden");
-  }
-});
-
-let allNotifications = [];
-let notificationsShown = 0;
-const INITIAL_SHOW = 6;
-const PREVIEW_COUNT = 5;
-
-function loadNotifications() {
-  fetch('../php/get_notifications.php')
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById('notification_container');
-      const badge = document.getElementById('notification_count');
-      const notifications = data.notifications || [];
-      const unread = data.unread_count || 0;
-
-      container.innerHTML = "";
-
-      if (notifications.length === 0) {
-        container.innerHTML = "<p>No notifications available.</p>";
-        if (badge) badge.classList.add("hidden");
-        return;
-      }
-
-      allNotifications = data.notifications;
-      notificationsShown = 0;
-      appendNotifications(INITIAL_SHOW);
-
-      if (badge) {
-        badge.textContent = unread;
-        if (unread > 0) {
-          badge.classList.remove("hidden");
-        } else {
-          badge.classList.add("hidden");
-        }
-      }
-    });
-}
-
-function appendNotifications(count) {
-  const container = document.getElementById('notification_container');
-  const start = notificationsShown;
-  const end = Math.min(notificationsShown + count, allNotifications.length);
-
-  for (let i = start; i < end; i++) {
-    const notif = allNotifications[i];
-    const div = document.createElement('div');
-    div.className = "notification";
-    let html = `
-      <img src="${notif.profile_picture_url || '../assets/temporary_pfp.png'}" class="notif-pfp" />
-      <div class="notif-content">
-        <div class="notif-middle-content">
-          <p><strong>${notif.username}</strong><span> ${notif.message}</span></p>
-          <p class="time">${formatTime(notif.created_at)}</p>
-        </div>
-        ${notif.media_url ? `<img src="${notif.media_url}" class="notif-thumbnail"/>` : ''}
-      </div>
-    `;
-    div.innerHTML = html;
-    container.appendChild(div);
-  }
-
-  notificationsShown = end;
-
-  // Remove old preview button if present
-  const oldPreview = document.querySelector('.notification-preview');
-  if (oldPreview) oldPreview.remove();
-
-  // If there are more notifications to show, add the "Show previous" button
-  if (notificationsShown < allNotifications.length) {
-    const previewDiv = document.createElement('div');
-    previewDiv.className = "notification-preview";
-    previewDiv.innerHTML = `<button id="showPreviewBtn" style="padding:6px 18px;border-radius:20px;background:#e0c48f;border:none;color:#222;cursor:pointer;">Show previous</button>`;
-    container.appendChild(previewDiv);
-
-    document.getElementById('showPreviewBtn').onclick = function(e) {
-      e.stopPropagation();
-      appendNotifications(PREVIEW_COUNT);
-    };
-  }
-}
-
-
-function formatTime(timestamp) {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = Math.floor((now - date) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return date.toLocaleDateString();
-}
-
-document.addEventListener('click', function (e) {
-  const panel = document.getElementById("notification_panel");
-  if (!panel) return;
-  if (
-    !panel.contains(e.target) &&
-    !e.target.closest('button[onclick="toggleNotificationPanel()"]')
-  ) {
-    panel.classList.remove("active");
-  }
-});
-
 // --- Make functions available globally for inline onclick ---
 window.openPostModal = openPostModal;
 window.closePostModal = closePostModal;
@@ -1490,9 +1336,6 @@ function toggleFollow(userId, button) {
       if (newFollowStatus) {
         button.classList.add('following');
         button.textContent = 'Following';
-        if (typeof sendNotification === 'function') {
-          sendNotification('follow', userId, 'started following you.');
-        }
       } else {
         button.classList.remove('following');
         button.textContent = 'Follow';
@@ -1949,9 +1792,6 @@ function toggleMainProfileFollow(username, button) {
         button.textContent = "Following";
         button.classList.add("following");
         const userId = data.target_user_id;
-        if (typeof sendNotification === 'function') {
-          sendNotification('follow', userId, 'started following you.');
-        }
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -2009,9 +1849,6 @@ function togglePostFollow(button, username) {
         button.textContent = "Following";
         button.classList.add("following");
         const userId = data.target_user_id;
-        if (typeof sendNotification === 'function') {
-          sendNotification('follow', userId, 'started following you.');
-        }
       } else {
         button.textContent = "Follow";
         button.classList.remove("following");
@@ -2371,10 +2208,6 @@ function submitComment() {
 
     loadComments(currentPostIdForComments, document.getElementById('commentListContainer'));
     updateCommentCount(currentPostIdForComments);
-
-    if (typeof sendNotification === 'function') {
-      sendNotification('comment', currentPostIdForComments, 'commented on your post.');
-    }
 
     setTimeout(() => {
       inp.focus();
