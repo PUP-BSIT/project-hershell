@@ -3599,3 +3599,8 @@ body.modal-open {
 #follower_count:hover {
   color: #333;
 }
+
+.comment-post-header .username {
+  color: #000 !important;
+  text-decoration: none !important;
+}
