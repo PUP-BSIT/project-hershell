@@ -299,6 +299,6 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     </div>
   <?php endif; ?>
 
-  <script src="../js/forgot_password.js"></script>
+  <script src="../script/forgot_password.js"></script>
 </body>
 </html>
