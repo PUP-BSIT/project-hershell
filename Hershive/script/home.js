@@ -1692,6 +1692,7 @@ function toggleCommentModal(button) {
   const contentEl = postElement.querySelector('.post-content');
   const visibilityIconEl = postElement.querySelector('.visibility-icon');
   const sharedIndicatorEl = postElement.querySelector('.external-share-indicator');
+  const userId = postElement.querySelector('.profile-pic')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '';
 
   const visibilityCopy = visibilityIconEl ? visibilityIconEl.cloneNode(true) : null;
   const sharedCopy = sharedIndicatorEl ? sharedIndicatorEl.cloneNode(true) : null;
@@ -1709,10 +1710,13 @@ function toggleCommentModal(button) {
     `
     <div class="comment-post-header">
       <div class="post-header-left">
-        <img src="${profilePic}" alt="${username}" class="profile-pic" />
+        <img src="${profilePic}" alt="${username}" class="profile-pic"
+          onclick="redirectToUserProfile('${userId}')"/>
         <div class="post-info">
           <div class="username-container">
-            <span class="username">${username}</span>
+            <a class="username" href="../php/profile.php?user_id=${userId}">
+              ${username}
+            </a>
             ${followBtnHTML}
           </div>
           <span class="timestamp">
@@ -1720,7 +1724,6 @@ function toggleCommentModal(button) {
             ${visibilityCopy ? visibilityCopy.outerHTML : ''}
             ${sharedCopy ? sharedCopy.outerHTML : ''}
           </span>
-
         </div>
       </div>
     </div>
