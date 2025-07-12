@@ -2440,3 +2440,28 @@ body.no-scroll {
 .delete-post-confirm-btn:hover {
   background-color: #c0392b;
 }
+
+.post-follow-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.post-follow-btn:hover {
+  color: #0e496e;
+}
+
+.post-follow-btn.following {
+  color: #657786;
+}
+
+.post-follow-btn.following:hover {
+  color: #dc3545;
+}
