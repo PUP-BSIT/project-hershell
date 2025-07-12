@@ -1841,22 +1841,16 @@ body.no-scroll {
 /*=====Custom modal=====*/
 .custom-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: none;
-  align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.2);
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  align-items: center;
+  z-index: 1000;
 }
 
-.custom-modal-overlay.active {
+.custom-modal-overlay:not(.hidden) {
   display: flex;
-  opacity: 1;
 }
 
 .custom-modal {
@@ -1864,22 +1858,13 @@ body.no-scroll {
   border-radius: 16px;
   width: 420px;
   max-width: 90vw;
-  max-height: 80vh;
-  padding: 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  position: relative;
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
   overflow: hidden;
-}
-
-.custom-modal-overlay.active .custom-modal {
-  transform: scale(1);
 }
 
 .custom-modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px 24px 16px;
   border-bottom: 1px solid #e0d4c4;
@@ -1914,113 +1899,49 @@ body.no-scroll {
 }
 
 .custom-content-area {
-  max-height: 400px;
-  overflow-y: auto;
   padding: 16px 24px;
 }
 
-.custom-input-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 24px 20px;
-  border-top: 1px solid #e0d4c4;
-  background-color: #f4ead5;
-}
-
-.custom-input-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.custom-input-wrapper {
-  flex: 1;
-  position: relative;
-}
-
-.custom-input {
-  width: 100%;
-  padding: 12px 48px 12px 16px;
-  border: none;
-  border-radius: 24px;
-  background-color: white;
+.custom-content-area p {
   font-size: 14px;
   color: #333;
-  outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  margin-bottom: 20px;
 }
 
-.custom-input:focus {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.custom-input::placeholder {
-  color: #999;
-}
-
-.custom-send-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
+.button-holder {
   display: flex;
-  align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  gap: 30px;
 }
 
-.custom-send-btn:hover {
-  background-color: #f0f0f0;
-}
-
-.custom-send-btn svg {
-  width: 20px;
-  height: 20px;
-  fill: #666;
-  transition: fill 0.2s ease;
-}
-
-.custom-send-btn:hover svg {
-  fill: #333;
-}
-
-.custom-send-btn:active {
-  transform: translateY(-50%) scale(0.95);
-}
-
-.custom-context-menu {
-  position: absolute;
-  top: 30px;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-}
-
-.custom-context-menu button {
-  padding: 8px 12px;
-  background: none;
-  border: none;
+.comment-cancel-btn,
+.confirm-button {
+  padding: 8px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  text-align: left;
-  font-size: 13px;
-  color: #333;
-  border-radius: 2px;
-  transition: background-color 0.2s ease;
+}
+
+.comment-cancel-btn {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.comment-cancel-btn:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.confirm-button {
+  background-color: #bf4040;
+  color: #fff;
+  border: 2px solid #000;
+}
+
+.confirm-button:hover {
+  background-color: #c0392b;
 }
 
 .custom-context-menu button:hover {
@@ -2530,4 +2451,110 @@ body.no-scroll {
 .share-btn-enabled {
   opacity: 1;
   cursor: pointer;
+}
+
+/* Delete Post Modal Styles */
+.delete-post-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-post-modal-overlay:not(.hidden) {
+  display: flex;
+}
+
+.delete-post-modal {
+  background-color: #f4ead5;
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.delete-post-modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e0d4c4;
+}
+
+.delete-post-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.delete-post-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.delete-post-close-btn:hover {
+  background-color: #e0d4c4;
+  color: #333;
+}
+
+.delete-post-modal-content {
+  padding: 16px 24px;
+}
+
+.delete-post-modal-content p {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.delete-post-button-holder {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.delete-post-cancel-btn,
+.delete-post-confirm-btn {
+  padding: 8px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-post-cancel-btn {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.delete-post-cancel-btn:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.delete-post-confirm-btn {
+  background-color: #bf4040;
+  color: #fff;
+  border: 2px solid #000;
+}
+
+.delete-post-confirm-btn:hover {
+  background-color: #c0392b;
 }
