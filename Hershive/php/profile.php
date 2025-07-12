@@ -277,11 +277,11 @@ $bio = htmlspecialchars($user['bio'] ?? '');
               <input type="hidden" name="shared_post_id" id="shared_post_id">
               <div class="share-icons">
                 <button type="submit" name="share_to" value="devhive" id="share_to_devhive">
-                  <img src="../assets/devhive_logo.jpg" alt="devhive"/>
+                  <img src="../assets/devhive_logo1.jpg" alt="devhive"/>
                 </button>
                 <button type="submit" name="share_to" value="heybleepi"
                         id="share_to_heybleepi" title="Share to heybleepi">
-                  <img src="../assets/heybleepi_logo.png" alt="heybleepi"/>
+                  <img src="../assets/heybleepi_logo1.png" alt="heybleepi"/>
                 </button>
               </div>
             </form>
