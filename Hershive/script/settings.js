@@ -146,21 +146,6 @@ document.addEventListener('click', function(event) {
       !menuButton.contains(event.target)) {
     menuDropdown.classList.add('hidden');
   }
-  
-  const notificationPanel = getElement('notification_panel');
-  const notificationButton = document.querySelector(
-    '.navigation-icons button[onclick="toggleNotificationPanel()"]'
-  );
-  
-  const panelVisible = notificationPanel && 
-                       notificationPanel.style.display === 'block';
-  const clickedOutside = !notificationPanel.contains(event.target) && 
-                         (!notificationButton || 
-                          !notificationButton.contains(event.target));
-  
-  if (panelVisible && clickedOutside) {
-    notificationPanel.style.display = 'none';
-  }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -431,20 +416,6 @@ function checkUserSession() {
     })
     .catch(() => redirectToLogin());
 }
-
-function toggleNotificationPanel() {
-  const panel = getElement("notification_panel");
-  if (panel) {
-    panel.classList.toggle("hidden");
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const panel = getElement("notification_panel");
-  if (panel && !panel.classList.contains("hidden")) {
-    panel.classList.add("hidden");
-  }
-});
 
 function menuToggleDropdown() {
   const dropdown = getElement("menu_dropdown");
