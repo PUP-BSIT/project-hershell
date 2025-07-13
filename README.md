@@ -30,3 +30,8 @@ Use this test account to explore the platform's features and UI.
 | HTML            | PHP          | MySQL    |
 | CSS             | JavaScript   |          |
 | JavaScript      |              |          |
+
+---
+
+### ▶️ Project Presentation Link
+**🔗 [Hershell Project Presentation - YouTube](https://youtu.be/1dra1Nr-_Hc)**
